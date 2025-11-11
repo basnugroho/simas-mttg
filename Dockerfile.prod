@@ -18,6 +18,7 @@ RUN apt-get -y update && apt-get install -y \
     libjpeg-dev \
     libpng-dev \
     libfreetype6-dev \
+    libcurl4-openssl-dev \
     git \
     curl \
     ca-certificates \
@@ -32,7 +33,7 @@ RUN echo "upload_max_filesize = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
 # Install PHP extensions
 RUN docker-php-ext-configure intl
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype
-RUN docker-php-ext-install intl opcache pdo_mysql zip gd
+RUN docker-php-ext-install intl opcache pdo_mysql zip gd curl
 
 # Enable Apache modules
 RUN a2enmod rewrite
@@ -60,3 +61,11 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Publish L5 Swagger vendor dan generate dokumentasi Swagger
 RUN php artisan vendor:publish --provider="L5Swagger\\L5SwaggerServiceProvider" || true
 RUN php artisan l5-swagger:generate || true
+
+# Generate application key if not set
+RUN php artisan key:generate || true
+
+# Cache configuration, routes, and views for production
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache

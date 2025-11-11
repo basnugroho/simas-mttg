@@ -6,13 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Controller;
 
-/**
- * @OA\Info(
- *   title="mttg API",
- *   version="1.0.0",
- *   @OA\Contact(email="dev@example.com")
- * )
- */
 class BitcoinController extends Controller
 {
     /**
@@ -20,7 +13,7 @@ class BitcoinController extends Controller
      *
      * @OA\Get(
      *     path="/api/bitcoin-price",
-     *     tags={"Cryptocurrency"},
+     *     tags={"Tes API"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",

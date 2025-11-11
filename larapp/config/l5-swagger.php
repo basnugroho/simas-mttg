@@ -5,7 +5,12 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'mttg API',
+                'description' => 'API documentation for mttg project',
+                'version' => '1.0.0',
+                'contact' => [
+                    'email' => 'dev@example.com'
+                ],
             ],
 
             'routes' => [
