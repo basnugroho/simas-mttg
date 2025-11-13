@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\UserApprovalController;
 
 
 // Dashboard: hanya butuh autentikasi (auth). Verified biasanya memeriksa email/akun terverifikasi.
@@ -8,7 +10,13 @@ use Illuminate\Support\Facades\Route;
 // Fortify handles the POST /login authentication; this GET route maps to the Blade view.
 Route::view('/login', 'auth.login')->middleware('guest')->name('login');
 
-Route::view('/dashboard', 'dashboard')->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+
+// Admin (webmaster) routes to approve/promote users
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+	Route::get('/pending-users', [UserApprovalController::class, 'index'])->name('admin.pending');
+	Route::post('/approve-user/{id}', [UserApprovalController::class, 'approve'])->name('admin.approve');
+});
 
 Route::view('/', 'home');
 Route::view('/mosque', 'mosque');

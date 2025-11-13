@@ -71,8 +71,3 @@ Alur Git singkat
 
 Keamanan / `.gitignore`
 - Jangan commit: `larapp/.env`, `larapp/vendor/`, `larapp/node_modules/`.
-
-Langkah berikutnya (opsional)
-- Saya dapat menambah `CONTRIBUTING.md` singkat atau mengubah konfigurasi menjadi menggunakan user DB non-root — beri tahu saya pilihan Anda.
-
-Jika Anda ingin, saya bisa langsung push perubahan README ini ke branch `development`.

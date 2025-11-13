@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -8,11 +6,17 @@ services:
     image: ${APP_NAME}-be
     container_name: ${APP_NAME}-be
     ports:
-      - "3001:80"
+      # Host port configurable via .env to avoid collisions (default 8090)
+      - "${APP_HOST_PORT:-3002}:80"
     volumes:
       - ./larapp:/var/www/html:cached
+      # Mount entrypoint from host so changes take effect immediately without rebuild
+      - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    # Use larapp/.env so APP_ENV, APP_KEY and app-specific vars are read for runtime
     env_file:
-      - ./.env
+      - ./larapp/.env
+    environment:
+      - APP_ENV=local
     depends_on:
       - db
     restart: unless-stopped
@@ -21,13 +25,14 @@ services:
     image: mysql:8.0
     container_name: ${APP_NAME}-db
     restart: unless-stopped
+    # Use larapp/.env so APP_ENV is available inside vite container (decides dev vs build)
     env_file:
-      - ./.env
+      - ./larapp/.env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      # Do not set MYSQL_USER to the root user; if you need an application user,
+      # create it explicitly or set DB_USERNAME in `larapp/.env` to a non-root user.
     ports:
       - "3307:3306"
     volumes:
@@ -41,6 +46,24 @@ services:
       - "8081:8080"
     depends_on:
       - db
+
+  vite:
+    image: node:20
+    container_name: ${APP_NAME}-vite
+    working_dir: /var/www/html
+    volumes:
+      - ./larapp:/var/www/html:cached
+    command: >
+      sh -c "npm install --prefix /var/www/html && if [ \"$${APP_ENV}\" = 'local' ]; then npm run --prefix /var/www/html dev -- --host 0.0.0.0 --port 5173; else npm run --prefix /var/www/html build; fi"
+    ports:
+      # Host Vite port configurable via .env (default 5174)
+      - "${VITE_HOST_PORT:-5174}:5173"
+    # use larapp/.env so APP_ENV=local is available to the vite container
+    env_file:
+      - ./larapp/.env
+    environment:
+      - APP_ENV=local
+    restart: unless-stopped
 
 volumes:
   db_data:

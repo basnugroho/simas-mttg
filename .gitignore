@@ -2,9 +2,25 @@
 .env
 larapp/.env
 
+# Local env variants
+.env.local
+.env.*.local
+
 # Dependencies
+vendor/
+node_modules/
 larapp/vendor/
 larapp/node_modules/
+
+# Build / runtime artifacts
+/public/build
+larapp/public/build
+larapp/public/hot
+
+# PHP / composer
+.phpunit.result.cache
+.phpunit.cache
+.idea/
 
 # OS / Editor files
 .DS_Store
