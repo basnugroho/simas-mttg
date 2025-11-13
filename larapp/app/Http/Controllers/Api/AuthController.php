@@ -2,103 +2,88 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use OpenApi\Annotations as OA;
 
 class AuthController extends Controller
 {
-    /**
-     * @OA\Post(
-     *     path="/register",
-     *     summary="Register a new user",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","email","password","password_confirmation"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password123"),
-     *             @OA\Property(property="password_confirmation", type="string", format="password", example="password123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="User registered successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="user", type="object"),
-     *             @OA\Property(property="token", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error")
-     * )
-     */
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = $user->createToken('API Token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ], 201);
-    }
+    use ApiResponse;
 
     /**
-     * @OA\Post(
-     *     path="/login",
-     *     summary="Login user",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Login successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="user", type="object"),
-     *             @OA\Property(property="token", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized")
-     * )
-     */
+ * @OA\Post(
+ *     path="/auth/login",
+ *     tags={"Auth"},
+ *     summary="Login admin",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"email", "password"},
+ *             @OA\Property(property="email", type="string", format="email", example="admin@example.com"),
+ *             @OA\Property(property="password", type="string", format="password", example="secret")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Login berhasil",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="Login berhasil"),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="object",
+ *                 @OA\Property(property="token", type="string", example="1|xxxxxxxxx")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(response=401, description="Email atau password salah")
+ * )
+ */
+
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->validate([
+            'username' => 'required|string',   // <– pakai username
+            'password' => 'required',
+        ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            $token = $user->createToken('API Token')->plainTextToken;
+        /** @var \App\Models\User|null $user */
+        $user = User::where('username', $credentials['username'])->first();
 
-            return response()->json([
-                'user' => $user,
-                'token' => $token,
-            ]);
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            return $this->error('Username atau password salah', 401);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 401);
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return $this->success(['token' => $token], 'Login berhasil');
+    }
+
+
+/**
+ * @OA\Post(
+ *     path="/auth/logout",
+ *     tags={"Auth"},
+ *     summary="Logout admin",
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Logout berhasil",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="Logout berhasil")
+ *         )
+ *     )
+ * )
+ */
+    public function logout(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+
+        return $this->success(null, 'Logout berhasil');
     }
 }

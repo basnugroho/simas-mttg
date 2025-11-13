@@ -1,52 +1,46 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+<x-auth.layout :title="'Daftar'">
+  <h2 class="text-3xl font-extrabold">Buat Akun</h2>
+  <p class="text-white/60 mt-2 mb-8">Daftarkan diri anda untuk mengakses aplikasi.</p>
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+  <form method="POST" action="{{ route('register') }}" class="space-y-5">
+    @csrf
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+    <div>
+      <x-auth.label for="name" value="Nama Lengkap" />
+      <x-auth.input id="name" name="name" placeholder="nama anda" value="{{ old('name') }}" required />
+      <x-auth.error :messages="$errors->get('name')" />
+    </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <div>
+      <x-auth.label for="username" value="Username" />
+      <x-auth.input id="username" name="username" placeholder="username unik" value="{{ old('username') }}" required />
+      <x-auth.error :messages="$errors->get('username')" />
+    </div>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
+    <div>
+      <x-auth.label for="email" value="Email (opsional)" />
+      <x-auth.input id="email" name="email" type="email" placeholder="email@contoh.com" value="{{ old('email') }}" />
+      <x-auth.error :messages="$errors->get('email')" />
+    </div>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+    <div>
+      <x-auth.label for="password" value="Password" />
+      <x-auth.input id="password" name="password" type="password" placeholder="min. 8 karakter" required />
+      <x-auth.error :messages="$errors->get('password')" />
+    </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+    <div>
+      <x-auth.label for="password_confirmation" value="Konfirmasi Password" />
+      <x-auth.input id="password_confirmation" name="password_confirmation" type="password" required />
+    </div>
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
+    <button type="submit" class="btn-red w-full text-white font-semibold py-3 rounded-lg shadow-md">
+      Daftar
+    </button>
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+    <p class="text-center text-white/70 text-sm">
+      Sudah punya akun?
+      <a href="{{ route('login') }}" class="text-white font-semibold underline">Masuk</a>
+    </p>
+  </form>
+</x-auth.layout>

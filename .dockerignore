@@ -1,0 +1,36 @@
+# Ignore git metadata
+.git
+.gitignore
+
+# Local env files and secrets
+.env
+.env.*
+.env.docker
+
+# Node and PHP deps (don't commit these in repo)
+larapp/node_modules
+larapp/vendor
+node_modules
+vendor
+
+# Logs, OS files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Laravel storage & cache
+larapp/storage/framework/cache/*
+larapp/storage/framework/sessions/*
+larapp/storage/framework/views/*
+larapp/storage/logs/*
+
+# Public storage symlink
+larapp/public/storage
+
+# Build outputs (these can be rebuilt in Docker stages)
+larapp/public/build
+
+# Other
+.idea
+.vscode

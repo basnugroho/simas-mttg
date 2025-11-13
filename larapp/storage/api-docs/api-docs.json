@@ -1,84 +1,18 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "MTTG API",
-        "description": "API documentation for mttg project",
-        "contact": {
-            "email": "dev@example.com"
-        },
+        "title": "SIMAS MTTG API",
+        "description": "Backend API untuk Sistem Informasi Manajemen Masjid (SIMAS) Majelis Taklim Telkom Group.",
         "version": "1.0.0"
     },
     "paths": {
-        "/register": {
+        "/auth/login": {
             "post": {
-                "summary": "Register a new user",
-                "operationId": "5d4fa5d5607ed675ba93907e1fc94534",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "email",
-                                    "password",
-                                    "password_confirmation"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "john@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password123"
-                                    },
-                                    "password_confirmation": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password123"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "User registered successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "user": {
-                                            "type": "object"
-                                        },
-                                        "token": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            }
-        },
-        "/login": {
-            "post": {
-                "summary": "Login user",
-                "operationId": "67d6d0fdd54fba132e1b6f55ca254183",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login admin",
+                "operationId": "99d66635c4992aeaa6aa44ff653d0563",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -92,12 +26,12 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "john@example.com"
+                                        "example": "admin@example.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password123"
+                                        "example": "secret"
                                     }
                                 },
                                 "type": "object"
@@ -107,16 +41,27 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Login successful",
+                        "description": "Login berhasil",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "user": {
-                                            "type": "object"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
-                                        "token": {
-                                            "type": "string"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login berhasil"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|xxxxxxxxx"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -125,44 +70,206 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthorized"
+                        "description": "Email atau password salah"
                     }
                 }
             }
         },
-        "/greeting": {
+        "/auth/logout": {
             "post": {
                 "tags": [
-                    "Greeting"
+                    "Auth"
                 ],
-                "summary": "Respond to greeting",
-                "operationId": "0ad03fa392ff0ea6e63418066ba27eb3",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "message": {
-                                        "type": "string",
-                                        "example": "assalamualaikum"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+                "summary": "Logout admin",
+                "operationId": "6abf3b64a4bc7838d56346f05a5153af",
                 "responses": {
                     "200": {
-                        "description": "Greeting response",
+                        "description": "Logout berhasil",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "response": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
                                             "type": "string",
-                                            "example": "waalaikumsalam"
+                                            "example": "Logout berhasil"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/mosques": {
+            "get": {
+                "tags": [
+                    "Mosque"
+                ],
+                "summary": "List masjid/musholla",
+                "description": "Ambil daftar masjid/musholla dengan filter pencarian dan pagination.",
+                "operationId": "8bcd0755a4c54f063edcf3a21b65666e",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari berdasarkan nama/alamat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "province_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "city_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "witel_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Jenis: MASJID atau MUSHOLLA",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "MASJID",
+                                "MUSHOLLA"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "min_completion",
+                        "in": "query",
+                        "description": "Minimal persentase kelengkapan fasilitas (0-100)",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Urutkan berdasarkan",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "completion",
+                                "newest"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar masjid/musholla",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": {
+                                                                "type": "string"
+                                                            },
+                                                            "address": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "province_id": {
+                                                                "type": "integer",
+                                                                "nullable": true
+                                                            },
+                                                            "city_id": {
+                                                                "type": "integer",
+                                                                "nullable": true
+                                                            },
+                                                            "witel_id": {
+                                                                "type": "integer",
+                                                                "nullable": true
+                                                            },
+                                                            "completion_percentage": {
+                                                                "type": "integer"
+                                                            },
+                                                            "is_active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "current_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "total": {
+                                                            "type": "integer"
+                                                        },
+                                                        "last_page": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -171,42 +278,94 @@
                         }
                     }
                 }
-            }
-        },
-        "/api/prayer-times": {
-            "get": {
+            },
+            "post": {
                 "tags": [
-                    "Prayer Times"
+                    "Mosques"
                 ],
-                "summary": "Get prayer times for a city",
-                "operationId": "a92d8adfecb086f721e5205847332652",
-                "parameters": [
-                    {
-                        "name": "city",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "example": "Jakarta"
-                    },
-                    {
-                        "name": "country",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "example": "Indonesia"
+                "summary": "Tambah masjid/musholla",
+                "operationId": "aa635d916fce3627b68d1e473096f771",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "MASJID",
+                                            "MUSHOLLA"
+                                        ]
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "province_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "city_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "witel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
                     }
-                ],
+                },
                 "responses": {
-                    "200": {
-                        "description": "Prayer times data",
+                    "201": {
+                        "description": "Data berhasil dibuat",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
                                         "data": {
                                             "type": "object"
                                         }
@@ -216,31 +375,128 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/api/user/profile": {
+        "/mosques/{id}": {
             "get": {
                 "tags": [
-                    "User Management"
+                    "Mosques"
                 ],
-                "summary": "Get authenticated user profile",
-                "operationId": "695a5ba8ff7a490aad2bed007b5499f9",
+                "summary": "Detail masjid/musholla",
+                "operationId": "90827809187aa16cc57b16cee21c9cd5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "User profile",
+                        "description": "Detail masjid/musholla",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "id": {
-                                            "type": "integer"
+                                        "success": {
+                                            "type": "boolean"
                                         },
-                                        "name": {
+                                        "message": {
                                             "type": "string"
                                         },
-                                        "email": {
-                                            "type": "string"
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "code": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "address": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "province_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "city_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "witel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "latitude": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "nullable": true
+                                                },
+                                                "longitude": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "nullable": true
+                                                },
+                                                "image_url": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "completion_percentage": {
+                                                    "type": "integer"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "facilities": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "mosque_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "facility_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "facility_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "is_available": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "note": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -248,35 +504,53 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthenticated"
+                    "404": {
+                        "description": "Data tidak ditemukan"
                     }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
+                }
+            }
+        },
+        "/mosques/{id}/facilities": {
             "put": {
                 "tags": [
-                    "User Management"
+                    "Mosques",
+                    "Facilities"
                 ],
-                "summary": "Update user profile",
-                "operationId": "f5dfce3753e793253c65d12b593248a3",
+                "summary": "Update fasilitas masjid/musholla",
+                "operationId": "c29bb3215c2fd8365c22800d18174190",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe Updated"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "example": "john@example.com"
+                                    "facilities": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "facility_id": {
+                                                    "type": "integer"
+                                                },
+                                                "is_available": {
+                                                    "type": "boolean"
+                                                },
+                                                "note": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -286,16 +560,16 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Profile updated",
+                        "description": "Fasilitas berhasil diperbarui",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
                                         "message": {
                                             "type": "string"
-                                        },
-                                        "user": {
-                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -306,75 +580,121 @@
                 },
                 "security": [
                     {
-                        "sanctum": []
+                        "bearerAuth": []
                     }
                 ]
             }
         },
-        "/api/users": {
+        "/regions": {
             "get": {
                 "tags": [
-                    "User Management"
+                    "Regions"
                 ],
-                "summary": "List all users",
-                "operationId": "566aed8efb436ca506e0ef51a032ecd9",
+                "summary": "Daftar wilayah",
+                "operationId": "f3f0f56567e9839f5d7c8b5def0c2aa8",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "PROVINCE / CITY / WITEL / OTHER",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "PROVINCE",
+                                "CITY",
+                                "WITEL",
+                                "OTHER"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "parent_id",
+                        "in": "query",
+                        "description": "Filter berdasarkan parent region",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of users",
+                        "description": "Daftar wilayah",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "type": "string"
-                                            },
-                                            "email": {
-                                                "type": "string"
-                                            }
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
                                         },
-                                        "type": "object"
-                                    }
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string"
+                                                    },
+                                                    "code": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "parent_id": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },
     "tags": [
         {
-            "name": "Greeting",
-            "description": "Greeting"
+            "name": "Auth",
+            "description": "Autentikasi admin / pengguna"
         },
         {
-            "name": "Prayer Times",
-            "description": "Prayer Times"
+            "name": "Regions",
+            "description": "Master wilayah (provinsi, kota, witel)"
         },
         {
-            "name": "User Management",
-            "description": "User Management"
+            "name": "Mosques",
+            "description": "Manajemen data masjid dan musholla"
+        },
+        {
+            "name": "Mosque",
+            "description": "Mosque"
+        },
+        {
+            "name": "Facilities",
+            "description": "Facilities"
         }
-    ],
-    "components": {
-        "securitySchemes": {
-            "sanctum": {
-                "type": "apiKey",
-                "description": "Enter your Bearer token, e.g. Bearer abc123def...",
-                "name": "Authorization",
-                "in": "header"
-            },
-            "0": []
-        }
-    }
+    ]
 }

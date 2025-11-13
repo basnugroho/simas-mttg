@@ -2,5 +2,6 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    \L5Swagger\L5SwaggerServiceProvider::class,
+    App\Providers\FortifyViewServiceProvider::class,
+    App\Providers\FortifyServiceProvider::class,
 ];

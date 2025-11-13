@@ -1,21 +1,33 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\BitcoinController;
+
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\GreetingController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\PrayerController;
+use App\Http\Controllers\Api\RegionController;
+use App\Http\Controllers\Api\MosqueController;
+use App\Http\Controllers\Api\FacilityController;
+use App\Http\Controllers\Api\PrayerTimeController;
+use App\Http\Controllers\Api\ArticleController;
+use App\Http\Controllers\Api\DashboardController;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
 
-Route::get('/bitcoin-price', [BitcoinController::class, 'getPrice']);
-Route::post('/greeting', [GreetingController::class, 'respond']);
-Route::get('/prayer-times', [PrayerController::class, 'getTimes']);
+Route::post('auth/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->post('auth/logout', [AuthController::class, 'logout']);
 
+// Public
+Route::get('regions', [RegionController::class, 'index']);
+Route::get('mosques', [MosqueController::class, 'index']);
+Route::get('mosques/{id}', [MosqueController::class, 'show']);
+Route::get('mosques/{id}/facilities', [MosqueController::class, 'facilities']);
+Route::get('facilities', [FacilityController::class, 'index']);
+
+// Admin (protected)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user/profile', [UserController::class, 'profile']);
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
-    Route::get('/users', [UserController::class, 'index']);
+    Route::apiResource('mosques', MosqueController::class)->except(['index', 'show']);
+    Route::put('mosques/{id}/facilities', [MosqueController::class, 'updateFacilities']);
 });
+

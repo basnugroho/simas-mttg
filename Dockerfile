@@ -2,7 +2,9 @@
 FROM node:20 AS frontend-builder
 WORKDIR /app
 COPY larapp /app
-RUN npm install && npm run build
+RUN npm install || true
+# Ensure public/build exists so later COPY won't fail when dev build is performed by Vite service
+RUN mkdir -p /app/public/build
 
 # Stage 2: Build PHP Application
 FROM php:8.2-apache
@@ -21,7 +23,8 @@ RUN apt-get -y update && apt-get install -y \
     git \
     curl \
     ca-certificates \
-    gnupg
+    gnupg \
+    netcat-openbsd
 
 # Konfigurasi PHP agar bisa upload file besar
 RUN echo "upload_max_filesize = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
@@ -46,6 +49,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy aplikasi Laravel
 COPY larapp /var/www/html/
 
+# Copy container entrypoint that will run migrations/seeds and then start apache
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Copy hasil build frontend dari stage sebelumnya
 COPY --from=frontend-builder /app/public/build /var/www/html/public/build
 
@@ -57,6 +64,9 @@ WORKDIR /var/www/html
 # Install PHP dependencies untuk production
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Publish L5 Swagger vendor dan generate dokumentasi Swagger
-RUN php artisan vendor:publish --provider="L5Swagger\\L5SwaggerServiceProvider" || true
-RUN php artisan l5-swagger:generate || true
+# L5 Swagger will be published/generated at runtime in the entrypoint (safer with mounted code)
+
+# Use custom entrypoint to run migrations/seeds at container start, then exec default CMD
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Ensure Apache foreground is the default command so entrypoint's `exec "$@"` runs the webserver
+CMD ["apache2-foreground"]
