@@ -11,7 +11,6 @@
           <th>#</th>
           <th>Name</th>
           <th>Province</th>
-          <th>Region</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -20,8 +19,7 @@
           <tr>
             <td>{{ $loop->iteration + ($mosques->currentPage()-1)*$mosques->perPage() }}</td>
             <td>{{ $m->name }}</td>
-            <td>{{ $m->province }}</td>
-            <td>{{ $m->region?->name }}</td>
+            <td>{{ $m->province?->name }}</td>
             <td>
               <a href="{{ route('admin.mosques.edit', $m->id) }}" class="btn btn-sm">Edit</a>
               <form action="{{ route('admin.mosques.destroy', $m->id) }}" method="POST" style="display:inline">

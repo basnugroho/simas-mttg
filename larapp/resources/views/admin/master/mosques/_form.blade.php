@@ -5,15 +5,15 @@
   </div>
   <div class="mb-3">
     <label class="form-label">Province</label>
-    <input type="text" name="province" class="form-input" value="{{ old('province', $mosque->province ?? '') }}" />
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Region</label>
-    <select name="region_id" class="form-input">
-      <option value="">-- Select Region --</option>
-      @foreach($regions as $r)
-        <option value="{{ $r->id }}" {{ (old('region_id', $mosque->region_id ?? '') == $r->id) ? 'selected' : '' }}>{{ $r->name }}</option>
+    <select name="province_id" class="form-input">
+      <option value="">-- Select Province --</option>
+      @foreach(($provinces ?? []) as $p)
+        <option value="{{ $p->id }}" {{ (old('province_id', $mosque->province_id ?? '') == $p->id) ? 'selected' : '' }}>{{ $p->name }}</option>
       @endforeach
     </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Address</label>
+    <input type="text" name="address" class="form-input" value="{{ old('address', $mosque->address ?? '') }}" />
   </div>
 </div>
