@@ -8,6 +8,13 @@
       <li><a href="#">Unduh Data</a></li>
       <li><a href="#">Kontak Kami</a></li>
     </ul>
-    <a href="{{ route('login') }}" class="login" role="button">Login</a>
+    @auth
+      <form method="POST" action="{{ route('logout') }}" style="margin:0">
+        @csrf
+        <button type="submit" class="login">Logout</button>
+      </form>
+    @else
+      <a href="{{ route('login') }}" class="login" role="button">Login</a>
+    @endauth
   </div>
 </nav>
