@@ -2,7 +2,7 @@
   <div class="container">
 
     <div>
-      <div class="page-title">Kelengkapan Fasilitas</div>
+      <div class="page-title">Kelengkapan Fasilitas.</div>
       <div class="page-sub">Kelengkapan fasilitas masjid / mushalla (Jatim, Bali, Nusra)</div>
 
       <!-- Filter bar -->
