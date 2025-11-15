@@ -25,6 +25,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)->names('admin.facilities');
 	Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
 	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
+		// photo management for mosques
+		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
 });
 
 Route::view('/', 'home');

@@ -56,4 +56,9 @@ class Mosque extends Model
             ->withPivot(['is_available', 'note'])
             ->withTimestamps();
     }
+
+    public function photos()
+    {
+        return $this->hasMany(MosquePhoto::class)->orderBy('sort_order')->orderBy('id');
+    }
 }

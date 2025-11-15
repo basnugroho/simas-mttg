@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Mosque;
 use App\Models\Regions;
+use App\Models\MosquePhoto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MosqueController extends Controller
 {
@@ -43,7 +45,29 @@ class MosqueController extends Controller
             'witel_id' => 'nullable|exists:regions,id',
             'sto_id' => 'nullable|exists:regions,id',
         ]);
-        Mosque::create($data);
+        $mosque = Mosque::create($data);
+
+        // handle photo uploads (multiple)
+        $request->validate([
+            'photos.*' => 'image|max:5120', // max 5MB per file
+            'photo_captions.*' => 'nullable|string|max:255',
+        ]);
+
+        if ($request->hasFile('photos')) {
+            $files = $request->file('photos');
+            $captions = $request->input('photo_captions', []);
+            foreach ($files as $i => $f) {
+                if (!$f->isValid()) continue;
+                $path = $f->store("mosques/{$mosque->id}", 'public');
+                // generate thumbnail
+                $this->generateThumbnail($path);
+                MosquePhoto::create([
+                    'mosque_id' => $mosque->id,
+                    'path' => $path,
+                    'caption' => $captions[$i] ?? null,
+                ]);
+            }
+        }
         return redirect()->route('admin.mosques.index')->with('success', 'Mosque created');
     }
 
@@ -71,7 +95,70 @@ class MosqueController extends Controller
             'sto_id' => 'nullable|exists:regions,id',
         ]);
         $mosque->update($data);
+
+        // handle additional photo uploads
+        $request->validate([
+            'photos.*' => 'image|max:5120',
+            'photo_captions.*' => 'nullable|string|max:255',
+        ]);
+        if ($request->hasFile('photos')) {
+            $files = $request->file('photos');
+            $captions = $request->input('photo_captions', []);
+            foreach ($files as $i => $f) {
+                if (!$f->isValid()) continue;
+                $path = $f->store("mosques/{$mosque->id}", 'public');
+                $this->generateThumbnail($path);
+                MosquePhoto::create([
+                    'mosque_id' => $mosque->id,
+                    'path' => $path,
+                    'caption' => $captions[$i] ?? null,
+                ]);
+            }
+        }
         return redirect()->route('admin.mosques.index')->with('success', 'Mosque updated');
+    }
+
+    /**
+     * Generate a thumbnail for a stored image path on the public disk.
+     * Thumbnail is saved next to original with prefix thumb_ (same directory).
+     */
+    protected function generateThumbnail(string $publicPath)
+    {
+        try {
+            $disk = Storage::disk('public');
+            $full = $disk->path($publicPath);
+            if (!file_exists($full)) return;
+            $imageData = file_get_contents($full);
+            if ($imageData === false) return;
+            $src = @imagecreatefromstring($imageData);
+            if (!$src) return;
+            $w = imagesx($src);
+            $h = imagesy($src);
+            $maxW = 400; $maxH = 300;
+            $ratio = min($maxW / $w, $maxH / $h, 1);
+            $tw = (int)($w * $ratio);
+            $th = (int)($h * $ratio);
+            $thumb = imagecreatetruecolor($tw, $th);
+            // preserve transparency for PNG/GIF
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+            imagecopyresampled($thumb, $src, 0,0,0,0, $tw, $th, $w, $h);
+            $thumbPath = dirname($publicPath) . '/thumb_' . basename($publicPath);
+            $fullThumb = $disk->path($thumbPath);
+            // ensure directory exists
+            @mkdir(dirname($fullThumb), 0755, true);
+            // write JPEG or PNG depending on original mime
+            $ext = strtolower(pathinfo($full, PATHINFO_EXTENSION));
+            if (in_array($ext, ['png'])) {
+                imagepng($thumb, $fullThumb, 6);
+            } else {
+                // default to JPEG
+                imagejpeg($thumb, $fullThumb, 85);
+            }
+            imagedestroy($src); imagedestroy($thumb);
+        } catch (\Throwable $e) {
+            // non-fatal
+        }
     }
 
     public function destroy(Mosque $mosque)
