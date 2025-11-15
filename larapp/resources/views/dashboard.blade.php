@@ -14,7 +14,18 @@
         <nav>
           <ul id="sidebar-menu" style="list-style:none;padding:0;margin:0;">
             <li style="margin-bottom:8px" data-key="dashboard"><a href="#" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11.5L12 4l9 7.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Dashboard</a></li>
-            <li style="margin-bottom:8px" data-key="master"><a href="{{ route('admin.regions.index') }}" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Master</a></li>
+            <li style="margin-bottom:8px" data-key="master">
+              <a href="#" class="menu-link" aria-expanded="false" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
+                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                Master
+              </a>
+              <ul class="submenu" style="list-style:none;padding-left:14px;margin:6px 0 0 0;display:none;">
+                <li data-key="regions" style="margin-bottom:6px"><a href="{{ route('admin.regions.index') }}" style="color:#cbd5e1;text-decoration:none">Regions</a></li>
+                <li data-key="facilities" style="margin-bottom:6px"><a href="{{ route('admin.facilities.index') }}" style="color:#cbd5e1;text-decoration:none">Facilities</a></li>
+                <li data-key="categories" style="margin-bottom:6px"><a href="{{ route('admin.categories.index') }}" style="color:#cbd5e1;text-decoration:none">Categories</a></li>
+                <li data-key="mosques" style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" style="color:#cbd5e1;text-decoration:none">Mosques</a></li>
+              </ul>
+            </li>
             <li style="margin-bottom:8px" data-key="masjid"><a href="#" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2v6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Masjid</a></li>
             <li style="margin-bottom:8px" data-key="mushalla"><a href="#" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="#fff" stroke-width="1.5"/><path d="M5 20c2-4 5-6 7-6s5 2 7 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Mushalla</a></li>
             <li style="margin-bottom:8px" data-key="info"><a href="#" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M7 8h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></span>Info Terkini</a></li>
@@ -177,27 +188,69 @@
         m.style.display = m.style.display === 'block' ? 'none' : 'block';
       });
 
-      // sidebar menu active handling (persist in localStorage)
+      // sidebar menu active handling (persist in localStorage) and submenu toggle
       (function(){
         const menu = document.getElementById('sidebar-menu');
         if(!menu) return;
         function setActive(key){
-          menu.querySelectorAll('li').forEach(li=>{
-            const a = li.querySelector('a.menu-link');
-            if(!a) return;
-            if(li.dataset.key === key){
-              a.classList.add('active');
-            } else {
-              a.classList.remove('active');
+          // remove active from all top-level menu links
+          menu.querySelectorAll('a.menu-link').forEach(a=> a.classList.remove('active'));
+          // try to find an li with matching data-key (at top-level or submenu)
+          const targetLi = menu.querySelector('li[data-key="'+key+'"]');
+          if(targetLi){
+            // if target is a submenu item, highlight its parent top-level link too
+            const topLevel = targetLi.closest('ul')?.closest('li');
+            if(topLevel){
+              const topA = topLevel.querySelector('a.menu-link');
+              if(topA) topA.classList.add('active');
             }
-          });
+            const a = targetLi.querySelector('a') || targetLi.querySelector('a.menu-link');
+            if(a) a.classList.add('active');
+          }
           try{ localStorage.setItem('simas_active', key); }catch(e){}
         }
-        menu.querySelectorAll('li').forEach(li=>{
-          li.addEventListener('click', function(e){ e.preventDefault(); setActive(li.dataset.key); });
+
+        // Attach click handlers to top-level menu links only
+        menu.querySelectorAll('a.menu-link').forEach(a=>{
+          a.addEventListener('click', function(e){
+            const parentLi = a.closest('li');
+            const submenu = parentLi ? parentLi.querySelector('.submenu') : null;
+            // if this item has a submenu, toggle it instead of navigating
+            if(submenu){
+              e.preventDefault();
+              const isOpen = submenu.style.display === 'block';
+              submenu.style.display = isOpen ? 'none' : 'block';
+              a.setAttribute('aria-expanded', String(!isOpen));
+              try{ localStorage.setItem('simas_submenu_master_open', String(!isOpen)); }catch(err){}
+              // mark top-level active when opened
+              if(!isOpen) setActive(parentLi.dataset.key || 'master');
+              return;
+            }
+            // If it's a normal link (no submenu), let it navigate but record active state
+            // find nearest li with data-key to set active
+            let key = parentLi?.dataset?.key;
+            if(!key){
+              // maybe it's a submenu li; find the closest li with data-key
+              const closestKeyLi = a.closest('li[data-key]');
+              key = closestKeyLi ? closestKeyLi.dataset.key : null;
+            }
+            if(key) try{ localStorage.setItem('simas_active', key); }catch(e){}
+          });
         });
+
+        // restore saved active and submenu state
         const saved = localStorage.getItem('simas_active') || 'dashboard';
         setActive(saved);
+        const masterOpen = localStorage.getItem('simas_submenu_master_open');
+        const masterLi = menu.querySelector('li[data-key="master"]');
+        if(masterLi){
+          const submenu = masterLi.querySelector('.submenu');
+          const a = masterLi.querySelector('a.menu-link');
+          if(submenu){
+            if(masterOpen === 'true') { submenu.style.display = 'block'; if(a) a.setAttribute('aria-expanded','true'); }
+            else { submenu.style.display = 'none'; if(a) a.setAttribute('aria-expanded','false'); }
+          }
+        }
       })();
 
       // stacked/grouped bar chart (Masjid & Mushalla per region)

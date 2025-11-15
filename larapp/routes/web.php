@@ -21,10 +21,21 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	Route::post('/users/{id}', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('admin.users.update');
     // Master regions CRUD
     Route::resource('regions', \App\Http\Controllers\Admin\RegionController::class)->names('admin.regions');
+	// other masters
+	Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)->names('admin.facilities');
+	Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
+	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
 });
 
-Route::view('/', 'home');
-Route::view('/mosque', 'mosque');
+Route::get('/', [App\Http\Controllers\Home\Beranda\BerandaController::class, 'index']);
+
+// Autocomplete suggestions (used by frontend JS)
+Route::get('/search/suggestions', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'suggestions'])->name('search.suggestions');
+
+// Search results page
+Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'results'])->name('search.results');
+// Backward-compatibility alias: some templates or code may reference route('search')
+Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'results'])->name('search');
 
 
 

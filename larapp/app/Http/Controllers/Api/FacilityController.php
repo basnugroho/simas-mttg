@@ -17,6 +17,50 @@ class FacilityController extends Controller
         return $this->success($facilities, 'Daftar fasilitas');
     }
 
+    /**
+     * Overview grouped by type for frontend facility card
+     */
+    public function overview()
+    {
+        // Return a lightweight representation grouped into masjid and musholla for the homepage widget
+        $provinceId = request()->query('province_id');
+        $cityId = request()->query('city_id');
+        $completeness = request()->query('completeness');
+
+        $provinces = \App\Models\Regions::where('type', 'PROVINCE')->orderBy('name')->get();
+
+        $masjidQuery = \App\Models\Mosque::with(['province','city'])
+            ->where('type', 'MASJID');
+        if($provinceId){ $masjidQuery->where('province_id', $provinceId); }
+        if($cityId){ $masjidQuery->where('city_id', $cityId); }
+        if($completeness){ $masjidQuery->where('completion_percentage', '>=', (int)$completeness); }
+        $masjid = $masjidQuery->orderBy('name')->take(12)->get()->map(function($m){ return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'loc' => trim(($m->province?->name ?? '') . ' / ' . ($m->city?->name ?? '')),
+                'img' => $m->image_url ?? ('/images/mosque-'.(rand(1,5)).'.png'),
+                'pct' => (int) ($m->completion_percentage ?? 0),
+            ]; });
+
+        $mushollaQuery = \App\Models\Mosque::with(['province','city'])->where('type', 'MUSHOLLA');
+        if($provinceId){ $mushollaQuery->where('province_id', $provinceId); }
+        if($cityId){ $mushollaQuery->where('city_id', $cityId); }
+        if($completeness){ $mushollaQuery->where('completion_percentage', '>=', (int)$completeness); }
+        $musholla = $mushollaQuery->orderBy('name')->take(12)->get()->map(function($m){ return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'loc' => trim(($m->province?->name ?? '') . ' / ' . ($m->city?->name ?? '')),
+                'img' => $m->image_url ?? ('/images/mosque-'.(rand(1,5)).'.png'),
+                'pct' => (int) ($m->completion_percentage ?? 0),
+            ]; });
+        
+        return $this->success([
+            'masjid' => $masjid,
+            'musholla' => $musholla,
+            'provinces' => $provinces,
+        ], 'Overview fasilitas');
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

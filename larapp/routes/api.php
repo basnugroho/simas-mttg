@@ -24,6 +24,7 @@ Route::get('mosques', [MosqueController::class, 'index']);
 Route::get('mosques/{id}', [MosqueController::class, 'show']);
 Route::get('mosques/{id}/facilities', [MosqueController::class, 'facilities']);
 Route::get('facilities', [FacilityController::class, 'index']);
+Route::get('facilities/overview', [FacilityController::class, 'overview']);
 
 // Admin (protected)
 Route::middleware('auth:sanctum')->group(function () {
