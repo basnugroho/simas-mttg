@@ -46,6 +46,8 @@
 
     @media (max-width:768px){ .hamburger{ display:inline-flex; } }
   </style>
+  {{-- allow pages to push CSS or head tags here --}}
+  @stack('head')
 </head>
 <body>
   {{ $slot }}
@@ -78,5 +80,8 @@
       });
     })();
   </script>
+
+  {{-- Render any page-specific scripts/styles pushed by child views --}}
+  @stack('scripts')
 </body>
 </html>

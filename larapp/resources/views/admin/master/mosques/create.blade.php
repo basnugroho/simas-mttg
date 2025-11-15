@@ -1,7 +1,7 @@
 <x-admin.layout title="Create Mosque">
   <div class="p-4">
     <h3>Create Mosque</h3>
-    <form method="POST" action="{{ route('admin.mosques.store') }}">
+    <form method="POST" action="{{ route('admin.mosques.store') }}" enctype="multipart/form-data">
       @csrf
       @include('admin.master.mosques._form')
       <div style="margin-top:12px">

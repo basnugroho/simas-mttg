@@ -1,7 +1,7 @@
 <x-admin.layout title="Edit Mosque">
   <div class="p-4">
     <h3>Edit Mosque</h3>
-    <form method="POST" action="{{ route('admin.mosques.update', $mosque->id) }}">
+    <form method="POST" action="{{ route('admin.mosques.update', $mosque->id) }}" enctype="multipart/form-data">
       @csrf
       @method('PUT')
       @include('admin.master.mosques._form')
