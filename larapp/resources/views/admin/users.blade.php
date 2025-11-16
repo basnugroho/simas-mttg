@@ -22,7 +22,6 @@
           <th>Username</th>
           <th>Email</th>
           <th>Role</th>
-          <th>Witel</th>
           <th>Approved</th>
           <th>Scope</th>
           <th>Created At</th>
@@ -39,22 +38,6 @@
             <td>{{ $u->username }}</td>
             <td>{{ $u->email }}</td>
             <td>{{ $u->role }}</td>
-            <td>
-              @php
-                $witels = $u->regionsRoles->filter(fn($ar) => ($ar->role_key ?? '') === 'admin_witel')->map(fn($ar) => $ar->region->name ?? null)->filter()->unique()->values()->toArray();
-              @endphp
-              @if(count($witels))
-                @foreach($witels as $w)
-                  @if(trim($w) === 'Witel Surabaya Utara')
-                    <span class="badge bg-secondary" style="font-size:0.72em;padding:2px 6px;margin-right:4px">{{ $w }}</span>
-                  @else
-                    <span class="badge bg-light text-dark" style="font-size:0.85em;padding:3px 8px;margin-right:4px;border:1px solid #ddd">{{ $w }}</span>
-                  @endif
-                @endforeach
-              @else
-                -
-              @endif
-            </td>
             <td>{{ $u->approved ? 'Yes' : 'No' }}</td>
             <td>
               @php
@@ -98,7 +81,7 @@
             </td>
             <td>
               <button type="button" class="btn btn-sm btn-primary btn-priv" data-user-id="{{ $u->id }}">Atur Privilage</button>
-              <div class="privilege-panel" id="priv-{{ $u->id }}" style="display:none;margin-top:8px;padding:8px;border:1px solid #eee;background:#fafafa;border-radius:6px;max-width:480px">
+              <div class="privilege-panel" id="priv-{{ $u->id }}" style="display:none;margin-top:8px;padding:12px;border:1px solid #eee;background:#fafafa;border-radius:6px;max-width:48%;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
                 <form method="POST" action="{{ route('admin.users.update', $u->id) }}" style="margin-bottom:8px">
                   @csrf
                   <div class="mb-2">
@@ -244,15 +227,32 @@
         }
       });
     })();
-    // toggle privilege panels
+    // toggle privilege panels: show a wider floating panel anchored to the left for more space
     document.querySelectorAll('.btn-priv').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (ev) => {
         const id = btn.getAttribute('data-user-id');
         const panel = document.getElementById('priv-' + id);
         if (!panel) return;
-        panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
-        // scroll into view when opening
-        if (panel.style.display === 'block') panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const isOpen = panel.style.display === 'block';
+        // hide any other open panels
+        document.querySelectorAll('.privilege-panel').forEach(p => { if (p !== panel) p.style.display = 'none'; });
+
+        if (!isOpen) {
+          // position floating panel on the left and make it wider
+          panel.style.position = 'fixed';
+          panel.style.left = '16px';
+          // place it vertically near the clicked button
+          const rect = btn.getBoundingClientRect();
+          const top = Math.max(80, rect.top + window.scrollY - 40);
+          panel.style.top = top + 'px';
+          panel.style.width = '46%';
+          panel.style.zIndex = 1400;
+          panel.style.display = 'block';
+          // ensure panel is visible above the fold
+          window.scrollTo({ top: Math.max(0, rect.top + window.scrollY - 80), behavior: 'smooth' });
+        } else {
+          panel.style.display = 'none';
+        }
       });
     });
 
