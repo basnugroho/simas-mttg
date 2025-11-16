@@ -9,6 +9,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h2>User Management</h2>
       <div style="display:flex;gap:8px;align-items:center">
+        <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary">Create user & atur privilage</a>
         <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary">Kembali ke Dashboard</a>
       </div>
     </div>
@@ -57,9 +58,33 @@
             <td>{{ $u->approved ? 'Yes' : 'No' }}</td>
             <td>
               @php
-                $scopes = $u->regionsRoles->map(function($ar){ return ($ar->region->name ?? $ar->region_id) . ' (' . ($ar->role_key ?? '') . ')'; })->toArray();
+                // Render scopes; include Witel badges compacted for Surabaya Utara
+                $roles = $u->regionsRoles->map(function($ar){
+                  return ['label' => ($ar->region->name ?? $ar->region_id), 'role_key' => ($ar->role_key ?? '')];
+                })->toArray();
+                $scopeLabels = [];
+                foreach($roles as $r) {
+                  if ($r['role_key'] === 'admin_witel') continue; // witel will be shown as badges
+                  $scopeLabels[] = $r['label'] . ($r['role_key'] ? ' (' . $r['role_key'] . ')' : '');
+                }
+                $witels = $u->regionsRoles->filter(fn($ar) => ($ar->role_key ?? '') === 'admin_witel')->map(fn($ar) => $ar->region->name ?? null)->filter()->unique()->values()->toArray();
               @endphp
-              {!! count($scopes) ? e(implode(', ', $scopes)) : '-' !!}
+              <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+                @if(count($witels))
+                  @foreach($witels as $w)
+                    @if(trim($w) === 'Witel Surabaya Utara')
+                      <span class="badge bg-secondary" style="font-size:0.72em;padding:2px 6px">{{ $w }}</span>
+                    @else
+                      <span class="badge bg-light text-dark" style="font-size:0.85em;padding:3px 8px;border:1px solid #ddd">{{ $w }}</span>
+                    @endif
+                  @endforeach
+                @endif
+                @if(count($scopeLabels))
+                  <span style="color:#444">{!! e(implode(', ', $scopeLabels)) !!}</span>
+                @elseif(!count($witels))
+                  -
+                @endif
+              </div>
             </td>
             <td>{{ $u->created_at ? $u->created_at->diffForHumans() : '-' }}</td>
             <td>
@@ -73,45 +98,62 @@
             </td>
             <td>
               <button type="button" class="btn btn-sm btn-primary btn-priv" data-user-id="{{ $u->id }}">Atur Privilage</button>
-              <div class="privilege-panel" id="priv-{{ $u->id }}" style="display:none;margin-top:8px">
-                <form method="POST" action="{{ route('admin.users.update', $u->id) }}" class="d-flex gap-2" style="margin-bottom:8px">
+              <div class="privilege-panel" id="priv-{{ $u->id }}" style="display:none;margin-top:8px;padding:8px;border:1px solid #eee;background:#fafafa;border-radius:6px;max-width:480px">
+                <form method="POST" action="{{ route('admin.users.update', $u->id) }}" style="margin-bottom:8px">
                   @csrf
-                  <select name="role" class="form-select form-select-sm">
-                    <option value="user" {{ $u->role === 'user' ? 'selected' : '' }}>user</option>
-                    <option value="admin" {{ $u->role === 'admin' ? 'selected' : '' }}>admin</option>
-                    <option value="webmaster" {{ $u->role === 'webmaster' ? 'selected' : '' }}>webmaster</option>
-                  </select>
-                  <label class="form-check-label ms-2">
-                    <input type="checkbox" name="approved" value="1" class="form-check-input" {{ $u->approved ? 'checked' : '' }}> Approved
-                  </label>
-                  <button class="btn btn-sm btn-primary">Save</button>
+                  <div class="mb-2">
+                    <label class="form-label small">Account role</label>
+                    <select name="role" class="form-select form-select-sm">
+                      <option value="user" {{ $u->role === 'user' ? 'selected' : '' }}>user</option>
+                      <option value="admin" {{ $u->role === 'admin' ? 'selected' : '' }}>admin</option>
+                      <option value="webmaster" {{ $u->role === 'webmaster' ? 'selected' : '' }}>webmaster</option>
+                    </select>
+                  </div>
+                  <div class="form-check form-switch mb-2">
+                    <input type="checkbox" name="approved" value="1" class="form-check-input" {{ $u->approved ? 'checked' : '' }} id="approved-{{ $u->id }}">
+                    <label class="form-check-label small" for="approved-{{ $u->id }}">Approved</label>
+                  </div>
+                  <div>
+                    <button class="btn btn-sm btn-primary">Save</button>
+                  </div>
                 </form>
 
                 <form method="POST" action="{{ route('admin.users.roles.store', $u->id) }}">
                   @csrf
-                  <div class="d-flex gap-2 align-items-center" style="margin-bottom:8px">
-                    <select name="role_key" class="form-select form-select-sm">
-                      <option value="admin_regional">Admin Regional</option>
-                      <option value="admin_area">Admin Area</option>
-                      <option value="admin_witel">Admin Witel</option>
-                      <option value="admin_sto">Admin STO</option>
-                    </select>
-                    <select name="region_ids[]" multiple class="form-select form-select-sm assign-region-select">
-                      @foreach($regions as $r)
-                        <option value="{{ $r->id }}" data-label="{{ $r->name }} ({{ $r->displayTypeLabel() }})">{{ $r->name }} ({{ $r->displayTypeLabel() }})</option>
-                      @endforeach
-                    </select>
+                  <div class="mb-2">
+                    <label class="form-label small">Assign privilege</label>
+                    <div style="display:flex;gap:8px">
+                      <select name="role_key" class="form-select form-select-sm">
+                        <option value="admin_regional">Admin Regional</option>
+                        <option value="admin_area">Admin Area</option>
+                        <option value="admin_witel">Admin Witel</option>
+                        <option value="admin_sto">Admin STO</option>
+                      </select>
+                      <select name="region_ids[]" multiple class="form-select form-select-sm assign-region-select" style="min-width:220px">
+                        @foreach($regions as $r)
+                          <option value="{{ $r->id }}" data-label="{{ $r->name }} ({{ $r->displayTypeLabel() }})">{{ $r->name }} ({{ $r->displayTypeLabel() }})</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </div>
+                  <div>
                     <button class="btn btn-sm btn-success">Assign</button>
                   </div>
                 </form>
 
-                <div style="margin-top:6px">
-                  @foreach($u->regionsRoles as $ar)
-                    <form method="POST" action="{{ route('admin.users.roles.destroy', $ar->id) }}" style="display:inline-block">
-                      @csrf @method('DELETE')
-                      <button class="btn btn-sm btn-outline-danger" title="Remove">{{ $ar->role_key }}: {{ $ar->region->name ?? $ar->region_id }}</button>
-                    </form>
-                  @endforeach
+                <div class="mt-2">
+                  <label class="form-label small">Existing assignments</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    @foreach($u->regionsRoles as $ar)
+                      <form method="POST" action="{{ route('admin.users.roles.destroy', $ar->id) }}" style="display:inline-block">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" title="Remove">{{ $ar->role_key }}: {{ $ar->region->name ?? $ar->region_id }}</button>
+                      </form>
+                    @endforeach
+                    @if(count($u->regionsRoles) === 0)
+                      <div style="color:#666">No assignments</div>
+                    @endif
+                  </div>
                 </div>
               </div>
               @if($canDelete)
