@@ -22,6 +22,7 @@
           <th>Email</th>
           <th>Role</th>
           <th>Approved</th>
+          <th>Scope</th>
           <th>Created At</th>
           <th>Last Login</th>
           <th>Action</th>
@@ -37,6 +38,12 @@
             <td>{{ $u->email }}</td>
             <td>{{ $u->role }}</td>
             <td>{{ $u->approved ? 'Yes' : 'No' }}</td>
+            <td>
+              @php
+                $scopes = $u->regionsRoles->map(function($ar){ return ($ar->region->name ?? $ar->region_id) . ' (' . ($ar->role_key ?? '') . ')'; })->toArray();
+              @endphp
+              {!! count($scopes) ? e(implode(', ', $scopes)) : '-' !!}
+            </td>
             <td>{{ $u->created_at ? $u->created_at->format('Y-m-d H:i') : '-' }}</td>
             <td>
               @php

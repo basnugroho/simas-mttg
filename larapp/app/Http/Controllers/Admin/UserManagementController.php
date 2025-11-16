@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
 class UserManagementController extends Controller
@@ -323,5 +325,141 @@ class UserManagementController extends Controller
         });
 
         return redirect()->route('admin.users')->with('status', 'User deleted.');
+    }
+
+    /**
+     * Show create user form where admin/webmaster can create a user and assign region role.
+     */
+    public function create()
+    {
+        $me = Auth::user();
+        if (! $me || (! $me->isWebmaster() && ! $me->isAdmin())) abort(403);
+
+        $regions = Regions::orderBy('name')->get();
+
+        // prepare allowedByTargetRole same as index so form can limit selection
+        $targetLevelMap = [
+            'admin_regional' => 'REGIONAL',
+            'admin_area' => 'AREA',
+            'admin_witel' => 'WITEL',
+            'admin_sto' => 'STO',
+        ];
+
+        $roleHierarchy = [
+            'admin_regional' => ['admin_area'],
+            'admin_area' => ['admin_witel'],
+            'admin_witel' => ['admin_sto'],
+        ];
+
+        $allowedByTargetRole = [];
+        foreach (array_keys($targetLevelMap) as $targetRole) {
+            $level = $targetLevelMap[$targetRole];
+            if ($me->isWebmaster()) {
+                $ids = Regions::where('level', $level)->pluck('id')->map(fn($v)=> (int)$v)->toArray();
+                $allowedByTargetRole[$targetRole] = $ids; continue;
+            }
+            $assignerIds = [];
+            foreach (array_keys($roleHierarchy) as $assignerRoleKey) {
+                if (! in_array($targetRole, $roleHierarchy[$assignerRoleKey] ?? [], true)) continue;
+                $eff = $me->getEffectiveRegionIds($assignerRoleKey);
+                $assignerIds = array_merge($assignerIds, $eff);
+            }
+            $assignerIds = array_values(array_unique($assignerIds));
+            if (empty($assignerIds)) { $allowedByTargetRole[$targetRole] = []; continue; }
+            $ids = Regions::whereIn('id', $assignerIds)->where('level', $level)->pluck('id')->map(fn($v)=>(int)$v)->toArray();
+            $allowedByTargetRole[$targetRole] = $ids;
+        }
+
+        $allRegions = $regions->mapWithKeys(fn($r) => [$r->id => $r->name . ' (' . $r->displayTypeLabel() . ')'])->toArray();
+
+        return view('admin.users_create', compact('regions', 'allowedByTargetRole', 'allRegions'));
+    }
+
+    /**
+     * Store a newly created user and optional region-role assignments.
+     */
+    public function store(Request $request)
+    {
+        $me = Auth::user();
+        if (! $me || (! $me->isWebmaster() && ! $me->isAdmin())) abort(403);
+
+        $data = $request->validate([
+            'name' => ['required','string','max:255'],
+            'username' => ['required','string','max:100','unique:users,username'],
+            'email' => ['required','email','max:255','unique:users,email'],
+            'password' => ['nullable','string','min:6'],
+            'approved' => ['nullable','in:0,1'],
+            'role_key' => ['nullable','in:admin_regional,admin_area,admin_witel,admin_sto'],
+            'region_ids' => ['nullable','array'],
+            'region_ids.*' => ['integer','exists:regions,id'],
+        ]);
+
+        $roleKey = $data['role_key'] ?? null;
+        $regionIds = $data['region_ids'] ?? [];
+
+        // Authorization: ensure assigner may appoint the target role and the regions
+        if ($roleKey) {
+            // compute allowed ids for this target role
+            $targetLevelMap = [
+                'admin_regional' => 'REGIONAL',
+                'admin_area' => 'AREA',
+                'admin_witel' => 'WITEL',
+                'admin_sto' => 'STO',
+            ];
+            $roleHierarchy = [
+                'admin_regional' => ['admin_area'],
+                'admin_area' => ['admin_witel'],
+                'admin_witel' => ['admin_sto'],
+            ];
+
+            $targetLevel = $targetLevelMap[$roleKey] ?? null;
+            if (! $targetLevel) abort(403);
+
+            $allowedIds = [];
+            if ($me->isWebmaster()) {
+                $allowedIds = Regions::where('level', $targetLevel)->pluck('id')->map(fn($v)=>(int)$v)->toArray();
+            } else {
+                foreach (array_keys($roleHierarchy) as $assignerRoleKey) {
+                    if (! in_array($roleKey, $roleHierarchy[$assignerRoleKey] ?? [], true)) continue;
+                    $ids = $me->getEffectiveRegionIds($assignerRoleKey);
+                    $allowedIds = array_merge($allowedIds, $ids);
+                }
+                $allowedIds = array_values(array_unique($allowedIds));
+                // filter by level
+                $allowedIds = Regions::whereIn('id', $allowedIds)->where('level', $targetLevel)->pluck('id')->map(fn($v)=>(int)$v)->toArray();
+            }
+
+            // Ensure provided regionIds are subset of allowedIds
+            foreach ($regionIds as $rid) {
+                if (! in_array($rid, $allowedIds, true)) {
+                    return redirect()->back()->with('status', 'You are not allowed to assign selected region(s).')->withInput();
+                }
+            }
+        }
+
+        // Create user
+        $password = $data['password'] ?? Str::random(12);
+        $user = User::create([
+            'name' => $data['name'],
+            'username' => $data['username'],
+            'email' => $data['email'],
+            'password' => $password,
+            'role' => $roleKey ? 'admin' : 'user',
+            'approved' => isset($data['approved']) && $data['approved'] == '1',
+        ]);
+
+        // assign regions if provided
+        if ($roleKey && !empty($regionIds)) {
+            foreach ($regionIds as $rid) {
+                \App\Models\UserRegionRole::create([
+                    'user_id' => $user->id,
+                    'role_key' => $roleKey,
+                    'region_id' => (int)$rid,
+                    'created_by' => $me->id,
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.users')->with('status', 'User created.');
     }
 }

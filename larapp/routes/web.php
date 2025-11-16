@@ -18,6 +18,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	Route::post('/approve-user/{id}', [UserApprovalController::class, 'approve'])->name('admin.approve');
 	// user management
 	Route::get('/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users');
+	Route::get('/users/create', [\App\Http\Controllers\Admin\UserManagementController::class, 'create'])->name('admin.users.create');
+	Route::post('/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'store'])->name('admin.users.store');
 	Route::post('/users/{id}', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('admin.users.update');
     // bulk delete users (selected)
     Route::post('/users/delete-multiple', [\App\Http\Controllers\Admin\UserManagementController::class, 'bulkDelete'])->name('admin.users.bulk_delete');
