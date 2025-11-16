@@ -19,6 +19,15 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	// user management
 	Route::get('/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users');
 	Route::post('/users/{id}', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('admin.users.update');
+    // bulk delete users (selected)
+    Route::post('/users/delete-multiple', [\App\Http\Controllers\Admin\UserManagementController::class, 'bulkDelete'])->name('admin.users.bulk_delete');
+	Route::post('/users/{id}/delete', [\App\Http\Controllers\Admin\UserManagementController::class, 'deleteSingle'])->name('admin.users.delete_single');
+
+	// user region role assignments
+	Route::post('/users/{id}/roles', [\App\Http\Controllers\Admin\UserRegionRoleController::class, 'store'])->name('admin.users.roles.store');
+	Route::delete('/users/roles/{id}', [\App\Http\Controllers\Admin\UserRegionRoleController::class, 'destroy'])->name('admin.users.roles.destroy');
+    // AJAX endpoint to fetch allowed regions for a target role based on current user's scope
+    Route::get('/allowed-regions', [\App\Http\Controllers\Admin\UserManagementController::class, 'allowedRegions'])->name('admin.allowed_regions');
     // Master regions CRUD
     Route::resource('regions', \App\Http\Controllers\Admin\RegionController::class)->names('admin.regions');
 	// other masters

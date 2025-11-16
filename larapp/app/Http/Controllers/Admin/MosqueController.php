@@ -45,7 +45,11 @@ class MosqueController extends Controller
             'witel_id' => 'nullable|exists:regions,id',
             'sto_id' => 'nullable|exists:regions,id',
         ]);
-        $mosque = Mosque::create($data);
+    // Authorization: ensure user may create mosque within their region scope
+    $candidate = new Mosque($data);
+    $this->authorize('create', $candidate);
+
+    $mosque = Mosque::create($data);
 
         // handle photo uploads (multiple)
         $request->validate([
@@ -94,7 +98,8 @@ class MosqueController extends Controller
             'witel_id' => 'nullable|exists:regions,id',
             'sto_id' => 'nullable|exists:regions,id',
         ]);
-        $mosque->update($data);
+    $this->authorize('update', $mosque);
+    $mosque->update($data);
 
         // handle additional photo uploads
         $request->validate([
@@ -163,6 +168,7 @@ class MosqueController extends Controller
 
     public function destroy(Mosque $mosque)
     {
+        $this->authorize('delete', $mosque);
         $mosque->delete();
         return redirect()->route('admin.mosques.index')->with('success', 'Mosque deleted');
     }

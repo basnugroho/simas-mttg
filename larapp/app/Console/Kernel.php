@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         // Register console commands here so they are available to artisan
         Commands\MigrateImageUrlToPhotos::class,
+        Commands\BackfillRegionsTypeKey::class,
     ];
 
     /**

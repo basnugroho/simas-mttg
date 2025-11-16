@@ -56,7 +56,11 @@ class RegionController extends Controller
         $query = Regions::query();
 
         if ($type = $request->query('type')) {
-            $query->where('type', $type);
+            // Accept either legacy type or canonical type_key: match either column
+            $query->where(function($q) use ($type) {
+                $q->where('type_key', $type)
+                  ->orWhere('type', $type);
+            });
         }
 
         if ($parentId = $request->query('parent_id')) {
@@ -65,6 +69,19 @@ class RegionController extends Controller
 
         $regions = $query->orderBy('name')->get();
 
-        return $this->success($regions, 'Daftar wilayah');
+        // Transform output: include canonical type_key and human label
+        $out = $regions->map(function($r) {
+            return [
+                'id' => $r->id,
+                'name' => $r->name,
+                'type' => $r->type_key ?? $r->type,
+                'type_label' => method_exists($r, 'displayTypeLabel') ? $r->displayTypeLabel() : ($r->type_key ? (Regions::TYPES[$r->type_key] ?? $r->type_key) : $r->type),
+                'code' => $r->code,
+                'parent_id' => $r->parent_id,
+                'pov' => $r->pov ?? null,
+            ];
+        });
+
+        return $this->success($out, 'Daftar wilayah');
     }
 }
