@@ -390,7 +390,7 @@
       // leaflet map (dummy)
       const map = L.map('map').setView([-7.25,112.75],7);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      L.marker([-7.25,112.75]).addTo(map).bindPopup('Lokasi contoh: Jawa Timur').openPopup();
+      // example marker removed
     </script>
 
   @else

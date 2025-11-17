@@ -29,8 +29,15 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
 });
 
-Route::view('/', 'home');
-Route::view('/mosque', 'mosque');
+Route::get('/', [App\Http\Controllers\Home\Beranda\BerandaController::class, 'index']);
+
+// Autocomplete suggestions (used by frontend JS)
+Route::get('/search/suggestions', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'suggestions'])->name('search.suggestions');
+
+// Search results page
+Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'results'])->name('search.results');
+// Backward-compatibility alias: some templates or code may reference route('search')
+Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'results'])->name('search');
 
 
 
