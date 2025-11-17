@@ -105,6 +105,24 @@
   </div>
 
   <div class="form-row">
+    <label class="form-label">Province</label>
+    <div class="field">
+      <select name="province_id" id="province_id" class="form-input">
+        <option value="">-- Select Province --</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">City</label>
+    <div class="field">
+      <select name="city_id" id="city_id" class="form-input">
+        <option value="">-- Select City --</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
     <label class="form-label">Tahun Didirikan</label>
     <div class="field"><input type="number" name="tahun_didirikan" class="form-input" value="{{ old('tahun_didirikan', $mosque->tahun_didirikan ?? '') }}" /></div>
   </div>
@@ -164,6 +182,17 @@
       <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $mosque->latitude ?? '') }}">
       <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $mosque->longitude ?? '') }}">
       <div style="margin-top:6px;color:#374151;font-size:13px">Koordinat: <span id="coords-display">{{ old('latitude', $mosque->latitude ?? '') }}{{ $mosque->latitude && $mosque->longitude ? ',' : '' }}{{ old('longitude', $mosque->longitude ?? '') }}</span></div>
+
+      <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
+        <div style="flex:1">
+          <label class="form-label" style="font-weight:600;margin-bottom:6px">Province</label>
+          <input type="text" name="province" id="province-input" class="form-input" value="{{ old('province', $mosque->province ?? '') }}" readonly />
+        </div>
+        <div style="flex:1">
+          <label class="form-label" style="font-weight:600;margin-bottom:6px">City</label>
+          <input type="text" name="city" id="city-input" class="form-input" value="{{ old('city', $mosque->city ?? '') }}" readonly />
+        </div>
+      </div>
     </div>
   </div>
 
@@ -468,9 +497,100 @@
             latInput.value = p.lat.toFixed(6);
             lngInput.value = p.lng.toFixed(6);
             coordsDisplay.innerText = p.lat.toFixed(6)+','+p.lng.toFixed(6);
+            // reverse geocode and populate province/city selects
+            try{ reverseGeocodeAndPopulate(p.lat, p.lng); }catch(e){ console.warn('reverseGeocode error', e); }
           });
+          // when marker dragged, also reverse geocode
+          map.on && marker && marker.on && (function(){ /* marker dragend handler added when marker created */ })();
         }
       }catch(e){ console.warn('map init error', e); }
+      
+      // Reverse geocode helper: uses Nominatim to resolve names, then maps to internal region IDs via API
+      async function reverseGeocodeAndPopulate(lat, lng){
+        try{
+          // call Nominatim reverse geocode
+          const nomUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng);
+          const nr = await fetch(nomUrl, { headers: { 'User-Agent': 'simas-mttg/1.0 (+https://example.com)' } });
+          if(!nr.ok) return console.warn('nominatim failed', nr.status);
+          const nd = await nr.json();
+          const addr = nd && nd.address ? nd.address : {};
+          // Nominatim uses different keys: state, state_district, county, region for province-like; city/town/village for city-like
+          const provinceName = addr.state || addr.region || addr.state_district || addr.county || null;
+          const cityName = addr.city || addr.town || addr.village || addr.county || null;
+          // populate visible labels and attempt to match to region IDs
+          // fill the readonly text inputs (visible under the map) if present
+          try{ var provInput = document.getElementById('province-input'); if(provInput) provInput.value = provinceName || ''; }catch(e){}
+          try{ var cityInput = document.getElementById('city-input'); if(cityInput) cityInput.value = cityName || ''; }catch(e){}
+          // also attempt to map names to internal region selects (if available)
+          if(provinceName){ await setProvinceByName(provinceName); }
+          if(cityName){ await setCityByName(cityName); }
+        }catch(e){ console.warn('reverseGeocodeAndPopulate error', e); }
+      }
+
+      // Load provinces into province select (once)
+      let provincesLoaded = false;
+      async function loadProvinces(){
+        if(provincesLoaded) return;
+        try{
+          const res = await fetch('/api/regions?type=PROVINCE', { credentials:'same-origin' });
+          if(!res.ok) return;
+          const j = await res.json();
+          // API returns { success, message, data }
+          const data = j.data || j;
+          const sel = document.getElementById('province_id');
+          if(!sel) return;
+          // clear existing except placeholder
+          sel.innerHTML = '<option value="">-- Select Province --</option>';
+          data.forEach(function(p){ const opt = document.createElement('option'); opt.value = p.id; opt.text = p.name; sel.appendChild(opt); });
+          provincesLoaded = true;
+          // if form has existing value (edit), set it
+          try{ const cur = sel.getAttribute('data-selected') || '{{ old("province_id", $mosque->province_id ?? "") }}'; if(cur) sel.value = cur; }catch(e){}
+        }catch(e){ console.warn('loadProvinces failed', e); }
+      }
+
+      async function setProvinceByName(name){
+        if(!name) return;
+        await loadProvinces();
+        const sel = document.getElementById('province_id'); if(!sel) return;
+        // try exact match (case-insensitive)
+        const opt = Array.from(sel.options).find(o => o.text && o.text.toLowerCase().trim() === String(name).toLowerCase().trim());
+        if(opt){ sel.value = opt.value; // load cities for this province
+          await loadCitiesForProvince(opt.value);
+          return;
+        }
+        // try partial match
+        const opt2 = Array.from(sel.options).find(o => o.text && String(name).toLowerCase().includes(o.text.toLowerCase()) || o.text.toLowerCase().includes(String(name).toLowerCase()));
+        if(opt2){ sel.value = opt2.value; await loadCitiesForProvince(opt2.value); }
+      }
+
+      async function loadCitiesForProvince(provinceId){
+        if(!provinceId) return;
+        try{
+          const res = await fetch('/api/regions?parent_id='+encodeURIComponent(provinceId)+'&type=CITY', { credentials:'same-origin' });
+          if(!res.ok) return;
+          const j = await res.json();
+          const data = j.data || j;
+          const sel = document.getElementById('city_id'); if(!sel) return;
+          sel.innerHTML = '<option value="">-- Select City --</option>';
+          data.forEach(function(c){ const opt=document.createElement('option'); opt.value=c.id; opt.text=c.name; sel.appendChild(opt); });
+          // set existing city if present
+          try{ const cur = sel.getAttribute('data-selected') || '{{ old("city_id", $mosque->city_id ?? "") }}'; if(cur) sel.value = cur; }catch(e){}
+        }catch(e){ console.warn('loadCitiesForProvince failed', e); }
+      }
+
+      async function setCityByName(name){
+        if(!name) return;
+        const sel = document.getElementById('city_id'); if(!sel) return;
+        // ensure cities loaded for current province if any
+        const prov = document.getElementById('province_id'); if(prov && prov.value) await loadCitiesForProvince(prov.value);
+        const opt = Array.from(sel.options).find(o => o.text && o.text.toLowerCase().trim() === String(name).toLowerCase().trim());
+        if(opt){ sel.value = opt.value; return; }
+        const opt2 = Array.from(sel.options).find(o => o.text && (String(name).toLowerCase().includes(o.text.toLowerCase()) || o.text.toLowerCase().includes(String(name).toLowerCase())));
+        if(opt2) sel.value = opt2.value;
+      }
+
+      // load provinces once on page init
+      try{ loadProvinces().catch(e=>console.warn('init loadProvinces failed', e)); }catch(e){}
     })();
   </script>
   <script>

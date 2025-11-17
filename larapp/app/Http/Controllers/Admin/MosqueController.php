@@ -77,7 +77,9 @@ class MosqueController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:100',
-            'type' => 'nullable|string|in:MASJID,MUSHOLLA',
+            'type' => 'nullable|string|in:MASJID,MUSHALLA,MUSHOLLA',
+            'province' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'tahun_didirikan' => 'nullable|integer|min:1800|max:2100',
             'jml_bkm' => 'nullable|integer|min:0',
@@ -93,7 +95,10 @@ class MosqueController extends Controller
 
         $candidate = new Mosque($data);
         $this->authorize('create', $candidate);
-
+        // normalize type variants (accept MUSHOLLA but store canonical MUSHALLA)
+        if (!empty($data['type']) && strtolower($data['type']) === 'musholla') {
+            $data['type'] = 'MUSHALLA';
+        }
         $mosque = Mosque::create($data);
 
         $request->validate([
@@ -208,7 +213,9 @@ class MosqueController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:100',
-            'type' => 'nullable|string|in:MASJID,MUSHOLLA',
+            'type' => 'nullable|string|in:MASJID,MUSHALLA,MUSHOLLA',
+            'province' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'tahun_didirikan' => 'nullable|integer|min:1800|max:2100',
             'jml_bkm' => 'nullable|integer|min:0',
@@ -226,6 +233,8 @@ class MosqueController extends Controller
             // Debug/logging: record received files and request keys to help diagnose upload issues
             try { \Illuminate\Support\Facades\Log::info('mosque.update debug', ['files' => array_keys($request->allFiles()), 'count' => count($request->allFiles()), 'hasPhotosFile' => $request->hasFile('photos'), 'request_keys' => array_keys($request->all())]); } catch (\Throwable $__e) { }
             $this->authorize('update', $mosque);
+            // normalize type variants
+            if (!empty($data['type']) && strtolower($data['type']) === 'musholla') { $data['type'] = 'MUSHALLA'; }
             $mosque->update($data);
 
             // Process deletions of existing photos (if any)

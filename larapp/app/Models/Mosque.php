@@ -8,6 +8,7 @@ class Mosque extends Model
 {
     protected $fillable = [
         'name', 'code', 'type', 'address',
+        'province', 'city',
         'province_id', 'city_id', 'witel_id',
         'regional_id', 'area_id', 'sto_id',
         'tahun_didirikan', 'jml_bkm', 'luas_tanah', 'daya_tampung',
@@ -65,5 +66,32 @@ class Mosque extends Model
     public function photos()
     {
         return $this->hasMany(MosquePhoto::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Recompute and persist completion percentage based on required facilities.
+     * completion = floor( (count of required facilities owned by this mosque) / (total required facilities) * 100 )
+     */
+    public function recomputeCompletionPercentage()
+    {
+        $totalRequired = Facility::where('is_required', true)->count();
+        if ($totalRequired <= 0) {
+            $this->completion_percentage = 0;
+            $this->saveQuietly();
+            return $this->completion_percentage;
+        }
+
+        $ownedRequired = MosqueFacility::where('mosque_id', $this->id)
+            ->whereHas('facility', function ($q) {
+                $q->where('is_required', true);
+            })
+            ->where('is_available', true)
+            ->count();
+
+        $pct = (int) floor(($ownedRequired / $totalRequired) * 100);
+        $pct = max(0, min(100, $pct));
+        $this->completion_percentage = $pct;
+        $this->saveQuietly();
+        return $this->completion_percentage;
     }
 }
