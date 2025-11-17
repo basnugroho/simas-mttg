@@ -107,18 +107,14 @@
   <div class="form-row">
     <label class="form-label">Province</label>
     <div class="field">
-      <select name="province_id" id="province_id" class="form-input">
-        <option value="">-- Select Province --</option>
-      </select>
+      {{-- province select removed: province will be auto-filled from coordinates into readonly text input below --}}
     </div>
   </div>
 
   <div class="form-row">
     <label class="form-label">City</label>
     <div class="field">
-      <select name="city_id" id="city_id" class="form-input">
-        <option value="">-- Select City --</option>
-      </select>
+      {{-- city select removed: city will be auto-filled from coordinates into readonly text input below --}}
     </div>
   </div>
 
@@ -589,8 +585,7 @@
         if(opt2) sel.value = opt2.value;
       }
 
-      // load provinces once on page init
-      try{ loadProvinces().catch(e=>console.warn('init loadProvinces failed', e)); }catch(e){}
+  // province/city selects removed; we only populate the readonly inputs under the map via reverseGeocodeAndPopulate
     })();
   </script>
   <script>
