@@ -51,6 +51,16 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
 		// photo management for mosques
 		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
+
+		// Facilities management endpoints (used by admin UI JS)
+		Route::get('mosques/{mosque}/facilities', [\App\Http\Controllers\Admin\MosqueFacilityController::class, 'show']);
+		Route::post('mosques/{mosque}/facilities', [\App\Http\Controllers\Admin\MosqueFacilityController::class, 'update']);
+
+		// Mosque-facility photos endpoints
+		Route::get('mosques/{mosque}/facilities/{facility}/photos', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'index']);
+		Route::post('mosques/{mosque}/facilities/{facility}/photos', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'store']);
+		Route::patch('mosque-facility-photos/{photo}', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'update']);
+		Route::delete('mosque-facility-photos/{photo}', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'destroy']);
 });
 
 Route::get('/', [App\Http\Controllers\Home\Beranda\BerandaController::class, 'index']);

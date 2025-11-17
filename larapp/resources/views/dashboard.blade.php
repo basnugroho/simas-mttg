@@ -23,12 +23,7 @@
               <ul class="submenu" style="list-style:none;padding-left:14px;margin:6px 0 0 0;display:none;">
                 <li data-key="regions" style="margin-bottom:6px"><a href="{{ route('admin.regions.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l3 6 6 .5-4.5 4 1 6L12 16l-5.5 3.5 1-6L3 8.5 9 8 12 2z" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Regions</a></li>
                 <li data-key="mosques" style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 0 4 1.5 4 3.5S14 9 12 11 8 10 8 5.5 10 2 12 2z" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Mosques</a></li>
-                <li data-key="facilities" style="margin-bottom:6px">
-                  <div style="color:#94a3b8;padding-left:18px;display:flex;align-items:center;gap:8px;cursor:not-allowed;">
-                    <span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="11" rx="1" stroke="#94a3b8" stroke-width="1" fill="none"/><path d="M8 7V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" stroke="#94a3b8" stroke-width="1" fill="none"/></svg></span>
-                    <span style="color:#94a3b8">Facilities <span style="margin-left:6px">🚧</span></span>
-                  </div>
-                </li>
+                <li data-key="facilities" style="margin-bottom:6px"><a href="{{ route('admin.facilities.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="11" rx="1" stroke="#cbd5e1" stroke-width="1" fill="none"/><path d="M8 7V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Facilities</a></li>
               </ul>
             </li>
             <li style="margin-bottom:8px" data-key="masjid">
