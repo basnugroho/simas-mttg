@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Facility extends Model
 {
-    protected $fillable = ['name', 'slug', 'is_required'];
+    protected $fillable = ['name', 'slug', 'is_required', 'unit_id'];
 
     protected $casts = [
         'is_required' => 'boolean',

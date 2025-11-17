@@ -11,10 +11,26 @@ class FacilityController extends Controller
     public function index(Request $request)
     {
         $q = $request->query('q');
+        $sort = $request->query('sort', 'name');
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $allowed = ['name', 'slug', 'is_required', 'unit'];
+        if (!in_array($sort, $allowed)) $sort = 'name';
+
+        // base query: join unit table when sorting by unit
         $query = Facility::query();
-        if ($q) $query->where('name', 'like', "%{$q}%");
-        $items = $query->orderBy('name')->paginate(20);
-        return view('admin.master.facilities.index', compact('items', 'q'));
+        if ($sort === 'unit') {
+            $query = $query->leftJoin('facility_units', 'facilities.unit_id', '=', 'facility_units.id')
+                ->select('facilities.*');
+            $orderBy = 'facility_units.name';
+        } else {
+            $orderBy = 'facilities.' . $sort;
+        }
+
+        if ($q) $query->where('facilities.name', 'like', "%{$q}%");
+
+        $items = $query->orderBy($orderBy, $dir)->with('unit')->paginate(20)->appends(['q'=>$q, 'sort'=>$sort, 'dir'=>$dir]);
+        return view('admin.master.facilities.index', compact('items', 'q', 'sort', 'dir'));
     }
 
     public function create()
@@ -28,6 +44,7 @@ class FacilityController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255',
             'is_required' => 'nullable|boolean',
+            'unit_id' => 'nullable|exists:facility_units,id',
         ]);
         $data['is_required'] = $request->has('is_required');
         Facility::create($data);
@@ -45,6 +62,7 @@ class FacilityController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255',
             'is_required' => 'nullable|boolean',
+            'unit_id' => 'nullable|exists:facility_units,id',
         ]);
         $data['is_required'] = $request->has('is_required');
         $facility->update($data);

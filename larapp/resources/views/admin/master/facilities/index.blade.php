@@ -10,13 +10,31 @@
     </form>
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
     <table class="table table-sm">
-      <thead><tr><th>#</th><th>Name</th><th>Slug</th><th>Required</th><th>Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>#</th>
+          @php
+            $curSort = $sort ?? request('sort');
+            $curDir = $dir ?? request('dir', 'asc');
+            $toggle = function($col) use ($curSort, $curDir){
+              if($curSort === $col) return $curDir === 'asc' ? 'desc' : 'asc';
+              return 'asc';
+            };
+          @endphp
+          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'name','dir'=>$toggle('name')]) }}">Name @if(($curSort ?? '')==='name')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
+          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'slug','dir'=>$toggle('slug')]) }}">Slug @if(($curSort ?? '')==='slug')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
+          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'unit','dir'=>$toggle('unit')]) }}">Unit @if(($curSort ?? '')==='unit')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
+          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'is_required','dir'=>$toggle('is_required')]) }}">Required @if(($curSort ?? '')==='is_required')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
       <tbody>
         @foreach($items as $it)
         <tr>
           <td>{{ $it->id }}</td>
           <td>{{ $it->name }}</td>
           <td>{{ $it->slug }}</td>
+          <td>{{ $it->unit?->name ?? '-' }}</td>
           <td>{{ $it->is_required ? 'Yes' : 'No' }}</td>
           <td>
             <a href="{{ route('admin.facilities.edit', $it->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
