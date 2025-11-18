@@ -17,11 +17,19 @@ class SearchController extends Controller
         if ($q === '') {
             return response()->json([]);
         }
-        $results = Mosque::query()
+        $results = Mosque::with('city')
             ->where('name', 'like', '%' . $q . '%')
             ->orderBy('name')
             ->limit(7)
-            ->get(['id', 'name', 'type']);
+            ->get(['id', 'name', 'type', 'city_id'])
+            ->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                    'type' => $m->type,
+                    'city' => $m->city ? $m->city->name : '',
+                ];
+            });
 
         return response()->json($results);
     }
@@ -37,7 +45,7 @@ class SearchController extends Controller
                 ->paginate(15)
                 ->appends(['q' => $q]);
         }
-        return view('home.mosque.detail', [
+        return view('home.mosque.search', [
             'query' => $q,
             'mosques' => $mosques,
         ]);

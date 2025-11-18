@@ -176,3 +176,197 @@ body { background-color: #f8f9fa; font-family: 'Segoe UI', Arial, sans-serif; }
 @media (max-width:768px){
 	.map-overlay-controls{left:8px;right:8px;max-width:unset;width:auto}
 }
+
+/* Mosque detail actions and sections moved from inline blade */
+.mosque-actions{display:flex;gap:.75rem;align-items:center}
+.mosque-action{display:flex;align-items:center;gap:.5rem;padding:.35rem .6rem;border-radius:.5rem;text-decoration:none;color:var(--bs-body-color);transition:transform .22s cubic-bezier(.2,.9,.2,1),box-shadow .22s cubic-bezier(.2,.9,.2,1),background .18s}
+.mosque-action .icon{font-size:1rem;display:inline-flex;align-items:center;justify-content:center;width:28px}
+.mosque-action .label{font-weight:600}
+.mosque-action .sub{font-size:.85rem;color:rgba(0,0,0,.6)}
+.mosque-action.active{background:linear-gradient(90deg,#ef4444,#dc2626);color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.10);transform:translateY(-3px)}
+.mosque-action:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.mosque-action:focus{outline:none;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+@media (max-width:767px){.mosque-actions{flex-direction:column;align-items:stretch}}
+
+/* hide/show sections with fade */
+.mosque-section{display:none;opacity:0}
+.mosque-section.show{display:block;animation:fadeIn .28s ease forwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Profile partial styling */
+.profile-list li{display:flex;gap:8px;padding:.25rem 0;border-bottom:1px solid rgba(0,0,0,0.03)}
+.profile-list li .k{flex:0 0 34%;font-weight:700;color:#6b7280;text-transform:uppercase;font-size:.72rem}
+.profile-list li .sep{flex:0 0 auto;color:#6b7280}
+.profile-list li .v{flex:1;color:#1f2937;font-weight:600}
+
+.facility-badges{display:flex;flex-wrap:wrap;gap:.5rem}
+.facility{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .6rem;border-radius:.45rem;font-size:.82rem}
+.facility.available{background:#0ea5a4;color:#fff}
+.facility.available::after{content:'\2714';margin-left:.4rem;background:rgba(255,255,255,0.12);padding:.08rem .28rem;border-radius:6px}
+.facility.missing{background:#e11d48;color:#fff}
+.facility.missing::after{content:'\2716';margin-left:.4rem;background:rgba(255,255,255,0.12);padding:.08rem .28rem;border-radius:6px}
+
+@media (max-width:767px){
+	.profile-list li .k{flex-basis:40%}
+}
+
+
+/* Profile layout: use flex so profile-card sits left and profile-detail fills remaining */
+/* Use CSS Grid for profile two-column layout */
+#profile.mosque-section.profile-wrap{display:grid;grid-template-columns:30% 1fr;grid-column-gap:1.5rem;align-items:start}
+#profile .profile-card{grid-column:1 / 2;box-sizing:border-box}
+#profile .profile-detail{grid-column:2 / 3;box-sizing:border-box}
+
+/* Make sure inner card doesn't force wrapping */
+#profile .profile-card .card-body, #profile .profile-detail .card{box-sizing:border-box}
+
+/* For small screens stack vertically */
+@media (max-width:991.98px){
+    #profile.mosque-section.profile-wrap{display:block}
+    #profile .profile-card{width:100%;max-width:100%}
+    #profile .profile-detail{width:100%}
+}
+
+/* main content area to the right of profile: keep adjacency selector working */
+.mosque-main{margin-left:0;box-sizing:border-box;transition:margin-left .28s ease}
+/* when profile is shown, offset main content to make room for the 30% profile card */
+#profile.mosque-section.show + .mosque-main{margin-left:31.5%}
+@media (max-width:991.98px){
+    .mosque-main{margin-left:0}
+    #profile.mosque-section.show + .mosque-main{margin-left:0}
+}
+
+/* main content area: full width by default, shift right when profile is visible */
+.mosque-main{margin-left:0;box-sizing:border-box;transition:margin-left .28s ease}
+/* when profile is shown, offset main content to make room for the 30% profile card */
+#profile.mosque-section.show + .mosque-main{margin-left:31.5%}
+@media (max-width:991.98px){
+	.mosque-main{margin-left:0}
+	#profile.mosque-section.show + .mosque-main{margin-left:0}
+}
+
+/* Slightly smaller text inside profile and gray headings for .mb-2 within profile */
+#profile .profile-list{font-size:0.82rem}
+#profile .card-body .mb-2{color:#6b7280;font-size:0.88rem;font-weight:700}
+#profile .card-body h6.small.text-muted{color:#9ca3af}
+
+/* Detail hero and gallery styles */
+.detail-hero{overflow:hidden}
+.detail-hero .row{min-height:220px}
+.detail-hero .col-8{padding-right:.5rem}
+.detail-hero .col-8 img{width:100%;height:100%;max-height:360px;object-fit:cover;border-radius:8px}
+.detail-hero .col-4{display:flex;flex-direction:column;gap:.5rem}
+.detail-hero .col-4 > img{flex:1 1 0;height:calc((100% - .5rem)/2);object-fit:cover;border-radius:8px}
+.detail-hero .col-4 .flex-fill{flex:1 1 0;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.detail-meta h3{font-weight:700;margin:0}
+.gallery-thumbs .thumb{width:72px;height:72px;flex:0 0 auto;overflow:hidden;border-radius:8px;border:1px solid #e5e7eb}
+.gallery-thumbs .thumb img{width:100%;height:100%;object-fit:cover}
+
+/* Make thumbnails clearly clickable */
+.gallery-grid .gallery-thumb img{cursor:pointer;transition:transform .18s ease}
+.gallery-grid .gallery-thumb img:hover{transform:scale(1.03)}
+
+/* Increase tap target for carousel controls */
+.carousel-control-prev, .carousel-control-next{width:72px}
+.carousel-control-prev-icon, .carousel-control-next-icon{background-size:36px 36px}
+
+/* Bring controls and close button above overlay */
+.carousel-control-prev, .carousel-control-next, .modal .btn-close{z-index:1060}
+.carousel-control-prev, .carousel-control-next{pointer-events:auto}
+.accordion-item{border-radius:8px;overflow:hidden;border:1px solid #eef2f6;margin-bottom:8px}
+.accordion-button{background:#fff}
+.accordion-button:not(.collapsed){background:#f8fafc}
+
+@media (max-width:991.98px){
+	.detail-hero .row{min-height:160px}
+	.detail-hero .col-8 img{max-height:220px}
+	.detail-hero .col-4 > img{height:calc((100% - .5rem)/2)}
+}
+
+@media (max-width:767.98px){
+	.detail-hero .col-8,.detail-hero .col-4{width:100%;padding-right:0}
+	.detail-hero .col-4{flex-direction:row;gap:.5rem}
+	.detail-hero .col-4 > img{height:72px;width:72px}
+	.detail-hero .col-4 .flex-fill{display:none}
+}
+
+/* Gallery modal overlay (end-of-gallery hint) */
+.gallery-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1030}
+.gallery-overlay .hint{background:rgba(0,0,0,0.66);color:#fff;padding:.9rem 1.2rem;border-radius:10px;font-weight:700;font-size:1.05rem;opacity:0;transform:scale(.96);transition:opacity .22s ease,transform .28s cubic-bezier(.2,.9,.2,1)}
+.gallery-overlay.show .hint{opacity:1;transform:scale(1);animation:fadeHint .9s ease forwards}
+
+@keyframes fadeHint{0%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.96)}}
+
+/* Constrain modal carousel images: center and contain inside modal */
+.gallery-slide-wrap{width:100%;min-height:320px;max-height:72vh;display:flex;align-items:center;justify-content:center;background:#000}
+.gallery-slide-img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:6px}
+
+/* Make carousel controls more visible on dark background */
+.carousel-control-prev-icon, .carousel-control-next-icon{filter:drop-shadow(0 3px 8px rgba(0,0,0,.6));background-size:48px 48px}
+
+/* Ensure modal close button appears above content (controlled earlier) */
+
+/* Smaller modal on small screens */
+@media (max-width:576px){
+	.gallery-slide-wrap{min-height:220px}
+	.gallery-slide-img{max-height:60vh}
+}
+
+/* Modern inline carousel caption styling */
+.carousel-caption.caption-caption{position:absolute;left:18px;right:18px;bottom:8px;transform:translateY(8px);background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.7) 100%);padding:10px 14px;border-radius:8px;text-align:left;backdrop-filter: blur(4px)}
+.carousel-caption.caption-caption h5{margin:0;font-weight:800;font-size:1.05rem}
+.carousel-caption.caption-caption p{margin:6px 0 0;opacity:.95;font-size:.9rem}
+
+/* Thumbnail indicators below carousel */
+.thumbs-indicators{gap:8px}
+.thumbs-indicators button{border:0;background:transparent;padding:0;cursor:pointer;outline:none}
+.thumbs-indicators button img{width:72px;height:48px;object-fit:cover;border-radius:6px;border:2px solid transparent;opacity:.9;transition:transform .18s ease, border-color .15s ease, opacity .15s ease}
+.thumbs-indicators button.active img{transform:scale(1.03);border-color:var(--bs-primary);opacity:1}
+.thumbs-indicators button:focus img{box-shadow:0 6px 18px rgba(0,0,0,.15)}
+
+@media (max-width:576px){
+	.thumbs-indicators button img{width:56px;height:40px}
+}
+
+/* Layout for carousel with thumbnails on the right */
+.carousel-with-thumbs{display:flex;gap:16px;align-items:flex-start}
+.carousel-with-thumbs .bd-example{flex:1;min-width:0}
+.carousel-with-thumbs .thumbs-indicators{display:flex;flex-direction:column;gap:10px;align-items:center;max-height:420px;overflow:auto;width:96px;flex:0 0 96px}
+.carousel-with-thumbs .thumbs-indicators button img{width:88px;height:56px}
+
+@media (max-width:991.98px){
+	.carousel-with-thumbs{flex-direction:column}
+	.carousel-with-thumbs .thumbs-indicators{flex-direction:row;overflow:auto;width:100%;justify-content:center}
+	.carousel-with-thumbs .thumbs-indicators button img{width:72px;height:48px}
+}
+
+/* Grid gallery: main image left, vertical thumbnails right */
+.grid-gallery{display:grid;grid-template-columns:1fr 120px;gap:18px;align-items:start}
+.grid-gallery-main{width:100%}
+.grid-gallery-main .carousel-inner img{border-radius:12px}
+.grid-gallery-thumbs{display:flex;flex-direction:column;gap:12px;align-items:center}
+.grid-gallery-thumbs .grid-thumb{background:transparent;border:0;padding:0;cursor:pointer;outline:none;width:100%}
+.grid-gallery-thumbs .grid-thumb img{width:100%;height:72px;object-fit:cover;border-radius:8px;border:2px solid transparent;transition:transform .18s ease,border-color .15s ease,box-shadow .18s}
+.grid-gallery-thumbs .grid-thumb:hover img{transform:scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.grid-gallery-thumbs .grid-thumb.active img{border-color:var(--bs-primary)}
+
+@media (max-width:991.98px){
+	.grid-gallery{grid-template-columns:1fr;}
+	.grid-gallery-thumbs{flex-direction:row;overflow:auto;padding:8px 0;gap:8px}
+	.grid-gallery-thumbs .grid-thumb img{width:160px;height:96px}
+}
+
+/* Main carousel image set to 50% width and centered */
+.gallery-main-img{display:block;margin-left:auto;margin-right:auto;max-width:50%;height:auto}
+
+@media (max-width:991.98px){
+	.gallery-main-img{max-width:100%}
+}
+
+/* bd-example container to control demo width similar to Bootstrap examples */
+.bd-example{max-width:900px;width:100%}
+.bd-example .carousel-inner img{border-radius:12px}
+@media (max-width:991.98px){.bd-example{max-width:720px}}
+@media (max-width:575.98px){.bd-example{max-width:100%}}
+
+

@@ -30,7 +30,7 @@
                     <div class="news-grid">
                         @foreach($articles->take(8) as $a)
                             @php
-                                $img = asset('images/mosque.png');
+                                $img = asset('images/mosque.webp');
                                 $rel = ($a->published_at ?? null) ? \Carbon\Carbon::parse($a->published_at)->diffForHumans() : '';
                                 $author = $a->author ?? ($a->author_name ?? 'Admin');
                                 $summary = Str::limit($a->summary ?? ($a->content ?? ''), 140);

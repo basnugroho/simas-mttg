@@ -37,5 +37,11 @@ Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::clas
 // Backward-compatibility alias: some templates or code may reference route('search')
 Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'results'])->name('search');
 
+// Frontend mosque detail
+Route::get('/masjid/{id}', [\App\Http\Controllers\Home\Mosque\MosqueController::class, 'show'])->name('mosque.show');
+
+Route::get('/masjid', function () {
+	return view('home.mosque.index');
+})->name('masjid');
 
 

@@ -76,4 +76,5 @@ class BerandaController extends Controller
             'latestArticles' => $latestArticles,
         ]);
     }
+    
 }
