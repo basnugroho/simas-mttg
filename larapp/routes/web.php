@@ -48,6 +48,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	// other masters
 	Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)->names('admin.facilities');
 	Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
+	Route::resource('activities', \App\Http\Controllers\Admin\ActivityController::class)->names('admin.activities');
+	Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
 	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
 		// photo management for mosques
 		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
