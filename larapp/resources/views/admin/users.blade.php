@@ -7,9 +7,9 @@
     @endif
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:12px">
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:6px">
         <h2 style="margin:0">Management User BKM</h2>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px;margin-left:8px">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Management User BKM</strong></div>
+        <div style="font-size:12px;color:#6b7280;margin-top:0;">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Management User BKM</strong></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary">Create User</a>
@@ -473,12 +473,30 @@
         (async () => { if (createRoleSel.value) await populateRegionCheckboxes(createRoleSel.value, createRegionContainer); })();
       }
 
+      // Helper: prefer user's assigned role_key (if any) and set select value
+      function pickAssignedRoleForPanel(panel, roleSel) {
+        if (!panel || !roleSel) return;
+        try {
+          const assignedMap = panel.dataset && panel.dataset.assigned ? JSON.parse(panel.dataset.assigned || '{}') : {};
+          const assignedKeys = Object.keys(assignedMap || {}).filter(k => Array.isArray(assignedMap[k]) && assignedMap[k].length > 0);
+          if (assignedKeys.length) {
+            // pick the first role_key that exists in the select options
+            for (const k of assignedKeys) {
+              const opt = Array.from(roleSel.options).find(o => o.value === k);
+              if (opt) { roleSel.value = k; return; }
+            }
+          }
+        } catch (e) { /* ignore parse errors */ }
+      }
+
       // For each privilege-panel-inner (now placed inside expandable rows), wire role select -> checkbox container and select-all
       document.querySelectorAll('.privilege-panel-inner').forEach(panel => {
         const roleSel = panel.querySelector('.role-key-select');
         const container = panel.querySelector('.assign-region-container');
         const selectAll = panel.querySelector('.region-select-all');
         if (roleSel && container) {
+          // prefer selecting assigned role if present
+          pickAssignedRoleForPanel(panel, roleSel);
           // initial populate will occur when the row is opened; but pre-populate if row is visible
           if (panel.closest('.privilege-row') && panel.closest('.privilege-row').style.display === 'table-row') populateRegionCheckboxes(roleSel.value, container);
           roleSel.addEventListener('change', async () => { await populateRegionCheckboxes(roleSel.value, container); });
@@ -528,6 +546,8 @@
               const panelInner = row.querySelector('.privilege-panel-inner');
               const roleSel = panelInner ? panelInner.querySelector('.role-key-select') : null;
               const container = panelInner ? panelInner.querySelector('.assign-region-container') : null;
+              // prefer user's assigned role (if any) before populating
+              try { if (panelInner && roleSel) pickAssignedRoleForPanel(panelInner, roleSel); } catch (e) { /* ignore */ }
               console.log('panelInner, roleSel, container:', !!panelInner, !!roleSel, !!container);
               if (roleSel && container) {
                 // ensure population starts but don't block UI

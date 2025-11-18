@@ -28,12 +28,7 @@
                 <li data-key="subsidiaries" style="margin-bottom:6px"><a href="{{ route('admin.subsidiaries.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1"/><path d="M7 8h10" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round"/></svg></span>Subsidiaries</a></li>
               </ul>
             </li>
-            <li style="margin-bottom:8px" data-key="masjid">
-              <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed">
-                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2v6" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <span>Masjid <span style="margin-left:6px">🚧</span></span>
-              </div>
-            </li>
+            <li style="margin-bottom:8px" data-key="masjid"><a href="{{ route('admin.mosques.index') }}" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 0 4 1.5 4 3.5S14 9 12 11 8 10 8 5.5 10 2 12 2z" stroke="#fff" stroke-width="1.2" fill="none"/></svg></span>Masjid</a></li>
             <!-- Mushalla menu removed -->
             <li style="margin-bottom:8px" data-key="info">
               <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#94a3b8" stroke-width="1.5"/><path d="M7 8h10" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg></span>Info Terkini <span style="margin-left:6px">🚧</span></div>
@@ -76,11 +71,73 @@
 
           <div style="display:flex; align-items:center; gap:12px">
             <!-- user nav -->
-            <div style="display:flex; align-items:center; gap:8px; background:#fff;padding:8px 10px;border-radius:999px;box-shadow:0 6px 18px rgba(2,6,23,.06)">
-              <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=ef4444&color=fff" style="width:38px;height:38px;border-radius:50%">
-              <div style="text-align:left">
-                <div style="font-weight:600">{{ Auth::user()->name }}</div>
-                <div style="font-size:12px;color:#6b7280">{{ Auth::user()->role }}</div>
+            @php
+              $me = auth()->user();
+              $meRoles = [];
+              if ($me) {
+                try {
+                  foreach ($me->regionsRoles as $rr) {
+                    $meRoles[] = ['role' => $rr->role_key, 'region' => $rr->region?->name ?? $rr->region_id];
+                  }
+                } catch (\Throwable $__e) { $meRoles = []; }
+              }
+              // build allowedScope counts: expand all assigned regions and classify by region.level
+              $allowedScope = ['regional'=>[], 'area'=>[], 'witel'=>[], 'sto'=>[]];
+              if ($me) {
+                try {
+                  $allExpanded = [];
+                  foreach ($me->regionsRoles()->get() as $ar) {
+                    $rid = (int)$ar->region_id;
+                    try { $desc = \App\Models\Regions::collectDescendantIds($rid); }
+                    catch (\Throwable $e) { $desc = [$rid]; }
+                    $expanded = is_array($desc) ? $desc : (is_callable([$desc, 'toArray']) ? $desc->toArray() : [$rid]);
+                    $allExpanded = array_merge($allExpanded, $expanded);
+                  }
+                  $allExpanded = array_values(array_unique($allExpanded));
+
+                  if (count($allExpanded)) {
+                    $regions = \App\Models\Regions::whereIn('id', $allExpanded)->get(['id','level']);
+                    foreach ($regions as $r) {
+                      $lvl = strtoupper($r->level ?? '');
+                      if ($lvl === 'REGIONAL') $allowedScope['regional'][] = (int)$r->id;
+                      elseif ($lvl === 'AREA') $allowedScope['area'][] = (int)$r->id;
+                      elseif ($lvl === 'WITEL') $allowedScope['witel'][] = (int)$r->id;
+                      elseif ($lvl === 'STO') $allowedScope['sto'][] = (int)$r->id;
+                    }
+                    foreach (['regional','area','witel','sto'] as $k) {
+                      $allowedScope[$k] = array_values(array_unique($allowedScope[$k]));
+                    }
+                  }
+                } catch (\Throwable $__e) { }
+              }
+            @endphp
+
+            <div style="display:flex; align-items:center; gap:8px; background:#fff;padding:6px 8px;border-radius:999px;box-shadow:0 6px 18px rgba(2,6,23,.06)">
+              <img src="https://ui-avatars.com/api/?name={{ urlencode($me?->name ?? '') }}&background=ef4444&color=fff" style="width:30px;height:30px;border-radius:50%">
+              <div style="text-align:left;min-width:160px;display:flex;align-items:center;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-weight:600;font-size:13px">{{ $me?->name ?? 'Guest' }}</div>
+                  @php $primaryBadge = null; @endphp
+                  @if(count($meRoles))
+                    @php
+                      foreach ($meRoles as $rr) {
+                        if ($rr['role'] === 'admin_area') { $primaryBadge = $rr; break; }
+                      }
+                      if (!$primaryBadge) { $primaryBadge = $meRoles[0] ?? null; }
+                    @endphp
+                    @if($primaryBadge)
+                      @php $bg = $primaryBadge['role'] === 'admin_regional' ? '#10b981' : ($primaryBadge['role'] === 'admin_area' ? '#f59e0b' : ($primaryBadge['role'] === 'admin_witel' ? '#3b82f6' : '#6b7280'));
+                      @endphp
+                      <span style="background:{{ $bg }};color:#fff;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:600">{{ str_replace('admin_','', $primaryBadge['role']) . ': ' . $primaryBadge['region'] }}</span>
+                    @endif
+                  @endif
+                </div>
+                <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                  <small style="color:#9ca3af;font-size:11px">R</small><span style="background:#ecfdf5;color:#065f46;padding:2px 6px;border-radius:6px;font-weight:700;font-size:11px">{{ count($allowedScope['regional']) }}</span>
+                  <small style="color:#9ca3af;font-size:11px">A</small><span style="background:#fff7ed;color:#92400e;padding:2px 6px;border-radius:6px;font-weight:700;font-size:11px">{{ count($allowedScope['area']) }}</span>
+                  <small style="color:#9ca3af;font-size:11px">W</small><span style="background:#eff6ff;color:#1e40af;padding:2px 6px;border-radius:6px;font-weight:700;font-size:11px">{{ count($allowedScope['witel']) }}</span>
+                  <small style="color:#9ca3af;font-size:11px">S</small><span style="background:#fff1f2;color:#9f1239;padding:2px 6px;border-radius:6px;font-weight:700;font-size:11px">{{ count($allowedScope['sto']) }}</span>
+                </div>
               </div>
               <div style="margin-left:6px; position:relative">
                 <button id="userToggle" style="background:none;border:0;cursor:pointer;font-size:18px">▾</button>

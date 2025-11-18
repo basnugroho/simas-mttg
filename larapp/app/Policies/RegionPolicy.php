@@ -33,7 +33,15 @@ class RegionPolicy
     {
         if ($user->isWebmaster()) return true;
         $effective = $user->getEffectiveRegionIds();
-        return in_array((int)$region->id, $effective, true);
+        // allow update if the region itself is within effective ids
+        if (in_array((int)$region->id, $effective, true)) return true;
+        // allow update if any ancestor (parent chain) is within effective ids
+        $parent = $region->parent;
+        while ($parent) {
+            if (in_array((int)$parent->id, $effective, true)) return true;
+            $parent = $parent->parent;
+        }
+        return false;
     }
 
     /**

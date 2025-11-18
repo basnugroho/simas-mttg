@@ -7,22 +7,80 @@
             <div style="font-size:12px;color:#6b7280;margin-top:4px">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Mosques</strong></div>
           </div>
         </div>
-      <a href="{{ route('admin.mosques.create') }}" class="btn btn-primary">Create Mosque</a>
     </div>
+
+  {{-- Create button (right) and user info below it; then filters/sort/pagination controls --}}
+    @php
+      $me = auth()->user();
+      $meRoles = [];
+      if ($me) {
+        try {
+          foreach ($me->regionsRoles as $rr) {
+            $meRoles[] = ['role' => $rr->role_key, 'region' => $rr->region?->name ?? $rr->region_id];
+          }
+        } catch (\Throwable $__e) { $meRoles = []; }
+      }
+      // prepare display for role: use first role if available
+      $primaryRoleLabel = '-';
+      if(count($meRoles)){
+        $first = $meRoles[0];
+        $primaryRoleLabel = $first['role'] . ($first['region'] ? ' / ' . $first['region'] : '');
+        if(count($meRoles) > 1) $primaryRoleLabel .= ' +' . (count($meRoles)-1) . ' more';
+      }
+    @endphp
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px">
+      <div style="color:#6b7280;font-size:13px">Scope: shows all mosques; detail/peta available for all, edit/delete locked for out-of-scope</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div>
+          @can('create', \App\Models\Mosque::class)
+            <a href="{{ route('admin.mosques.create') }}" class="btn btn-primary">Create Mosque</a>
+          @endcan
+        </div>
+        <div style="font-size:13px;color:#374151">Logged in as: <span style="font-weight:700">{{ $me?->name ?? (Auth::user()?->username ?? 'Guest') }}</span>, <span style="color:#0ea5a4;font-weight:700">Role: {{ $primaryRoleLabel }}</span></div>
+      </div>
+    </div>
+
+    {{-- Compact search + type filter --}}
+    <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+  <input type="search" name="q" value="{{ request('q', $q ?? '') }}" placeholder="Search..." class="form-input" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;min-width:160px" />
+  <select name="type" class="form-select" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;height:34px;min-width:160px">
+        <option value="">All types</option>
+        <option value="MASJID" {{ (isset($filterType) && $filterType==='MASJID') ? 'selected' : '' }}>Masjid</option>
+        <option value="MUSHOLLA" {{ (isset($filterType) && $filterType==='MUSHOLLA') ? 'selected' : '' }}>Musholla</option>
+      </select>
+      <button class="btn btn-sm btn-primary">Go</button>
+      <a href="{{ route('admin.mosques.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+    </form>
 
     <table class="table">
       <thead>
         <tr>
           <th>#</th>
-          <th>Name</th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'dir' => (isset($sort) && $sort==='name' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Name @if(isset($sort) && $sort==='name'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
           <th style="width:48px;text-align:center">📸</th>
-          <th>Regional</th>
-          <th>Area</th>
-          <th>Witel</th>
-          <th>STO</th>
-          <th>Completion</th>
-          <th>Capacity</th>
-          <th style="width:180px">Actions</th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'regional', 'dir' => (isset($sort) && $sort==='regional' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Regional @if(isset($sort) && $sort==='regional'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'area', 'dir' => (isset($sort) && $sort==='area' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Area @if(isset($sort) && $sort==='area'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'witel', 'dir' => (isset($sort) && $sort==='witel' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Witel @if(isset($sort) && $sort==='witel'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'sto', 'dir' => (isset($sort) && $sort==='sto' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">STO @if(isset($sort) && $sort==='sto'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'completion_percentage', 'dir' => (isset($sort) && $sort==='completion_percentage' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Completion @if(isset($sort) && $sort==='completion_percentage'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
+          <th>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'daya_tampung', 'dir' => (isset($sort) && $sort==='daya_tampung' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Capacity @if(isset($sort) && $sort==='daya_tampung'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
+          <th style="width:180px">
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'dir' => (isset($sort) && $sort==='created_at' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Actions @if(isset($sort) && $sort==='created_at'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -52,6 +110,19 @@
             <td>{{ $m->daya_tampung ?? '-' }}</td>
             <td style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
               {{-- Detail (chevron) button moved to the leftmost of actions --}}
+              @php
+                $inScope = true;
+                try {
+                  if (isset($allowedScope) && is_array($allowedScope)) {
+                    $inScope = (
+                      (isset($allowedScope['regional']) && in_array($m->regional_id, $allowedScope['regional'])) ||
+                      (isset($allowedScope['area']) && in_array($m->area_id, $allowedScope['area'])) ||
+                      (isset($allowedScope['witel']) && in_array($m->witel_id, $allowedScope['witel'])) ||
+                      (isset($allowedScope['sto']) && in_array($m->sto_id, $allowedScope['sto']))
+                    );
+                  }
+                } catch (\Throwable $__e) { $inScope = true; }
+              @endphp
               <button type="button" class="btn btn-sm btn-outline-secondary toggle-detail" data-id="{{ $m->id }}" title="Show details">
                 <!-- chevron down icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -63,22 +134,33 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
 
-              @can('update', $m)
-                {{-- Edit as a colored primary button --}}
-                <a href="{{ route('admin.mosques.edit', $m->id) }}" class="btn btn-sm btn-primary" style="margin-left:6px">Edit</a>
-                <button type="button" class="btn btn-sm btn-info btn-manage-facilities" data-id="{{ $m->id }}" style="margin-left:6px">Facilities</button>
-              @else
-                <button class="btn btn-sm" disabled title="You don't have permission to edit" style="margin-left:6px">Edit</button>
-              @endcan
+              {{-- Facilities available for all users (opens modal) --}}
+              <button type="button" class="btn btn-sm btn-info btn-manage-facilities" data-id="{{ $m->id }}" style="margin-left:6px">Facilities</button>
 
+              {{-- Edit: only enabled when inScope and policy allows; otherwise show lock icon --}}
+              @if($inScope)
+                @can('update', $m)
+                  <a href="{{ route('admin.mosques.edit', $m->id) }}" class="btn btn-sm btn-primary" style="margin-left:6px">Edit</a>
+                @else
+                  <button class="btn btn-sm" disabled title="You don't have permission to edit" style="margin-left:6px">Edit</button>
+                @endcan
+              @else
+                <button class="btn btn-sm btn-primary" disabled title="Edit disabled — out of your region scope" style="margin-left:6px;opacity:.9;cursor:not-allowed">Edit 🔒</button>
+              @endif
+
+              {{-- Delete: only enabled when inScope and policy allows; otherwise show lock icon --}}
               <form action="{{ route('admin.mosques.destroy', $m->id) }}" method="POST" style="display:inline;margin-left:6px">
                 @csrf
                 @method('DELETE')
-                @can('delete', $m)
-                  <button class="btn btn-danger btn-sm" onclick="return confirm('Delete this mosque?')">Delete</button>
+                @if($inScope)
+                  @can('delete', $m)
+                    <button class="btn btn-danger btn-sm" onclick="return confirm('Delete this mosque?')">Delete</button>
+                  @else
+                    <button class="btn btn-danger btn-sm" disabled title="You don't have permission to delete">Delete</button>
+                  @endcan
                 @else
-                  <button class="btn btn-danger btn-sm" disabled title="You don't have permission to delete">Delete</button>
-                @endcan
+                  <button class="btn btn-danger btn-sm" disabled title="Delete disabled — out of your region scope" style="opacity:.9;cursor:not-allowed">Delete 🔒</button>
+                @endif
               </form>
             </td>
           </tr>

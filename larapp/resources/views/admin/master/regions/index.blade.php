@@ -8,7 +8,17 @@
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <a href="{{ route('admin.regions.create') }}" class="btn btn-sm btn-primary">Create Region</a>
+        @php
+          $me = auth()->user();
+          $effective = [];
+          try { if($me) $effective = $me->getEffectiveRegionIds(); } catch(\Throwable $__e) { $effective = []; }
+          $canCreateAny = $me && ($me->isWebmaster() || count($effective)>0);
+        @endphp
+        @if($canCreateAny)
+          <a href="{{ route('admin.regions.create') }}" class="btn btn-sm btn-primary">Create Region</a>
+        @else
+          <button class="btn btn-sm btn-primary" disabled title="Create disabled: no allowed parent region">Create Region 🔒</button>
+        @endif
       </div>
     </div>
 
@@ -17,13 +27,14 @@
       <select name="pov" class="form-control" style="width:220px">
         <option value="">-- POV / Ordering --</option>
         @foreach(\App\Models\Regions::POVS as $povKey => $povLabel)
-          <option value="{{ $povKey }}" {{ (request('pov') == $povKey) ? 'selected' : '' }}>{{ $povLabel }}</option>
+          <option value="{{ $povKey }}" {{ (isset($pov) && $pov === $povKey) ? 'selected' : '' }}>{{ $povLabel }}</option>
         @endforeach
       </select>
       <select name="level" class="form-control" style="width:160px">
         <option value="">-- Level --</option>
+        <option value="ALL" {{ (isset($level) && $level === 'ALL') ? 'selected' : '' }}>All</option>
         @foreach(\App\Models\Regions::LEVELS as $lvl)
-          <option value="{{ $lvl }}" {{ (request('level') == $lvl) ? 'selected' : '' }}>{{ $lvl }}</option>
+          <option value="{{ $lvl }}" {{ (isset($level) && $level === $lvl) ? 'selected' : '' }}>{{ $lvl }}</option>
         @endforeach
       </select>
       <button class="btn btn-sm btn-secondary">Search</button>
@@ -45,8 +56,9 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($regions as $r)
-        <tr>
+        @if(isset($regions) && $regions->count())
+          @foreach($regions as $r)
+          <tr>
           <td>{{ $r->id }}</td>
           <td>{{ $r->name }}</td>
           <td>{{ $r->pov ?? '-' }}</td>
@@ -55,15 +67,30 @@
           <td>{{ optional($r->parent)->name }}</td>
           <td>{{ $r->level ?? '-' }}</td>
           <td>
-            <a href="{{ route('admin.regions.edit', $r->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
-            <form method="POST" action="{{ route('admin.regions.destroy', $r->id) }}" style="display:inline-block" onsubmit="return confirm('Delete region?')">
-              @csrf
-              @method('DELETE')
-              <button class="btn btn-sm btn-danger">Delete</button>
-            </form>
+            @php
+              // `getEffectiveRegionIds()` already includes assigned regions and their descendants,
+              // so it's sufficient to test the region's id against the cached effective set.
+              $inScope = ($me && $me->isWebmaster()) || in_array((int)$r->id, $effective);
+            @endphp
+            @if($inScope)
+              <a href="{{ route('admin.regions.edit', $r->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <form method="POST" action="{{ route('admin.regions.destroy', $r->id) }}" style="display:inline-block" onsubmit="return confirm('Delete region?')">
+                @csrf
+                @method('DELETE')
+                <button class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            @else
+              <button class="btn btn-sm btn-outline-secondary" disabled title="Edit disabled: region outside your scope">Edit 🔒</button>
+              <button class="btn btn-sm btn-danger" disabled title="Delete disabled: region outside your scope">Delete 🔒</button>
+            @endif
           </td>
         </tr>
-        @endforeach
+          @endforeach
+        @else
+          <tr>
+            <td colspan="8" class="text-center" style="color:#6b7280;padding:18px">No regions found. You can <a href="{{ route('admin.regions.create') }}">create a region</a> if you have permission.</td>
+          </tr>
+        @endif
       </tbody>
     </table>
 

@@ -14,10 +14,90 @@ class MosqueController extends Controller
     public function index(Request $request)
     {
         $q = $request->query('q');
+        $sort = $request->query('sort', 'name');
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $per = intval($request->query('per', 20)) ?: 20;
+
+        $filterRegional = $request->query('regional_id');
+        $filterArea = $request->query('area_id');
+        $filterWitel = $request->query('witel_id');
+        $filterSto = $request->query('sto_id');
+        $filterType = $request->query('type');
+
         $query = Mosque::with(['regional','area','witel','sto','province','city','photos']);
-        if ($q) $query->where('name', 'like', "%{$q}%");
-        $mosques = $query->orderBy('name')->paginate(20);
-        return view('admin.master.mosques.index', compact('mosques', 'q'));
+        if ($q) {
+            $search = $q;
+            $like = "%{$search}%";
+            $query->where(function($qb) use ($like) {
+                $qb->where('name', 'like', $like)
+                   ->orWhere('code', 'like', $like)
+                   ->orWhere('address', 'like', $like)
+                   ->orWhereHas('province', function($q) use ($like){ $q->where('name', 'like', $like); })
+                   ->orWhereHas('city', function($q) use ($like){ $q->where('name', 'like', $like); })
+                   ->orWhereHas('regional', function($q) use ($like){ $q->where('name', 'like', $like); })
+                   ->orWhereHas('area', function($q) use ($like){ $q->where('name', 'like', $like); })
+                   ->orWhereHas('witel', function($q) use ($like){ $q->where('name', 'like', $like); })
+                   ->orWhereHas('sto', function($q) use ($like){ $q->where('name', 'like', $like); });
+            });
+        }
+        if ($filterRegional) $query->where('regional_id', $filterRegional);
+        if ($filterArea) $query->where('area_id', $filterArea);
+        if ($filterWitel) $query->where('witel_id', $filterWitel);
+        if ($filterSto) $query->where('sto_id', $filterSto);
+        if ($filterType) $query->where('type', $filterType);
+
+        // Do not restrict listing here; instead pass the current user's expanded scope to the view
+        $me = auth()->user();
+        $allowedScope = ['regional' => [], 'area' => [], 'witel' => [], 'sto' => []];
+        if ($me) {
+            try {
+                $grouped = [];
+                foreach ($me->regionsRoles()->get() as $ar) { $grouped[$ar->role_key][] = (int)$ar->region_id; }
+                foreach ($grouped as $rk => $ids) {
+                    foreach ($ids as $rid) {
+                        try { $desc = \App\Models\Regions::collectDescendantIds((int)$rid); }
+                        catch (\Throwable $e) { $desc = [$rid]; }
+                        $expanded = is_array($desc) ? $desc : (is_callable([$desc, 'toArray']) ? $desc->toArray() : [$rid]);
+                        if ($rk === 'admin_regional') $allowedScope['regional'] = array_merge($allowedScope['regional'], $expanded);
+                        if ($rk === 'admin_area') $allowedScope['area'] = array_merge($allowedScope['area'], $expanded);
+                        if ($rk === 'admin_witel') $allowedScope['witel'] = array_merge($allowedScope['witel'], $expanded);
+                        if ($rk === 'admin_sto') $allowedScope['sto'] = array_merge($allowedScope['sto'], $expanded);
+                    }
+                }
+                // uniq
+                $allowedScope['regional'] = array_values(array_unique($allowedScope['regional']));
+                $allowedScope['area'] = array_values(array_unique($allowedScope['area']));
+                $allowedScope['witel'] = array_values(array_unique($allowedScope['witel']));
+                $allowedScope['sto'] = array_values(array_unique($allowedScope['sto']));
+            } catch (\Throwable $e) {
+                // ignore and pass empty scope
+            }
+        }
+
+        // apply sorting
+        $sortable = ['name','code','type','regional','area','witel','sto','province','city','completion_percentage','daya_tampung','created_at'];
+        if (in_array($sort, $sortable)) {
+            // relation-based sorts (regional/area/witel/sto/province/city) use subquery to order by name
+            if (in_array($sort, ['regional','area','witel','sto','province','city'])) {
+                $col = $sort . '_id';
+                // order by the related region name using subquery
+                $query->orderByRaw("(select name from regions where id = mosques.{$col}) {$dir}");
+            } else {
+                $query->orderBy($sort, $dir);
+            }
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        $mosques = $query->paginate($per)->withQueryString();
+
+        // fetch region lists for filters
+        $regionals = Regions::where('level', 'REGIONAL')->orderBy('name')->get();
+        $areas = Regions::where('level', 'AREA')->orderBy('name')->get();
+        $witels = Regions::where('level', 'WITEL')->orderBy('name')->get();
+        $stos = Regions::where('level', 'STO')->orderBy('name')->get();
+
+        return view('admin.master.mosques.index', compact('mosques', 'q', 'allowedScope', 'sort', 'dir', 'per', 'filterRegional', 'filterArea', 'filterWitel', 'filterSto', 'filterType', 'regionals', 'areas', 'witels', 'stos'));
     }
 
     public function create()
