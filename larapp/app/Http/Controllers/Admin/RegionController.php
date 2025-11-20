@@ -494,13 +494,8 @@ class RegionController extends Controller
     {
         try {
             $parent = $request->query('parent_id');
-            // If the caller expects JSON (AJAX) but is not authenticated, return
-            // an empty array so the frontend can degrade gracefully instead of
-            // receiving a 401 or HTML redirect. Regions listing is non-sensitive
-            // for dependent selects used during create/edit flows.
-            if (!\Illuminate\Support\Facades\Auth::check() && $request->expectsJson()) {
-                return response()->json([]);
-            }
+            // Allow JSON/AJAX callers (including unauthenticated) to receive
+            // data so frontend dependent selects work on public pages.
             $level = $request->query('level');
             $descendants = $request->query('descendants');
             if (empty($parent)) {

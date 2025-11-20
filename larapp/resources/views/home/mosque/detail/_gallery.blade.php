@@ -1,9 +1,19 @@
 <div id="gallery" class="mt-4 pt-3 mosque-section">
 	<div class="card card-sm mb-3">
 		<div class="card-body">
-			@php $images = [];
-				for($i=1;$i<=5;$i++){
-					$images[] = asset('images/mosque-'.$i.'.png');
+			@php
+				$images = [];
+				// prefer related photos from the mosque model
+				if(isset($mosque) && $mosque->relationLoaded('photos') && $mosque->photos->count()){
+					foreach($mosque->photos as $p){
+						$images[] = $p->url ?? ($p->path ? asset($p->path) : null);
+					}
+				}
+				// fallback to public images if no photos
+				if(empty($images)){
+					for($i=1;$i<=5;$i++){
+						$images[] = asset('images/mosque-'.$i.'.jpg');
+					}
 				}
 			@endphp
 			{{-- Inline carousel built from gallery images --}}

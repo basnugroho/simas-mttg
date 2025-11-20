@@ -43,10 +43,10 @@
 							@if(isset($masjids) && $masjids->count())
 									@foreach($masjids as $m)
 										@php
-											$img = asset('images/mosque-'.(rand(1,5)).'.png');
+											$img = asset('images/mosque-1.jpg');
 											$pct = (int) ($m->completion_percentage ?? 0);
 										@endphp
-										<div class="facility-card modern shadow-sm">
+										<div class="facility-card modern shadow-sm mb-2">
 											<img src="{{ $img }}" alt="Foto {{ $m->name }}" loading="lazy">
 											<div class="fc-body">
 												<h6 class="fc-title" title="{{ $m->name }}">{{ $m->name }}</h6>
@@ -64,7 +64,7 @@
 							@endif
 						</div>
 					</div>
-					<div class="text-center mt-2"><a href="#" class="more-link">Lihat Lebih Lengkap</a></div>
+					<div class="text-center mt-2"><a href="{{ route('masjid', ['province_id' => '', 'witel_id' => '', 'sto_id' => '', 'type' => 'MASJID', 'facility_id' => '']) }}" class="more-link">Lihat Lebih Lengkap</a></div>
 				</div>
 				<div class="split-col col-12 col-lg-6 ps-lg-3">
 					<div class="d-flex align-items-center mb-2">
@@ -79,10 +79,10 @@
 							@if(isset($mushollas) && $mushollas->count())
 									@foreach($mushollas as $m)
 										@php
-											$img = asset('images/mosque-'.(rand(1,5)).'.png');
+											$img = asset('images/mosque-1.jpg');
 											$pct = (int) ($m->completion_percentage ?? 0);
 										@endphp
-										<div class="facility-card modern shadow-sm">
+										<div class="facility-card modern shadow-sm mb-2">
 											<img src="{{ $img }}" alt="Foto {{ $m->name }}" loading="lazy">
 											<div class="fc-body">
 												<h6 class="fc-title" title="{{ $m->name }}">{{ $m->name }}</h6>
@@ -100,7 +100,7 @@
 							@endif
 						</div>
 					</div>
-					<div class="text-center mt-2"><a href="#" class="more-link">Lihat Lebih Lengkap</a></div>
+					<div class="text-center mt-2"><a href="{{ route('masjid', ['province_id' => '', 'witel_id' => '', 'sto_id' => '', 'type' => 'MUSHOLLA', 'facility_id' => '']) }}" class="more-link">Lihat Lebih Lengkap</a></div>
 				</div>
 			</div>
 		</div>

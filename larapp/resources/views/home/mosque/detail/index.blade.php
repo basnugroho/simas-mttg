@@ -1,6 +1,6 @@
 <x-home.layout :title="'Simas MTTG - Detail Masjid'">
 	<x-home._navbar />
-	<x-home.mosque._hero/>
+	<x-home.mosque._hero :mosque="$mosque" />
 	<x-home.mosque._nav_tab/>
 	<div class="container my-4">
 		@include('home.mosque.detail._profile')

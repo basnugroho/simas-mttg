@@ -172,7 +172,7 @@
 	const mushollaGrid = document.getElementById('mushollaGrid');
 
 	function facilityCard(item){
-		const imgSrc = '/images/mosque-1.png';
+		const imgSrc = '/images/mosque-1.jpg';
 		const img = imgSrc;
 		return `<div class="facility-card modern shadow-sm">\n`+
 			`<img src="${img}" alt="Foto ${item.name}" loading="lazy">\n`+

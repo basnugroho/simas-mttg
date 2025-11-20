@@ -75,19 +75,17 @@ Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::clas
 // Backward-compatibility alias: some templates or code may reference route('search')
 Route::get('/search', [\App\Http\Controllers\Home\Beranda\SearchController::class, 'results'])->name('search');
 
-// Frontend mosque detail
-Route::get('/masjid/{id}', [\App\Http\Controllers\Home\Mosque\MosqueController::class, 'show'])->name('mosque.show');
+// Frontend mosque detail (use {mosque} for route-model binding)
+Route::get('/masjid/{mosque}', [\App\Http\Controllers\Home\Mosque\MosqueController::class, 'show'])->name('mosque.show');
 
-Route::get('/masjid', function () {
-	return view('home.mosque.index');
-})->name('masjid');
+Route::get('/masjid', [App\Http\Controllers\Home\Mosque\MosqueController::class, 'index'])->name('masjid');
+Route::get('/musholla', [\App\Http\Controllers\Home\Mosque\MosqueController::class, 'mushallaIndex'])->name('mushalla');
 
 // Contact form submit
-Route::get('/contact', function () {
-	return view('home.contact.index');
-})->name('contact');
-
-
+Route::get('/contact', function () {return view('home.contact.index');})->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 
-
+// Article form submit
+Route::get('/article', function () {return view('home.article.index');})->name('article');
+// Article detail
+Route::get('/article/{id}', [\App\Http\Controllers\Home\ArticleController::class, 'show'])->name('article.show');

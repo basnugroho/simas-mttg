@@ -9,7 +9,7 @@
 					<p class="text-muted mb-3">Di wilayah (Witel) Telkom Regional 3 Jatim, Bali, Nusa Tenggara</p>
 				</div>
 				<div class="col-md-4 text-end">
-					<a href="#" class="btn btn-outline-dark rounded-pill">Lihat Semua</a>
+					<a href="{{ route('masjid') }}" class="btn btn-outline-dark rounded-pill">Lihat Semua</a>
 				</div>
 			</div>
 	
@@ -32,7 +32,7 @@
 								<li><i class="bi bi-x-square me-2"></i> Musholla : <strong>{{ $r->complete_musholla_count ?? 0 }}/{{ $r->musholla_count ?? 0 }}</strong></li>
 							</ul>
 							<div class="d-grid">
-								<a href="#" class="btn btn-dark rounded-pill">Lihat Selengkapnya</a>
+								<a href="{{ route('masjid', ['province_id' => $r->id, 'witel_id' => '', 'sto_id' => '', 'type' => '', 'facility_id' => '']) }}" class="btn btn-dark rounded-pill">Lihat Selengkapnya</a>
 							</div>
 						</div>
 					</div>
@@ -57,7 +57,7 @@
 							<li><i class="bi bi-x-square me-2"></i> Musholla : <strong>{{ $summary['complete_musholla_total'] }}/{{ $summary['musholla_total'] }}</strong></li>
 						</ul>
 						<div class="d-grid">
-							<a href="#" class="btn btn-light rounded-pill">Lihat Selengkapnya</a>
+							<a href="{{ route('masjid', ['province_id' => $summary['province_id'] ?? '', 'witel_id' => '', 'sto_id' => '', 'type' => '', 'facility_id' => '']) }}" class="btn btn-light rounded-pill">Lihat Selengkapnya</a>
 						</div>
 					</div>
 				</div>
