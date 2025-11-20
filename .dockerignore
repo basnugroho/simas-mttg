@@ -6,6 +6,7 @@
 .env
 .env.*
 .env.docker
+!larapp/.env.prod
 
 # Node and PHP deps (don't commit these in repo)
 larapp/node_modules
