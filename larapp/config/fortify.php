@@ -1,7 +1,5 @@
 <?php
 
-use Laravel\Fortify\Features;
-
 return [
 
     /*
@@ -144,17 +142,21 @@ return [
     |
     */
 
-    'features' => [
-        Features::registration(),
-        Features::resetPasswords(),
-        // Features::emailVerification(),
-        Features::updateProfileInformation(),
-        Features::updatePasswords(),
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-            // 'window' => 0,
-        ]),
-    ],
+    'features' => (
+        class_exists(\Laravel\Fortify\Features::class)
+        ? [
+            \Laravel\Fortify\Features::registration(),
+            \Laravel\Fortify\Features::resetPasswords(),
+            // \Laravel\Fortify\Features::emailVerification(),
+            \Laravel\Fortify\Features::updateProfileInformation(),
+            \Laravel\Fortify\Features::updatePasswords(),
+            \Laravel\Fortify\Features::twoFactorAuthentication([
+                'confirm' => true,
+                'confirmPassword' => true,
+                // 'window' => 0,
+            ]),
+        ]
+        : []
+    ),
 
 ];

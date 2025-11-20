@@ -73,6 +73,9 @@ fi
 
 # Run migrations and seed (force to run in non-interactive)
 cd /var/www/html
+# Ensure public storage symlink exists so uploaded files are web-accessible
+echo "Ensuring storage symlink (public/storage -> storage/app/public)..."
+php artisan storage:link || true
 echo "Running migrations..."
 php artisan migrate --force || true
 

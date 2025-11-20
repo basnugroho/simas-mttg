@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Facility extends Model
 {
-    protected $fillable = ['name', 'slug', 'is_required'];
+    protected $fillable = ['name', 'slug', 'is_required', 'unit_id'];
 
     protected $casts = [
         'is_required' => 'boolean',
@@ -19,8 +19,13 @@ class Facility extends Model
 
     public function mosques()
     {
-        return $this->belongsToMany(Mosque::class, 'mosque_facilities')
-            ->withPivot(['is_available', 'note'])
+        return $this->belongsToMany(Mosque::class, 'mosque_facility')
+            ->withPivot(['is_available', 'note', 'quantity', 'unit_id'])
             ->withTimestamps();
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(FacilityUnit::class, 'unit_id');
     }
 }

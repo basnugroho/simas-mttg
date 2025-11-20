@@ -3,6 +3,7 @@
     <h3>Create Region</h3>
     <form method="POST" action="{{ route('admin.regions.store') }}">
       @csrf
+      @php $region = null; @endphp
       @include('admin.master.regions._form')
       <div style="margin-top:12px">
         <button class="btn btn-primary">Save</button>

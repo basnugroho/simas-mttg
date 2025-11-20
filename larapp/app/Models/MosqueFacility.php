@@ -9,7 +9,7 @@ class MosqueFacility extends Model
     protected $table = 'mosque_facility';
 
     protected $fillable = [
-        'mosque_id', 'facility_id', 'is_available', 'note',
+        'mosque_id', 'facility_id', 'is_available', 'note', 'quantity', 'unit_id',
     ];
 
     protected $casts = [
@@ -24,5 +24,15 @@ class MosqueFacility extends Model
     public function facility()
     {
         return $this->belongsTo(Facility::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(FacilityUnit::class, 'unit_id');
+    }
+
+    public function photos()
+    {
+        return $this->hasMany(MosqueFacilityPhoto::class)->orderBy('sort_order')->orderBy('id');
     }
 }

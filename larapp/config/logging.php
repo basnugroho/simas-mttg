@@ -54,7 +54,9 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            // Ensure empty env values don't produce an empty channel name which
+            // causes the Log manager to attempt resolving a '' channel.
+            'channels' => array_values(array_filter(array_map('trim', explode(',', (string) env('LOG_STACK', 'single'))))),
             'ignore_exceptions' => false,
         ],
 

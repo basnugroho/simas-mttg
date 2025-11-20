@@ -11,8 +11,9 @@
     .card-dark { background:#111318; }
     .glass-input { background:#1a1d24; border:1px solid #262b36; }
     .glass-input:focus { outline:none; border-color:#ff3b3b; box-shadow:0 0 0 3px rgba(239,68,68,.25); }
-    .btn-red { background:#e11d2e; }
-    .btn-red:hover { background:#c11222; }
+    .btn-red { background:#e11d2e; color:white; }
+    .btn-red:hover { background:#c11222; color:white; }
+    .btn-red:focus { outline:none; box-shadow:0 0 0 4px rgba(225,29,46,0.18); }
   </style>
 </head>
 <body class="min-h-screen">
