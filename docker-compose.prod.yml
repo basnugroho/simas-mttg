@@ -3,22 +3,22 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    image: ${APP_NAME}-prod
-    container_name: ${APP_NAME}-prod
+    image: simas-mttg-prod
+    container_name: simas-mttg-prod
     ports:
       - "3001:80"
     env_file:
-      - ./.env
+      - ./larapp/.env.prod
     depends_on:
       - db
     restart: unless-stopped
 
   db:
     image: mysql:8.0
-    container_name: ${APP_NAME}-db-prod
+    container_name: simas-mttg-db-prod
     restart: unless-stopped
     env_file:
-      - ./.env
+      - ./larapp/.env.prod
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${DB_DATABASE}

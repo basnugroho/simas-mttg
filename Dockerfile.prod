@@ -2,7 +2,8 @@
 FROM node:20 AS frontend-builder
 WORKDIR /app
 COPY larapp /app
-RUN npm ci && npm run build
+# Install dependencies and the @tailwindcss/postcss plugin (required for Tailwind v4+ PostCSS integration)
+RUN npm ci && npm install @tailwindcss/postcss --save-dev && npm run build
 
 # Stage 2: Build PHP Application
 FROM php:8.2-apache
@@ -46,6 +47,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Copy aplikasi Laravel
 COPY larapp /var/www/html/
+
+# If a production env file exists inside the app, copy it to .env
+RUN if [ -f /var/www/html/.env.prod ]; then cp /var/www/html/.env.prod /var/www/html/.env; fi
 
 # Copy hasil build frontend dari stage sebelumnya
 COPY --from=frontend-builder /app/public/build /var/www/html/public/build
