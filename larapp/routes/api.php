@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\MosqueController;
 use App\Http\Controllers\Api\FacilityController;
-use App\Http\Controllers\Api\PrayerTimeController;
+use App\Http\Controllers\Api\PrayerTimesController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\DashboardController;
 
@@ -25,6 +25,9 @@ Route::get('mosques/{id}', [MosqueController::class, 'show']);
 Route::get('mosques/{id}/facilities', [MosqueController::class, 'facilities']);
 Route::get('facilities', [FacilityController::class, 'index']);
 Route::get('facilities/overview', [FacilityController::class, 'overview']);
+
+// Prayer times endpoint used by frontend when displaying mosque detail
+Route::get('prayertimes', [PrayerTimesController::class, 'index']);
 
 // Admin (protected)
 Route::middleware('auth:sanctum')->group(function () {
