@@ -1,6 +1,8 @@
 (function(){
 	const input = document.getElementById('searchInput');
 	const box = document.getElementById('autocomplete');
+	// Guard: if the autocomplete elements are not present on this page, skip wiring
+	if(!input || !box) return;
 	let controller; let lastQuery=''; let hideTimeout;
 	let lastSuggestions = [];
 	let selectedId = null;
@@ -43,7 +45,10 @@
 		box.classList.add('d-none'); box.innerHTML='';
 	});
 
-	document.getElementById('searchForm').addEventListener('submit', function(ev){ ev.preventDefault(); if(input.value.trim()===''){ return; } submitDynamic(); });
+	const searchForm = document.getElementById('searchForm');
+	if(searchForm){
+		searchForm.addEventListener('submit', function(ev){ ev.preventDefault(); if(input.value.trim()===''){ return; } submitDynamic(); });
+	}
 	document.addEventListener('click', e=>{
 		if(e.target===input || box.contains(e.target)) return; box.classList.add('d-none');
 	});
@@ -160,6 +165,94 @@
 	window.addEventListener('prayer-city-changed', function(e){
 		try{ loadPrayerTimes(); }catch(err){ console.warn('Failed to reload prayer times after city change', err); }
 	});
+
+	// --- Prayer bar: city search, suggestions, geolocation, persistence ---
+	(function(){
+		const citySearch = document.getElementById('prayer-city-search');
+		const suggestionsBox = document.getElementById('prayer-city-suggestions');
+		const prayerCardEl = document.querySelector('.prayer-card');
+		const STORAGE_KEY = 'prayer_selected_city_v1';
+
+		if(!citySearch || !suggestionsBox || !prayerCardEl) return;
+
+		let currentCity = { id: null, api_id: prayerCardEl.getAttribute('data-city-id') || '1638', name: 'KOTA SURABAYA', province: 'JAWA TIMUR', tz: 'WIB' };
+		let searchTimeout = null;
+
+		function saveSelectedCity(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(currentCity)); }catch(e){} }
+		function loadSelectedCity(){ try{ const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+
+		function setSelectedCityObject(c){
+			if(!c) return;
+			currentCity = {
+				id: c.id || null,
+				api_id: c.api_id || (c.dataset && c.dataset.apiId) || null,
+				name: c.name || c.textContent || citySearch.value,
+				province: c.province || (c.dataset && c.dataset.province) || null,
+				tz: c.tz || (c.dataset && c.dataset.tz) || 'WIB'
+			};
+			prayerCardEl.dataset.cityId = currentCity.api_id || '';
+			prayerCardEl.dataset.cityTz = currentCity.tz || '';
+			citySearch.value = currentCity.name + (currentCity.province ? ' — ' + currentCity.province : '');
+			suggestionsBox.style.display = 'none';
+			saveSelectedCity();
+			// notify and refresh times
+			try{ window.dispatchEvent(new CustomEvent('prayer-city-changed', { detail: currentCity })); }catch(e){}
+		}
+
+		citySearch.addEventListener('input', function(){
+			const q = this.value.trim();
+			clearTimeout(searchTimeout);
+			suggestionsBox.style.display = 'none'; suggestionsBox.innerHTML = '';
+			if(q.length < 2) return;
+			searchTimeout = setTimeout(()=>{
+				fetch(`/api/sholat-cities?q=${encodeURIComponent(q)}`)
+					.then(r=>r.json())
+					.then(results=>{
+						if(!results || !results.length){ suggestionsBox.style.display='none'; return; }
+						suggestionsBox.innerHTML = '';
+						results.forEach(c=>{
+							const item = document.createElement('button');
+							item.type = 'button'; item.className = 'list-group-item list-group-item-action';
+							item.textContent = (c.name||'') + ' — ' + (c.province||'');
+							item.dataset.id = c.id; item.dataset.apiId = c.api_id; item.dataset.tz = c.tz || ''; item.dataset.name = c.name || ''; item.dataset.province = c.province || '';
+							item.addEventListener('click', function(){ setSelectedCityObject({ id: this.dataset.id, api_id: this.dataset.apiId, name: this.dataset.name, province: this.dataset.province, tz: this.dataset.tz }); });
+							suggestionsBox.appendChild(item);
+						});
+						suggestionsBox.style.display = 'block';
+					}).catch(()=>{ suggestionsBox.style.display='none'; });
+			}, 300);
+		});
+
+		document.addEventListener('click', function(e){ if(!suggestionsBox.contains(e.target) && e.target !== citySearch){ suggestionsBox.style.display = 'none'; } });
+
+		function fallbackToSurabaya(){ setSelectedCityObject({ id:null, api_id:'1638', name:'KOTA SURABAYA', province:'JAWA TIMUR', tz:'WIB' }); }
+
+		// init: if stored, try to resolve or use; else geolocate
+		const stored = loadSelectedCity();
+		if(stored){
+			if(stored.api_id){ setSelectedCityObject(stored); }
+			else if(stored.name){
+				fetch(`/api/sholat-cities?q=${encodeURIComponent(stored.name)}`).then(r=>r.json()).then(results=>{
+					if(results && results.length){
+						let found = null; if(stored.id) found = results.find(x=>String(x.id)===String(stored.id));
+						if(!found) found = results.find(x=> (x.name||'').toLowerCase() === (stored.name||'').toLowerCase());
+						if(!found) found = results[0];
+						if(found) { setSelectedCityObject(found); return; }
+					}
+					fallbackToSurabaya();
+				}).catch(()=>fallbackToSurabaya());
+			} else fallbackToSurabaya();
+		} else if(navigator.geolocation){
+			navigator.geolocation.getCurrentPosition(function(pos){
+				const lat = pos.coords.latitude; const lon = pos.coords.longitude;
+				fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json()).then(info=>{
+					const city = info.address && (info.address.city || info.address.town || info.address.village || info.address.county || info.address.state_district);
+					if(city){ fetch(`/api/sholat-cities?q=${encodeURIComponent(city)}`).then(r=>r.json()).then(results=>{ if(results && results.length){ setSelectedCityObject(results[0]); } else fallbackToSurabaya(); }).catch(()=>fallbackToSurabaya()); }
+					else fallbackToSurabaya();
+				}).catch(()=>fallbackToSurabaya());
+			}, function(){ fallbackToSurabaya(); }, { timeout: 5000 });
+		} else fallbackToSurabaya();
+	})();
 
 	// Attempt to resolve a search query to a masjid id and redirect
 	async function submitDynamic(){

@@ -19,7 +19,17 @@
                         $title = $article->title ?? 'Untitled Article';
                         $author = $article->author ?? ($article->author_name ?? 'Admin');
                         $published = isset($article->published_at) ? \Carbon\Carbon::parse($article->published_at)->format('d M Y') : null;
-                        $img = $article->image_url ?? asset('images/mosque-1.jpg');
+                        $img = asset('images/mosque-1.jpg');
+                        if(!empty($article->image_url)){
+                            $a = $article->image_url;
+                            if(preg_match('/^https?:\/\//', $a)){
+                                $img = $a;
+                            } elseif(strpos($a, 'storage/') === 0) {
+                                $img = asset($a);
+                            } else {
+                                try { $img = \Illuminate\Support\Facades\Storage::disk('public')->url($a); } catch (Exception $e) { $img = asset('images/mosque-1.jpg'); }
+                            }
+                        }
                     @endphp
 
                     <div class="article-hero mb-3 position-relative">

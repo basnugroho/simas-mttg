@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Mosque;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class MosqueController extends Controller
 {
     public function index()
     {
-        $query = Mosque::query()->where('is_active', true)->with(['city','province','witel']);
+        $query = Mosque::query()->where('is_active', true)->with(['city','province','witel','photos']);
 
         $provinceId = request()->query('province_id');
         $cityId = request()->query('city_id');
@@ -56,6 +57,26 @@ class MosqueController extends Controller
 
         $mosques = $query->orderBy('name')->paginate(12)->withQueryString();
 
+        // For each mosque in the paginated result, prefer the first photo's `path` from
+        // `mosque_photos` as the image source (use Storage::url to create public URL).
+        $mosques->getCollection()->transform(function ($m) {
+            // If there is a photo with a path, use it
+            if ($m->relationLoaded('photos') && $m->photos->count()) {
+                $first = $m->photos->first();
+                if (!empty($first->path)) {
+                    try {
+                        $m->db_image_url = \Illuminate\Support\Facades\Storage::url($first->path);
+                    } catch (\Exception $e) {
+                        $m->db_image_url = null;
+                    }
+                    return $m;
+                }
+            }
+            // Fallback: leave existing db_image_url (model accessor may compute from image_url)
+            $m->db_image_url = $m->db_image_url ?? null;
+            return $m;
+        });
+
         // Options for filters
         $provinces = \App\Models\Regions::where('level', 'AREA')->orderBy('name')->get();
 
@@ -80,7 +101,7 @@ class MosqueController extends Controller
     }
     public function show(Mosque $mosque)
     {
-        $mosque->load(['province','city','witel','mosqueFacility.facility','photos']);
+        $mosque->load(['province','city','witel','mosqueFacility.facility','mosqueFacility.photos','photos']);
 
         // Map facilities to include available flag and note
         $facilities = $mosque->mosqueFacility->map(function ($mf) {
@@ -98,7 +119,40 @@ class MosqueController extends Controller
         $mosque->cover = $mosque->image_url ?? null;
         $mosque->short_description = Str::limit($mosque->description ?? '', 150);
 
-        return view('home.mosque.detail.index', compact('mosque'));
+        // Build images array combining: mosque.cover, mosque photos, facility photos
+        $images = [];
+        if ($mosque->cover) {
+            $images[] = $mosque->cover;
+        }
+
+        if ($mosque->relationLoaded('photos') && $mosque->photos->count()) {
+            foreach ($mosque->photos as $p) {
+                if (!empty($p->url)) {
+                    $images[] = $p->url;
+                } elseif (!empty($p->path)) {
+                    $images[] = Storage::url($p->path);
+                }
+            }
+        }
+
+        if ($mosque->relationLoaded('mosqueFacility') && $mosque->mosqueFacility->count()) {
+            foreach ($mosque->mosqueFacility as $mf) {
+                if ($mf->relationLoaded('photos') && $mf->photos->count()) {
+                    foreach ($mf->photos as $fp) {
+                        if (!empty($fp->url)) {
+                            $images[] = $fp->url;
+                        } elseif (!empty($fp->path)) {
+                            $images[] = Storage::url($fp->path);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Normalize: remove nulls and duplicates, reindex
+        $images = array_values(array_filter(array_unique($images)));
+
+        return view('home.mosque.detail.index', compact('mosque', 'images'));
     }
 
     

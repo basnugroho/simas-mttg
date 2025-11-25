@@ -6,19 +6,19 @@
 				$coverUrl = null;
 				$avatarUrl = null;
 				if(isset($mosque)){
-					if(!empty($mosque->cover)){
-						$c = $mosque->cover;
+					if(!empty($mosque->cover) || !empty($mosque->image_url)){
+						$c = $mosque->cover ?? $mosque->image_url;
 						if(preg_match('/^https?:\/\//i', $c) || strpos($c, '/') === 0){
 							$coverUrl = $c;
 						} else {
-							$coverUrl = asset($c);
+							try { $coverUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($c); } catch (Exception $e) { $coverUrl = asset($c); }
 						}
 					} elseif(!empty($mosque->image_url)){
 						$c = $mosque->image_url;
 						if(preg_match('/^https?:\/\//i', $c) || strpos($c, '/') === 0){
 							$coverUrl = $c;
 						} else {
-							$coverUrl = asset($c);
+							try { $coverUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($c); } catch (Exception $e) { $coverUrl = asset($c); }
 						}
 					}
 					if(!empty($mosque->image_url)){
@@ -26,12 +26,12 @@
 						if(preg_match('/^https?:\/\//i', $a) || strpos($a, '/') === 0){
 							$avatarUrl = $a;
 						} else {
-							$avatarUrl = asset($a);
+							try { $avatarUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($a); } catch (Exception $e) { $avatarUrl = asset($a); }
 						}
 					}
 				}
-				if(!$coverUrl){ $coverUrl = asset('images/mosque.webp'); }
-				if(!$avatarUrl){ $avatarUrl = asset('images/mosque-1.jpg'); }
+					if(!$coverUrl){ $coverUrl = asset('images/mosque.webp'); }
+					if(!$avatarUrl){ $avatarUrl = $mosque->db_image_url ?? ($mosque->public_image_url ?? asset('images/mosque-1.jpg')); }
 			@endphp
 			<div class="position-relative">
 				<img src="{{ $coverUrl }}" alt="cover" class="w-100" style="height:220px;object-fit:cover;" onerror="this.onerror=null;this.src='{{ asset('images/mosque.webp') }}'" />
