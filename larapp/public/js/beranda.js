@@ -57,9 +57,16 @@
 		return h+':'+min;
 	}
 
+	function stripTzLabel(s){
+		if(!s) return s;
+		return s.replace(/\s+(WIB|WITA|WIT)\s*$/i,'');
+	}
+
 	async function loadPrayerTimes(){
 		const prayerCard = document.querySelector('.prayer-card');
 		const cityId = prayerCard ? prayerCard.getAttribute('data-city-id') : null;
+		// timezone label stored on prayer-card by the other component (WIB/WITA/WIT)
+		const cardTzLabel = prayerCard ? (prayerCard.getAttribute('data-city-tz') || '') : '';
 		// Build date in YYYY-MM-DD (today)
 		const today = new Date();
 		const pad = n => String(n).padStart(2,'0');
@@ -81,9 +88,10 @@
 							maghrib: j.maghrib,
 							isya: j.isya
 						};
+						const tzLabel = cardTzLabel ? ' ' + cardTzLabel : '';
 						['subuh','dzuhur','ashar','maghrib','isya'].forEach(k => {
 							const el = document.getElementById('pt-'+k);
-							if(el){ el.textContent = formatTime(mapping[k]); }
+							if(el){ el.textContent = stripTzLabel(formatTime(mapping[k])) + tzLabel; }
 						});
 						const sourceEl = document.getElementById('pt-source');
 						if(sourceEl){ sourceEl.textContent = 'Kemenag RI'; sourceEl.className = 'prayer-source-badge api'; sourceEl.title = 'Sumber: Kemenag RI'; }
@@ -98,12 +106,32 @@
 		// Fallback to local endpoint
 		try{
 			const res2 = await fetch('/prayer-times');
-			const data = await res2.json();
+			let data = null;
+			if(res2.ok){
+				const contentType = (res2.headers.get('content-type') || '').toLowerCase();
+				if(contentType.includes('application/json')){
+					data = await res2.json();
+				} else {
+					// try to parse text as JSON, but be tolerant
+					const txt = await res2.text();
+					try{ data = JSON.parse(txt); }catch(e){ console.warn('prayer-times response not JSON', txt); }
+				}
+			}
 			if(data && data.times){
 				const mapping = data.times;
+				// determine tz label: prefer card dataset, otherwise try server timezone
+				let tzLabel = '';
+				if(cardTzLabel) tzLabel = ' ' + cardTzLabel;
+				else if(data.timezone) {
+					// map timezone string to WIB/WITA/WIT
+					const tz = String(data.timezone).toLowerCase();
+					if(tz.includes('jakarta') || tz.includes('asia/jakarta') || tz.includes('wib')) tzLabel = ' WIB';
+					else if(tz.includes('makassar') || tz.includes('asia/makassar') || tz.includes('wita')) tzLabel = ' WITA';
+					else if(tz.includes('jayapura') || tz.includes('asia/jayapura') || tz.includes('wit')) tzLabel = ' WIT';
+				}
 				['subuh','dzuhur','ashar','maghrib','isya'].forEach(k => {
 					const el = document.getElementById('pt-'+k);
-					if(el){ el.textContent = formatTime(mapping[k]); }
+					if(el){ el.textContent = stripTzLabel(formatTime(mapping[k])) + (tzLabel || ''); }
 				});
 				const sourceEl = document.getElementById('pt-source');
 				if(sourceEl){
@@ -127,6 +155,11 @@
 		if(sourceEl){ sourceEl.textContent = 'N/A'; sourceEl.className='prayer-source-badge fallback'; }
 	}
 	loadPrayerTimes();
+
+	// Reload prayer times when another component updates selected city
+	window.addEventListener('prayer-city-changed', function(e){
+		try{ loadPrayerTimes(); }catch(err){ console.warn('Failed to reload prayer times after city change', err); }
+	});
 
 	// Attempt to resolve a search query to a masjid id and redirect
 	async function submitDynamic(){
@@ -399,7 +432,8 @@
 	let markersLayer = null;
 	function addMarkers(items){
 		if(!map || typeof L === 'undefined') return; // can't add markers without map
-		if(!markersLayer) markersLayer = L.layerGroup().addTo(map);
+		// use featureGroup so getBounds() is available and works consistently
+		if(!markersLayer) markersLayer = L.featureGroup().addTo(map);
 		markersLayer.clearLayers();
 
 		// prepare icons (cached)
@@ -424,8 +458,12 @@
 			markersLayer.addLayer(marker);
 		});
 		if(items.length){
-			const bounds = markersLayer.getBounds();
-			if(bounds.isValid()) map.fitBounds(bounds.pad(0.15));
+			try{
+				const bounds = markersLayer.getBounds();
+				if(bounds && bounds.isValid && bounds.isValid()) map.fitBounds(bounds.pad(0.15));
+			}catch(e){
+				console.warn('Failed to compute bounds for markersLayer', e);
+			}
 		}
 	}
 

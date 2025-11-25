@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ArticleSeeder::class,
             PrayerTimeSeeder::class,
+            SholatCitiesSeeder::class,
         ]);
     }
 }

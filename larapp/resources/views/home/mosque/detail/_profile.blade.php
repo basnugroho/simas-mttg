@@ -72,6 +72,89 @@
 			</div>
 		</div>
 	</div>
+<script>
+(function(){
+	const ptEl = document.getElementById('prayer-times');
+	const tzLabelEl = document.getElementById('tz-label');
+
+	function mapZoneToLabel(tz){
+		if(!tz) return '(WIB)';
+		if(tz === 'Asia/Jakarta' || tz.includes('Jakarta')) return '(WIB)';
+		if(tz === 'Asia/Makassar' || tz.includes('Makassar')) return '(WITA)';
+		if(tz === 'Asia/Jayapura' || tz.includes('Jayapura')) return '(WIT)';
+		return '(WIB)';
+	}
+
+	function formatTime(t){
+		if(!t) return '—';
+		// remove potential (+xx) suffix returned by some APIs
+		return t.replace(/\s*\(.*\)$/, '');
+	}
+
+	function renderTimes(data){
+		const msgEl = document.getElementById('prayer-times-msg');
+		if(!data){ ptEl.innerText = 'Jadwal tidak tersedia'; msgEl.innerText = ''; return; }
+		if(data.error){ ptEl.innerText = 'Gagal memuat jadwal'; msgEl.innerText = 'Silakan coba lagi nanti.'; return; }
+
+		const t = data.times || {};
+		tzLabelEl.innerText = mapZoneToLabel(data.timezone) + ' ' + (data.timezone || '');
+		ptEl.innerHTML = `\
+			<div class="d-flex justify-content-between"><span>Subuh</span><strong>${formatTime(t.subuh)}</strong></div>\
+			<div class="d-flex justify-content-between"><span>Dzuhur</span><strong>${formatTime(t.dzuhur)}</strong></div>\
+			<div class="d-flex justify-content-between"><span>Ashar</span><strong>${formatTime(t.ashar)}</strong></div>\
+			<div class="d-flex justify-content-between"><span>Maghrib</span><strong>${formatTime(t.maghrib)}</strong></div>\
+			<div class="d-flex justify-content-between"><span>Isya</span><strong>${formatTime(t.isya)}</strong></div>\
+		`;
+
+		msgEl.innerText = `Data untuk tanggal ${data.date || ''}`;
+	}
+
+	function fetchTimes(lat, lon, tz){
+		const msgEl = document.getElementById('prayer-times-msg');
+		ptEl.innerText = 'Memuat jadwal...';
+		msgEl.innerText = '';
+		let url = '/api/prayertimes';
+		const params = new URLSearchParams();
+		if(lat) params.set('lat', lat);
+		if(lon) params.set('lon', lon);
+		if(tz) params.set('timezone', tz);
+		if(Array.from(params).length) url += '?'+params.toString();
+		fetch(url).then(r=>r.json()).then(renderTimes).catch(e=>{ ptEl.innerText = 'Gagal memuat jadwal'; msgEl.innerText = 'Periksa koneksi Anda.'; console.error(e); });
+	}
+
+	let userTz = null;
+	try{ userTz = Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ userTz = null; }
+
+	// helper to trigger fetch using either detected or selected timezone
+	function doFetchWithGeo(useTz){
+		if(navigator.geolocation){
+			navigator.geolocation.getCurrentPosition(function(pos){
+				fetchTimes(pos.coords.latitude, pos.coords.longitude, useTz);
+			}, function(err){
+				fetchTimes(-7.257472, 112.752088, useTz || 'Asia/Jakarta');
+			}, { timeout: 5000 });
+		} else {
+			fetchTimes(-7.257472, 112.752088, useTz || 'Asia/Jakarta');
+		}
+	}
+
+	// initial load: auto-detect timezone
+	doFetchWithGeo(userTz);
+
+	// wire up manual controls
+	const tzSelect = document.getElementById('tz-select');
+	const tzRefresh = document.getElementById('tz-refresh');
+	tzSelect.addEventListener('change', function(){
+		const v = this.value || (Intl ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Jakarta');
+		doFetchWithGeo(v);
+	});
+	tzRefresh.addEventListener('click', function(){
+		const selected = tzSelect.value || null;
+		doFetchWithGeo(selected || userTz);
+	});
+
+})();
+</script>
 
 	<div class="card card-sm detail-meta mb-3 p-3">
 		<h3 class="mb-1">{{ $mosque->name ?? 'Masjid Takkhobbar' }}</h3>
