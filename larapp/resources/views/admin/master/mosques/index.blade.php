@@ -184,7 +184,19 @@
                   <div style="margin-top:8px"><strong>Completion:</strong> {{ $m->completion_percentage ?? 0 }}% &middot; <strong>Active:</strong> {{ $m->is_active ? 'Yes' : 'No' }}</div>
                   <div style="margin-top:8px"><strong>Created:</strong> {{ $m->created_at ? $m->created_at->toDateTimeString() : '-' }} &middot; <strong>Updated:</strong> {{ $m->updated_at ? $m->updated_at->toDateTimeString() : '-' }}</div>
                   @if($m->image_url)
-                    <div style="margin-top:8px"><strong>Image:</strong><br/><img src="{{ $m->image_url }}" alt="image" style="max-width:200px;border-radius:6px;margin-top:6px"/></div>
+                    @php
+                      $imgPreview = null;
+                      if(preg_match('/^https?:\/\//', $m->image_url)) {
+                        $imgPreview = $m->image_url;
+                      } elseif(strpos($m->image_url, 'storage/') === 0) {
+                        $imgPreview = asset($m->image_url);
+                      } else {
+                        try { $imgPreview = \Illuminate\Support\Facades\Storage::disk('public')->url($m->image_url); } catch (Exception $e) { $imgPreview = null; }
+                      }
+                    @endphp
+                    @if($imgPreview)
+                      <div style="margin-top:8px"><strong>Image:</strong><br/><img src="{{ $imgPreview }}" alt="image" style="max-width:200px;border-radius:6px;margin-top:6px"/></div>
+                    @endif
                   @endif
                   @if($m->description)
                     <div style="margin-top:8px"><strong>Description:</strong><div style="margin-top:6px;color:#374151">{{ Str::limit($m->description, 400) }}</div></div>

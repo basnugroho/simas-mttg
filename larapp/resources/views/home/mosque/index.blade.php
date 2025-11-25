@@ -67,13 +67,11 @@
 				<div class="mosque-scroll-wrapper">
 					<div class="row g-4">
 					@forelse($mosques as $mosque)
-						@php
-							$img = $mosque->image_url ? asset($mosque->image_url) : asset('images/mosque-1.jpg');
-						@endphp
+						@php $img = $mosque->db_image_url ?? asset('images/mosque-1.jpg'); @endphp
 						<div class="col-md-6 col-lg-4">
 							<a href="{{ route('mosque.show', $mosque->id) }}" class="text-decoration-none text-dark">
 								<div class="card h-100 shadow-sm position-relative">
-									<img src="{{ $mosque->image_url ? asset($mosque->image_url) : asset('images/mosque-1.jpg') }}" onerror="this.onerror=null;this.src='{{ asset('images/mosque-1.jpg') }}'" class="card-img-top" style="height:150px; object-fit:cover;" alt="{{ $mosque->name }}">
+									<img src="{{ $img }}" onerror="this.onerror=null;this.src='{{ asset('images/mosque-1.jpg') }}'" class="card-img-top" style="height:150px; object-fit:cover;" alt="{{ $mosque->name }}">
 									<span class="type-badge {{ (strtoupper($mosque->type ?? '') === 'MUSHOLLA') ? 'badge-mushalla' : 'badge-masjid' }}">{{ strtoupper($mosque->type ?? 'MASJID') }}</span>
 									<div class="card-body">
 										<div class="d-flex justify-content-between align-items-start mb-1">
