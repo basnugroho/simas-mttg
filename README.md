@@ -71,3 +71,28 @@ Alur Git singkat
 
 Keamanan / `.gitignore`
 - Jangan commit: `larapp/.env`, `larapp/vendor/`, `larapp/node_modules/`.
+
+**Deployment (Production)**
+
+- Production runtime env lives in `larapp/.env.prod` (this file is kept out of git and should contain your real secrets).
+- A sanitized example is provided at `larapp/.env.prod.example`.
+- The compose file reads host-level variables from the project root `.env` for interpolation (e.g. `APP_HOST_PORT`). To make that work we provide a small helper script that copies `larapp/.env.prod` to the repository root as `.env` before starting compose.
+
+Quick steps to start on a server (one-time per deploy machine):
+```bash
+# populate root .env from larapp/.env.prod (this file is ignored and contains secrets)
+./scripts/sync-env.sh
+
+# build & start services (docker-compose will interpolate APP_HOST_PORT from root .env)
+docker compose -f docker-compose.prod.yml up -d --build
+
+# check status and follow logs
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f app
+```
+
+Notes:
+- The host port for the app is configurable with `APP_HOST_PORT` in `larapp/.env.prod` (default `8090`). `docker-compose.prod.yml` uses `${APP_HOST_PORT:-8090}:80` so you can change the host mapping without editing compose.
+- `APP_URL` in `larapp/.env.prod` should be set to your public hostname (for example `http://mttg.solusee.id:8090`).
+- `larapp/.env.prod` is intentionally ignored; keep it secret. Use `larapp/.env.prod.example` as a template for onboarding.
+- For CI/CD, run the equivalent of `scripts/sync-env.sh` (or set `APP_HOST_PORT` as an environment variable) before running `docker compose` so interpolation works in the pipeline.

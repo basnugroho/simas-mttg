@@ -223,12 +223,12 @@ class Regions extends Model
 
     public function parent()
     {
-        return $this->belongsTo(Regions::class, 'parent_id');
+        return $this->belongsTo(Region::class, 'parent_id');
     }
 
     public function children()
     {
-        return $this->hasMany(Regions::class, 'parent_id');
+        return $this->hasMany(Region::class, 'parent_id');
     }
 
     public function mosques()

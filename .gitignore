@@ -30,3 +30,4 @@ larapp/public/hot
 # npm logs
 npm-debug.log
 yarn-error.log
+larapp/.env.prod
