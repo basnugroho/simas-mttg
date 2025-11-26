@@ -81,6 +81,15 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		// photo management for mosques
 		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
 
+		// Admin messages / inbox
+		Route::get('messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('admin.messages.index');
+		Route::get('messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('admin.messages.show');
+		Route::delete('messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'destroy'])->name('admin.messages.destroy');
+		// AJAX: open message (mark read + return HTML panel + unread count)
+		Route::post('messages/{id}/open', [\App\Http\Controllers\Admin\MessageController::class, 'open'])->name('admin.messages.open');
+		// AJAX: bulk mark messages as unread (accepts JSON { ids: [1,2,3] })
+		Route::post('messages/mark-unread', [\App\Http\Controllers\Admin\MessageController::class, 'markUnread'])->name('admin.messages.mark_unread');
+
 		// Facilities management endpoints (used by admin UI JS)
 		Route::get('mosques/{mosque}/facilities', [\App\Http\Controllers\Admin\MosqueFacilityController::class, 'show']);
 		Route::post('mosques/{mosque}/facilities', [\App\Http\Controllers\Admin\MosqueFacilityController::class, 'update']);

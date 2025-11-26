@@ -51,7 +51,18 @@
               <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11l4 4 4-4" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 21H3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg></span>Unduh Data <span style="margin-left:6px">🚧</span></div>
             </li>
             <li style="margin-bottom:8px" data-key="inbox">
-              <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8l9 6 9-6" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="#94a3b8" stroke-width="1.5"/></svg></span>Kotak Masuk <span style="margin-left:6px">🚧</span></div>
+              <a id="inbox-link" href="{{ route('admin.messages.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
+                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8l9 6 9-6" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1.2"/></svg></span>
+                Kotak Masuk
+                @if(!empty($unreadMessages) && $unreadMessages > 0)
+                  @if(!empty($unreadHasStatus))
+                    <span id="inbox-unread" style="margin-left:auto;background:#ef4444;color:#fff;padding:6px 8px;border-radius:999px;font-size:12px;font-weight:700">{{ $unreadMessages }} pesan belum dibaca</span>
+                  @else
+                    <span id="inbox-unread" style="margin-left:auto;background:#ef4444;color:#fff;padding:6px 8px;border-radius:999px;font-size:12px;font-weight:700">{{ $unreadMessages }} pesan</span>
+                  @endif
+                @endif
+                <script>window.INBOX_UNREAD_HAS_STATUS = {{ !empty($unreadHasStatus) ? 'true' : 'false' }};</script>
+              </a>
             </li>
             <li style="margin-bottom:8px" data-key="userbkm"><a href="{{ route('admin.users') }}" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" stroke="#fff" stroke-width="1.5"/><path d="M4 20v-1a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v1" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>User BKM</a></li>
           </ul>
@@ -124,6 +135,31 @@
                   }
                 } catch (\Throwable $__e) { }
               }
+              // compute unread messages count within allowed scope
+              $unreadMessages = 0;
+              $unreadHasStatus = false;
+              try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('messages', 'is_read')) {
+                  $unreadHasStatus = true;
+                  if (!empty($allExpanded) && count($allExpanded)) {
+                    $mq = \App\Models\Mosque::query();
+                    $mq->whereIn('regional_id', $allExpanded)
+                       ->orWhereIn('area_id', $allExpanded)
+                       ->orWhereIn('witel_id', $allExpanded)
+                       ->orWhereIn('sto_id', $allExpanded);
+                    $mosqueIds = $mq->pluck('id')->toArray();
+                    if (count($mosqueIds)) {
+                      $unreadMessages = \App\Models\Message::whereIn('mosque_id', $mosqueIds)->where('is_read', false)->count();
+                    }
+                  } else {
+                    $unreadMessages = \App\Models\Message::where('is_read', false)->count();
+                  }
+                } else {
+                  // fallback: show total messages if read-status column not present
+                  $unreadHasStatus = false;
+                  $unreadMessages = \App\Models\Message::count();
+                }
+              } catch (\Throwable $__e) { $unreadMessages = 0; $unreadHasStatus = false; }
             @endphp
 
             <div style="display:flex; align-items:center; gap:8px; background:#fff;padding:6px 8px;border-radius:999px;box-shadow:0 6px 18px rgba(2,6,23,.06)">
