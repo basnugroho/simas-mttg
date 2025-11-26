@@ -1,0 +1,14 @@
+<x-admin.layout title="Create Facility">
+  <div class="p-4">
+    <h3>Create Facility</h3>
+    <form method="POST" action="{{ route('admin.facilities.store') }}">
+      @csrf
+      @php $facility = null; @endphp
+      @include('admin.master.facilities._form')
+      <div style="margin-top:12px">
+        <button class="btn btn-primary">Save</button>
+        <a href="{{ route('admin.facilities.index') }}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</x-admin.layout>

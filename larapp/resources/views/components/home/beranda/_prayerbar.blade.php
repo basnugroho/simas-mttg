@@ -6,7 +6,12 @@
 					<div class="prayer-card-body">
 						<div class="d-flex align-items-center justify-content-center mb-2">
 							<div class="d-flex align-items-center gap-2">
-								<div class="prayer-bar-title">Informasi / Jadwal Shalat</div>
+									<div class="prayer-bar-title">Informasi / Jadwal Shalat</div>
+									<div style="min-width:320px; position:relative;">
+										<input id="prayer-city-search" type="search" class="form-control form-control-sm" placeholder="Cari kota..." style="min-width:220px;" autocomplete="off" />
+										<div id="prayer-city-suggestions" class="list-group position-absolute" style="z-index:9999; width:100%; display:none; max-height:170px; overflow:auto;"></div>
+									</div>
+                                
 								<div><span id="pt-source" class="prayer-source-badge fallback" title="Sumber data">...</span></div>
 							</div>
 						</div>
@@ -22,4 +27,6 @@
 			</div>
 		</div>
 	</div>
+
+<!-- JS moved to public/js/beranda.js -->
 

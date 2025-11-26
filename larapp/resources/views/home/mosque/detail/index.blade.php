@@ -4,7 +4,6 @@
 	<x-home.mosque._nav_tab/>
 	<div class="container my-4">
 		@include('home.mosque.detail._profile')
-
 		<div class="mosque-main">
 			@include('home.mosque.detail._gallery')
 			@include('home.mosque.detail._bkm_information')

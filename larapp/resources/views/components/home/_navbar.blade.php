@@ -12,7 +12,7 @@
 						$menuMap = [
 							'beranda' => ['path' => '/', 'pattern' => '/'],
 							'masjid' => ['path' => '/masjid', 'pattern' => 'masjid*'],
-							'articles' => ['path' => '#', 'pattern' => 'articles*'],
+							'articles' => ['path' => '/article', 'pattern' => 'article*'],
 							'download' => ['path' => '#', 'pattern' => 'download*'],
 							'contact' => ['path' => '/contact', 'pattern' => 'contact*'],
 						];
@@ -20,8 +20,8 @@
 					<ul class="navbar-nav d-flex align-items-center mb-0">
 						<li class="nav-item"><a data-menu="beranda" class="nav-link {{ Request::is('/') ? 'text-danger' : '' }}" href="/">Beranda</a></li>
 						<li class="nav-item"><a data-menu="masjid" class="nav-link {{ Request::is('masjid*') ? 'text-danger' : '' }}" href="/masjid">Masjid</a></li>
-						<li class="nav-item"><a data-menu="articles" class="nav-link {{ Request::is('article*') ? 'text-danger' : '' }}" href="/article">Info Terkini</a></li>
-						<li class="nav-item"><a data-menu="download" class="nav-link {{ Request::is('download*') ? 'text-danger' : '' }}" href="#">Unduh Data</a></li>
+						<li class="nav-item"><a data-menu="articles" class="nav-link {{ Request::is('article*') ? 'text-danger' : '' }}" href="/article">Articles</a></li>
+						<!-- 'Unduh Data' menu removed -->
 						<li class="nav-item"><a data-menu="contact" class="nav-link {{ Request::is('contact*') ? 'text-danger' : '' }}" href="/contact">Kontak Kami</a></li>
 						<li class="nav-item ms-lg-1">
 							@auth

@@ -48,11 +48,47 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	// other masters
 	Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)->names('admin.facilities');
 	Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
+	// Article (Info Terkini) admin CRUD (WYSIWYG create/publish/draft)
+	Route::resource('articles', \App\Http\Controllers\Admin\ArticleAdminController::class)->names('admin.articles');
+	// upload endpoint used by Trix and client-side preview uploads
+	Route::post('articles/upload-image', [\App\Http\Controllers\Admin\ArticleAdminController::class, 'uploadImage'])->name('admin.articles.upload_image');
+
+	// Preview and publish shortcuts for admin
+	Route::get('articles/{id}/preview', [\App\Http\Controllers\Admin\ArticleAdminController::class, 'preview'])->name('admin.articles.preview');
+	Route::post('articles/{id}/publish', [\App\Http\Controllers\Admin\ArticleAdminController::class, 'publish'])->name('admin.articles.publish');
 	Route::resource('activities', \App\Http\Controllers\Admin\ActivityController::class)->names('admin.activities');
+	// mosque-scoped activities (assign master activities to masjid)
+	Route::get('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'index'])->name('admin.mosque_activities.index');
+	Route::post('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'store'])->name('admin.mosque_activities.store');
+	Route::patch('mosque-activities/{id}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'update'])->name('admin.mosque_activities.update');
+	Route::delete('mosque-activities/{id}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'destroy'])->name('admin.mosque_activities.destroy');
+
+		// cash positions: upload last-known cash position for a mosque
+		Route::get('cash-positions', [\App\Http\Controllers\Admin\CashPositionController::class, 'index'])->name('admin.cash_positions.index');
+		Route::get('cash-positions/create', [\App\Http\Controllers\Admin\CashPositionController::class, 'index'])->name('admin.cash_positions.create');
+		Route::post('cash-positions', [\App\Http\Controllers\Admin\CashPositionController::class, 'store'])->name('admin.cash_positions.store');
+		Route::get('cash-positions/{id}/edit', [\App\Http\Controllers\Admin\CashPositionController::class, 'edit'])->name('admin.cash_positions.edit');
+		Route::patch('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'update'])->name('admin.cash_positions.update');
+		Route::delete('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'destroy'])->name('admin.cash_positions.destroy');
 	Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
 	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
+		// Mosque managers (Pengurus Masjid)
+		Route::get('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'index'])->name('admin.mosque_managers.index');
+		Route::post('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'store'])->name('admin.mosque_managers.store');
+		Route::get('mosque-managers/{id}/edit', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'edit'])->name('admin.mosque_managers.edit');
+		Route::patch('mosque-managers/{id}', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'update'])->name('admin.mosque_managers.update');
+		Route::delete('mosque-managers/{id}', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'destroy'])->name('admin.mosque_managers.destroy');
 		// photo management for mosques
 		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
+
+		// Admin messages / inbox
+		Route::get('messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('admin.messages.index');
+		Route::get('messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('admin.messages.show');
+		Route::delete('messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'destroy'])->name('admin.messages.destroy');
+		// AJAX: open message (mark read + return HTML panel + unread count)
+		Route::post('messages/{id}/open', [\App\Http\Controllers\Admin\MessageController::class, 'open'])->name('admin.messages.open');
+		// AJAX: bulk mark messages as unread (accepts JSON { ids: [1,2,3] })
+		Route::post('messages/mark-unread', [\App\Http\Controllers\Admin\MessageController::class, 'markUnread'])->name('admin.messages.mark_unread');
 
 		// Facilities management endpoints (used by admin UI JS)
 		Route::get('mosques/{mosque}/facilities', [\App\Http\Controllers\Admin\MosqueFacilityController::class, 'show']);
@@ -89,3 +125,9 @@ Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store']
 Route::get('/article', function () {return view('home.article.index');})->name('article');
 // Article detail
 Route::get('/article/{id}', [\App\Http\Controllers\Home\ArticleController::class, 'show'])->name('article.show');
+
+// API: search sholat cities (used by frontend prayer bar)
+Route::get('/api/sholat-cities', [\App\Http\Controllers\Api\SholatCityController::class, 'search'])->name('api.sholat_cities.search');
+
+// Local endpoint for frontend to get prayer times (fallback/proxy)
+Route::get('/prayer-times', [\App\Http\Controllers\Api\PrayerTimesController::class, 'index'])->name('prayer.times');

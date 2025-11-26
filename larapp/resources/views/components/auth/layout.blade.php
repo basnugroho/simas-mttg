@@ -30,9 +30,9 @@
         <img src="{{ asset('images/logo-mttg.png') }}" alt="Logo" class="mx-auto w-56 md:w-72 mb-6">
         <nav class="mt-10 flex items-center justify-center gap-8 text-sm text-rose-900/80">
           <a href="/" class="hover:text-rose-900 font-medium">Home</a>
-          <a href="#" class="hover:text-rose-900 font-medium">Masjid</a>
-          <a href="#" class="hover:text-rose-900 font-medium">Mushalla</a>
-          <a href="#" class="hover:text-rose-900 font-medium">Info Terkini</a>
+          <a href="/masjid" class="hover:text-rose-900 font-medium">Masjid</a>
+          <a href="/musholla" class="hover:text-rose-900 font-medium">Mushalla</a>
+          <a href="/article" class="hover:text-rose-900 font-medium">Articles</a>
         </nav>
       </div>
     </div>

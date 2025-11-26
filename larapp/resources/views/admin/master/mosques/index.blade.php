@@ -73,10 +73,10 @@
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'sto', 'dir' => (isset($sort) && $sort==='sto' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">STO @if(isset($sort) && $sort==='sto'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
-            <a href="{{ request()->fullUrlWithQuery(['sort' => 'completion_percentage', 'dir' => (isset($sort) && $sort==='completion_percentage' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Completion @if(isset($sort) && $sort==='completion_percentage'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'completion_percentage', 'dir' => (isset($sort) && $sort==='completion_percentage' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Kelengkapan Fasilitas @if(isset($sort) && $sort==='completion_percentage'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
-            <a href="{{ request()->fullUrlWithQuery(['sort' => 'daya_tampung', 'dir' => (isset($sort) && $sort==='daya_tampung' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Capacity @if(isset($sort) && $sort==='daya_tampung'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'daya_tampung', 'dir' => (isset($sort) && $sort==='daya_tampung' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Daya Tampung @if(isset($sort) && $sort==='daya_tampung'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th style="width:180px">
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'dir' => (isset($sort) && $sort==='created_at' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Actions @if(isset($sort) && $sort==='created_at'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
@@ -181,10 +181,22 @@
                   <div><strong>Luas Tanah:</strong> {{ $m->luas_tanah ?? '-' }} m2</div>
                   <div><strong>Daya Tampung:</strong> {{ $m->daya_tampung ?? '-' }}</div>
                   <div><strong>Koordinat:</strong> {{ $m->latitude && $m->longitude ? $m->latitude.','.$m->longitude : '-' }}</div>
-                  <div style="margin-top:8px"><strong>Completion:</strong> {{ $m->completion_percentage ?? 0 }}% &middot; <strong>Active:</strong> {{ $m->is_active ? 'Yes' : 'No' }}</div>
+                  <div style="margin-top:8px"><strong>Kelengkapan Fasilitas:</strong> {{ $m->completion_percentage ?? 0 }}% &middot; <strong>Active:</strong> {{ $m->is_active ? 'Yes' : 'No' }}</div>
                   <div style="margin-top:8px"><strong>Created:</strong> {{ $m->created_at ? $m->created_at->toDateTimeString() : '-' }} &middot; <strong>Updated:</strong> {{ $m->updated_at ? $m->updated_at->toDateTimeString() : '-' }}</div>
                   @if($m->image_url)
-                    <div style="margin-top:8px"><strong>Image:</strong><br/><img src="{{ $m->image_url }}" alt="image" style="max-width:200px;border-radius:6px;margin-top:6px"/></div>
+                    @php
+                      $imgPreview = null;
+                      if(preg_match('/^https?:\/\//', $m->image_url)) {
+                        $imgPreview = $m->image_url;
+                      } elseif(strpos($m->image_url, 'storage/') === 0) {
+                        $imgPreview = asset($m->image_url);
+                      } else {
+                        try { $imgPreview = \Illuminate\Support\Facades\Storage::disk('public')->url($m->image_url); } catch (Exception $e) { $imgPreview = null; }
+                      }
+                    @endphp
+                    @if($imgPreview)
+                      <div style="margin-top:8px"><strong>Image:</strong><br/><img src="{{ $imgPreview }}" alt="image" style="max-width:200px;border-radius:6px;margin-top:6px"/></div>
+                    @endif
                   @endif
                   @if($m->description)
                     <div style="margin-top:8px"><strong>Description:</strong><div style="margin-top:6px;color:#374151">{{ Str::limit($m->description, 400) }}</div></div>

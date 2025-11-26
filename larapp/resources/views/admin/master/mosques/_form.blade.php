@@ -139,7 +139,10 @@
             @foreach($mosque->photos as $photo)
               <div class="existing-photo" data-photo-id="{{ $photo->id }}" style="width:180px">
                 <div style="position:relative">
-                  <img src="{{ asset('storage/'.$photo->path) }}" style="width:180px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6" alt="photo-{{ $photo->id }}" />
+                  @php
+                    try { $photoUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($photo->path); } catch (Exception $e) { $photoUrl = asset('storage/'.$photo->path); }
+                  @endphp
+                  <img src="{{ $photoUrl }}" style="width:180px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6" alt="photo-{{ $photo->id }}" />
                 </div>
                 <div style="margin-top:6px;font-size:12px;color:#374151">
                   <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" name="delete_photos[]" value="{{ $photo->id }}"> Delete</label>
