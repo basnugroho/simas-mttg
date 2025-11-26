@@ -81,6 +81,31 @@ class Mosque extends Model
         return $this->hasMany(MosquePhoto::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    /**
+     * Return a human-friendly region path for this mosque.
+     * Order: regional -> area -> witel -> sto -> province -> city
+     */
+    public function regionPath(): string
+    {
+        $parts = [];
+        try {
+            if ($this->regional?->name) $parts[] = $this->regional->name;
+            if ($this->area?->name) $parts[] = $this->area->name;
+            if ($this->witel?->name) $parts[] = $this->witel->name;
+            if ($this->sto?->name) $parts[] = $this->sto->name;
+            if ($this->province?->name) $parts[] = $this->province->name;
+            if ($this->city?->name) $parts[] = $this->city->name;
+        } catch (\Throwable $e) {
+            // fallback: try to return any available raw columns
+            $raw = [];
+            foreach (['regional_id','area_id','witel_id','sto_id','province_id','city_id'] as $c) {
+                if (isset($this->$c) && $this->$c) $raw[] = (string)$this->$c;
+            }
+            return count($raw) ? implode(' → ', $raw) : '-';
+        }
+        return count($parts) ? implode(' → ', $parts) : '-';
+    }
+
     public function getPublicImageUrlAttribute()
     {
         $v = $this->image_url ?? null;

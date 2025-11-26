@@ -69,7 +69,7 @@
               <tr class="border-t">
                 <td class="p-2">{{ $it->period_start?->toDateString() ?? '-' }} @if($it->period_end) — {{ $it->period_end->toDateString() }}@endif</td>
                 <td class="p-2">{{ $it->mosque?->name ?? '-' }}</td>
-                <td class="p-2">{{ $it->mosque?->province?->name ?? $it->mosque?->city?->name ?? '-' }}</td>
+                <td class="p-2">{{ $it->mosque ? $it->mosque->regionPath() : '-' }}</td>
                 <td class="p-2">{{ $it->jumlah_pengurus ?? '-' }}</td>
                 <td class="p-2">{{ $it->ketua_pengurus ?? '-' }}</td>
                 <td class="p-2">
