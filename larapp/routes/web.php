@@ -49,6 +49,19 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)->names('admin.facilities');
 	Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
 	Route::resource('activities', \App\Http\Controllers\Admin\ActivityController::class)->names('admin.activities');
+	// mosque-scoped activities (assign master activities to masjid)
+	Route::get('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'index'])->name('admin.mosque_activities.index');
+	Route::post('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'store'])->name('admin.mosque_activities.store');
+	Route::patch('mosque-activities/{id}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'update'])->name('admin.mosque_activities.update');
+	Route::delete('mosque-activities/{id}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'destroy'])->name('admin.mosque_activities.destroy');
+
+		// cash positions: upload last-known cash position for a mosque
+		Route::get('cash-positions', [\App\Http\Controllers\Admin\CashPositionController::class, 'index'])->name('admin.cash_positions.index');
+		Route::get('cash-positions/create', [\App\Http\Controllers\Admin\CashPositionController::class, 'index'])->name('admin.cash_positions.create');
+		Route::post('cash-positions', [\App\Http\Controllers\Admin\CashPositionController::class, 'store'])->name('admin.cash_positions.store');
+		Route::get('cash-positions/{id}/edit', [\App\Http\Controllers\Admin\CashPositionController::class, 'edit'])->name('admin.cash_positions.edit');
+		Route::patch('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'update'])->name('admin.cash_positions.update');
+		Route::delete('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'destroy'])->name('admin.cash_positions.destroy');
 	Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
 	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
 		// photo management for mosques

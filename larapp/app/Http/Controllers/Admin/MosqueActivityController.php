@@ -111,6 +111,18 @@ class MosqueActivityController extends Controller
             return $a;
         });
 
+        // Load photos for the assignments in one query and attach to each assignment
+        $assignmentIds = $assignments->getCollection()->pluck('id')->filter()->all();
+        if (count($assignmentIds)) {
+            $photoRows = DB::table('activity_mosque_photos')->whereIn('activity_mosque_id', $assignmentIds)->orderBy('sort_order')->get()->groupBy('activity_mosque_id');
+            $assignments->getCollection()->transform(function ($a) use ($photoRows) {
+                $a->photos = isset($photoRows[$a->id]) ? $photoRows[$a->id]->map(function($r){ return (array)$r; })->values()->all() : [];
+                return $a;
+            });
+        } else {
+            $assignments->getCollection()->transform(function ($a) { $a->photos = []; return $a; });
+        }
+
         return view('admin.mosque_activities.index', compact('mosques','activities','selected','assignments'));
     }
 
@@ -120,10 +132,11 @@ class MosqueActivityController extends Controller
             'activity_id' => 'required|exists:activities,id',
             'mosque_ids' => 'required|array|min:1',
             'mosque_ids.*' => 'required|exists:mosques,id',
-            'note' => 'nullable|string|max:255',
+            'note' => 'nullable|string|max:1000',
             'event_start' => 'nullable|date',
             'event_end' => 'nullable|date',
             'photos.*' => 'nullable|image|max:5120',
+            'photo_captions.*' => 'nullable|string|max:255',
         ]);
 
         $activityId = $data['activity_id'];
@@ -157,13 +170,16 @@ class MosqueActivityController extends Controller
 
                 // handle uploaded photos (store under storage/app/public/activity_mosque_photos/{pivotId}/)
                 if ($request->hasFile('photos')) {
-                    foreach ($request->file('photos') as $file) {
+                    $captions = $request->input('photo_captions', []);
+                    foreach ($request->file('photos') as $idx => $file) {
                         if (! $file->isValid()) continue;
                         $stored = $file->store("activity_mosque_photos/{$pivotId}", 'public');
+                        $caption = isset($captions[$idx]) ? trim($captions[$idx]) : null;
                         if ($stored) {
                             DB::table('activity_mosque_photos')->insert([
                                 'activity_mosque_id' => $pivotId,
                                 'path' => $stored,
+                                'caption' => $caption,
                                 'created_at' => now(),
                                 'updated_at' => now(),
                             ]);
