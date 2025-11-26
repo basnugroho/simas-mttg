@@ -43,7 +43,9 @@
             </li>
             <!-- Mushalla menu removed -->
             <li style="margin-bottom:8px" data-key="info">
-              <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#94a3b8" stroke-width="1.5"/><path d="M7 8h10" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg></span>Info Terkini <span style="margin-left:6px">🚧</span></div>
+              <a href="{{ route('admin.articles.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
+                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1.2"/><path d="M7 8h10" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round"/></svg></span>Articles
+              </a>
             </li>
             <li style="margin-bottom:8px" data-key="unduh">
               <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11l4 4 4-4" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 21H3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg></span>Unduh Data <span style="margin-left:6px">🚧</span></div>

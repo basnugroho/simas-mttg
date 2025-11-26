@@ -48,6 +48,14 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	// other masters
 	Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)->names('admin.facilities');
 	Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
+	// Article (Info Terkini) admin CRUD (WYSIWYG create/publish/draft)
+	Route::resource('articles', \App\Http\Controllers\Admin\ArticleAdminController::class)->names('admin.articles');
+	// upload endpoint used by Trix and client-side preview uploads
+	Route::post('articles/upload-image', [\App\Http\Controllers\Admin\ArticleAdminController::class, 'uploadImage'])->name('admin.articles.upload_image');
+
+	// Preview and publish shortcuts for admin
+	Route::get('articles/{id}/preview', [\App\Http\Controllers\Admin\ArticleAdminController::class, 'preview'])->name('admin.articles.preview');
+	Route::post('articles/{id}/publish', [\App\Http\Controllers\Admin\ArticleAdminController::class, 'publish'])->name('admin.articles.publish');
 	Route::resource('activities', \App\Http\Controllers\Admin\ActivityController::class)->names('admin.activities');
 	// mosque-scoped activities (assign master activities to masjid)
 	Route::get('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'index'])->name('admin.mosque_activities.index');
