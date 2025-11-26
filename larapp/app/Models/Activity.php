@@ -15,7 +15,7 @@ class Activity extends Model
     public function mosques()
     {
         return $this->belongsToMany(Mosque::class, 'activity_mosque')
-            ->withPivot(['note'])
+            ->withPivot(['note', 'event_start', 'event_end'])
             ->withTimestamps();
     }
 
