@@ -1,6 +1,45 @@
 <x-admin.layout title="MTTG - Dashboard">
   @auth
   <div class="d-flex" id="app-layout" style="min-height:100vh">
+    @php
+      // compute unread messages early so sidebar badge renders correctly
+      $unreadMessages = 0;
+      try {
+        $meForInbox = auth()->user();
+        $allExpanded = [];
+        if ($meForInbox) {
+          try {
+            foreach ($meForInbox->regionsRoles()->get() as $ar) {
+              $rid = (int)$ar->region_id;
+              try { $desc = \App\Models\Regions::collectDescendantIds($rid); }
+              catch (\Throwable $__e) { $desc = [$rid]; }
+              $expanded = is_array($desc) ? $desc : (is_callable([$desc, 'toArray']) ? $desc->toArray() : [$rid]);
+              $allExpanded = array_merge($allExpanded, $expanded);
+            }
+            $allExpanded = array_values(array_unique($allExpanded));
+          } catch (\Throwable $__e) { $allExpanded = []; }
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('messages', 'is_read')) {
+          if (!empty($allExpanded) && count($allExpanded)) {
+            $mq = \App\Models\Mosque::query();
+            $mq->whereIn('regional_id', $allExpanded)
+               ->orWhereIn('area_id', $allExpanded)
+               ->orWhereIn('witel_id', $allExpanded)
+               ->orWhereIn('sto_id', $allExpanded);
+            $mosqueIds = $mq->pluck('id')->toArray();
+            if (count($mosqueIds)) {
+              $unreadMessages = \App\Models\Message::whereIn('mosque_id', $mosqueIds)->where('is_read', false)->count();
+            }
+          } else {
+            $unreadMessages = \App\Models\Message::where('is_read', false)->count();
+          }
+        } else {
+          $unreadMessages = \App\Models\Message::count();
+        }
+      } catch (\Throwable $__e) { $unreadMessages = 0; }
+    @endphp
+
     <!-- Left sidebar -->
   <aside id="sidebar" style="width:300px; background:#0b1220; color:#fff; padding:20px; display:flex; flex-direction:column; position:relative; transform:translateX(0); transition: transform .22s ease;">
   <!-- sidebar hide toggle removed to keep sidebar always open -->
@@ -11,60 +50,44 @@
             <div style="font-size:12px; opacity:.8">Dashboard</div>
           </div>
         </div>
+    <nav id="sidebar-menu">
+      <ul style="list-style:none;padding:0;margin:12px 0 0 0">
+        <li data-key="dashboard" style="margin-bottom:12px; display:flex; align-items:center; gap:10px">
+          <span style="width:28px;height:28;display:inline-flex;align-items:center;justify-content:center;background:transparent;border-radius:6px;color:#fff;opacity:.95">▦</span>
+          <a href="{{ route('dashboard') }}" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:block;">Dashboard</a>
+        </li>
 
-        <nav>
-          <ul id="sidebar-menu" style="list-style:none;padding:0;margin:0;">
-            <li style="margin-bottom:8px" data-key="dashboard"><a href="#" data-no-action="1" class="menu-link active" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M7 14h3v-6H7v6zM14 17h3v-10h-3v10z" fill="#fff" opacity="0.95"/></svg></span>Dashboard</a></li>
-            <li style="margin-bottom:8px" data-key="master">
-              <a href="#" class="menu-link" aria-expanded="false" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
-                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6.5" rx="7" ry="2.5" stroke="#fff" stroke-width="1.2"/><path d="M5 6.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6" stroke="#fff" stroke-width="1.2"/></svg></span>
-                Master
-              </a>
-              <ul class="submenu" style="list-style:none;padding-left:14px;margin:6px 0 0 0;display:none;">
-                <li data-key="regions" style="margin-bottom:6px"><a href="{{ route('admin.regions.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l3 6 6 .5-4.5 4 1 6L12 16l-5.5 3.5 1-6L3 8.5 9 8 12 2z" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Regions</a></li>
-                <li data-key="mosques" style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 0 4 1.5 4 3.5S14 9 12 11 8 10 8 5.5 10 2 12 2z" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Mosques</a></li>
-                <li data-key="facilities" style="margin-bottom:6px"><a href="{{ route('admin.facilities.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="11" rx="1" stroke="#cbd5e1" stroke-width="1" fill="none"/><path d="M8 7V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Facilities</a></li>
-                <li data-key="activities" style="margin-bottom:6px"><a href="{{ route('admin.activities.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2v6" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Activities</a></li>
-                <li data-key="subsidiaries" style="margin-bottom:6px"><a href="{{ route('admin.subsidiaries.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1"/><path d="M7 8h10" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round"/></svg></span>Subsidiaries</a></li>
-                <li data-key="userbkm" style="margin-bottom:6px"><a href="{{ route('admin.users') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" stroke="#cbd5e1" stroke-width="1"/><path d="M4 20v-1a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v1" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg></span>User BKM</a></li>
-              </ul>
-            </li>
-            <li style="margin-bottom:8px" data-key="masjid">
-              <a href="#" class="menu-link" aria-expanded="false" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
-                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 0 4 1.5 4 3.5S14 9 12 11 8 10 8 5.5 10 2 12 2z" stroke="#fff" stroke-width="1.2" fill="none"/></svg></span>
-                Masjid
-              </a>
-              <ul class="submenu" style="list-style:none;padding-left:14px;margin:6px 0 0 0;display:none;">
-                <li data-key="masjid.list" style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 0 4 1.5 4 3.5S14 9 12 11 8 10 8 5.5 10 2 12 2z" stroke="#cbd5e1" stroke-width="1" fill="none"/></svg></span>Daftar Masjid</a></li>
-                <li data-key="masjid.activities" style="margin-bottom:6px"><a href="{{ route('admin.mosque_activities.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2v6" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Aktivitas</a></li>
-                <li data-key="masjid.cash" style="margin-bottom:6px"><a href="{{ route('admin.cash_positions.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block">💵</span>Cash</a></li>
-                <li data-key="masjid.managers" style="margin-bottom:6px"><a href="{{ route('admin.mosque_managers.index') }}" style="color:#cbd5e1;text-decoration:none;padding-left:18px;display:flex;align-items:center;gap:8px"><span style="width:14px;display:inline-block">📁</span>Pengurus Masjid</a></li>
-              </ul>
-            </li>
-            <!-- Mushalla menu removed -->
-            <li style="margin-bottom:8px" data-key="info">
-              <a href="{{ route('admin.articles.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
-                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1.2"/><path d="M7 8h10" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round"/></svg></span>Articles
-              </a>
-            </li>
-            <!-- Unduh Data menu removed -->
-            <li style="margin-bottom:8px" data-key="inbox">
-              <a id="inbox-link" href="{{ route('admin.messages.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
-                <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8l9 6 9-6" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1.2"/></svg></span>
-                Kotak Masuk
-                @if(!empty($unreadMessages) && $unreadMessages > 0)
-                  @if(!empty($unreadHasStatus))
-                    <span id="inbox-unread" style="margin-left:auto;background:#ef4444;color:#fff;padding:6px 8px;border-radius:999px;font-size:12px;font-weight:700">{{ $unreadMessages }} pesan belum dibaca</span>
-                  @else
-                    <span id="inbox-unread" style="margin-left:auto;background:#ef4444;color:#fff;padding:6px 8px;border-radius:999px;font-size:12px;font-weight:700">{{ $unreadMessages }} pesan</span>
-                  @endif
-                @endif
-                <script>window.INBOX_UNREAD_HAS_STATUS = {{ !empty($unreadHasStatus) ? 'true' : 'false' }};</script>
-              </a>
-            </li>
-            <li style="margin-bottom:8px" data-key="userbkm"><a href="{{ route('admin.users') }}" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" stroke="#fff" stroke-width="1.5"/><path d="M4 20v-1a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v1" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>User BKM</a></li>
+        <!-- Master header and items -->
+        <li style="color:#9ca3af;font-weight:600;margin:12px 0 6px 0">Master</li>
+        <li data-key="master.regions" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">☆</span><a href="{{ route('admin.regions.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Regions</a></li>
+        <li data-key="master.mosques" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">◦</span><a href="{{ route('admin.mosques.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Mosques</a></li>
+        <li data-key="master.facilities" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">🧰</span><a href="{{ route('admin.facilities.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Facilities</a></li>
+        <li data-key="master.activities" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">▦</span><a href="{{ route('admin.activities.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Activities</a></li>
+        <li data-key="master.subsidiaries" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">▢</span><a href="{{ route('admin.subsidiaries.index') ?? '#' }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Subsidiaries</a></li>
+        <li data-key="userbkm" style="margin-bottom:12px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">👤</span><a href="{{ route('admin.users') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">User BKM</a></li>
+
+        <!-- Masjid section with submenu -->
+        <li data-key="masjid" style="margin-bottom:6px">
+          <a href="#" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;background:linear-gradient(90deg,#ef4444,#f97316);box-shadow:0 12px 40px rgba(249,115,22,.12)">◦ <strong style="margin-left:8px">Masjid</strong></a>
+          <ul class="submenu" style="list-style:none;padding-left:18px;margin-top:8px">
+            <li style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Daftar Masjid</a></li>
+            <li style="margin-bottom:6px"><a href="{{ route('admin.activities.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Aktivitas</a></li>
+            <li style="margin-bottom:6px"><a href="{{ route('admin.cash_positions.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Cash</a></li>
+            <li style="margin-bottom:6px"><a href="{{ route('admin.mosque_managers.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Pengurus Masjid</a></li>
           </ul>
-        </nav>
+        </li>
+
+        <li data-key="articles" style="margin:12px 0 6px 0; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">▭</span><a href="{{ route('admin.articles.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Articles</a></li>
+
+        <li data-key="download" style="margin-bottom:10px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">⬇️</span><a href="#" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Unduh Data</a></li>
+
+        <li data-key="inbox" style="margin-top:6px; display:flex; align-items:center; gap:10px">
+          <span style="width:26px;opacity:.85">✉️</span>
+          <a id="inbox-link" href="{{ route('admin.messages.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:flex;align-items:center;gap:8px">Kotak Masuk</a>
+          <span id="inbox-unread" style="margin-left:auto;background:#ef4444;color:#fff;padding:2px 8px;border-radius:999px;font-weight:700">{{ $unreadMessages ?? 0 }}</span>
+        </li>
+      </ul>
+    </nav>
 
         <div style="border-top:1px solid rgba(255,255,255,.06); padding-top:12px">
           <!-- bottom area: logout with icon -->
@@ -133,31 +156,32 @@
                   }
                 } catch (\Throwable $__e) { }
               }
-              // compute unread messages count within allowed scope
-              $unreadMessages = 0;
-              $unreadHasStatus = false;
-              try {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('messages', 'is_read')) {
-                  $unreadHasStatus = true;
-                  if (!empty($allExpanded) && count($allExpanded)) {
-                    $mq = \App\Models\Mosque::query();
-                    $mq->whereIn('regional_id', $allExpanded)
-                       ->orWhereIn('area_id', $allExpanded)
-                       ->orWhereIn('witel_id', $allExpanded)
-                       ->orWhereIn('sto_id', $allExpanded);
-                    $mosqueIds = $mq->pluck('id')->toArray();
-                    if (count($mosqueIds)) {
-                      $unreadMessages = \App\Models\Message::whereIn('mosque_id', $mosqueIds)->where('is_read', false)->count();
+                // compute unread messages count within allowed scope (follow controller logic)
+                $unreadMessages = 0;
+                $unreadHasStatus = false;
+                try {
+                  if (!isset($allExpanded) || !is_array($allExpanded)) { $allExpanded = []; }
+                  if (\Illuminate\Support\Facades\Schema::hasColumn('messages', 'is_read')) {
+                    $unreadHasStatus = true;
+                    if (!empty($allExpanded) && count($allExpanded)) {
+                      $mq = \App\Models\Mosque::query();
+                      $mq->whereIn('regional_id', $allExpanded)
+                         ->orWhereIn('area_id', $allExpanded)
+                         ->orWhereIn('witel_id', $allExpanded)
+                         ->orWhereIn('sto_id', $allExpanded);
+                      $mosqueIds = $mq->pluck('id')->toArray();
+                      if (count($mosqueIds)) {
+                        $unreadMessages = \App\Models\Message::whereIn('mosque_id', $mosqueIds)->where('is_read', false)->count();
+                      }
+                    } else {
+                      $unreadMessages = \App\Models\Message::where('is_read', false)->count();
                     }
                   } else {
-                    $unreadMessages = \App\Models\Message::where('is_read', false)->count();
+                    // fallback: show total messages if read-status column not present
+                    $unreadHasStatus = false;
+                    $unreadMessages = \App\Models\Message::count();
                   }
-                } else {
-                  // fallback: show total messages if read-status column not present
-                  $unreadHasStatus = false;
-                  $unreadMessages = \App\Models\Message::count();
-                }
-              } catch (\Throwable $__e) { $unreadMessages = 0; $unreadHasStatus = false; }
+                } catch (\Throwable $__e) { $unreadMessages = 0; $unreadHasStatus = false; }
             @endphp
 
             <div style="display:flex; align-items:center; gap:8px; background:#fff;padding:6px 8px;border-radius:999px;box-shadow:0 6px 18px rgba(2,6,23,.06)">
@@ -279,48 +303,7 @@
           </div>
         </div>
 
-        <!-- bottom area: table + map -->
-        <div style="display:flex; gap:18px">
-          <div style="flex:1; background:#fff;padding:12px;border-radius:12px; box-shadow:0 8px 24px rgba(2,6,23,.04); max-height:420px; overflow:auto">
-            <h4 style="margin-top:0">Masjid / Mushalla (Fasilitas Dummy)</h4>
-            <table class="table table-sm">
-              <thead>
-                <tr><th>#</th><th>Nama</th><th>Lokasi</th><th>Kelengkapan</th></tr>
-              </thead>
-              <tbody>
-                @php
-                  // Fetch up to 10 mosques to show on the dashboard. Adjust ordering as needed.
-                  try {
-                    $dashboardMosques = \App\Models\Mosque::with(['regional','area','witel','sto','province','city'])
-                      ->orderBy('name')
-                      ->limit(10)
-                      ->get();
-                  } catch (\Throwable $__e) {
-                    $dashboardMosques = collect();
-                  }
-                @endphp
-
-                @if($dashboardMosques->count())
-                  @foreach($dashboardMosques as $idx => $m)
-                    <tr>
-                      <td>{{ $idx + 1 }}</td>
-                      <td>{{ $m->name ?? '-' }}</td>
-                      <td>{{ method_exists($m, 'regionPath') ? $m->regionPath() : ($m->region?->name ?? '-') }}</td>
-                      <td>{{ is_null($m->completion_percentage) ? '-' : (intval($m->completion_percentage) . '%') }}</td>
-                    </tr>
-                  @endforeach
-                @else
-                  <tr><td colspan="4">No mosques found.</td></tr>
-                @endif
-              </tbody>
-            </table>
-          </div>
-
-          <div style="flex:1; background:#fff;padding:12px;border-radius:12px; box-shadow:0 8px 24px rgba(2,6,23,.04);">
-            <h4 style="margin-top:0">Peta</h4>
-            <div id="map" style="height:360px;border-radius:8px;overflow:hidden"></div>
-          </div>
-        </div>
+        @includeIf('admin.dashboard.partials.bottom-area')
 
       </div>
     </div>
