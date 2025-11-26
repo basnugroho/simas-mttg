@@ -40,6 +40,7 @@
           <div><a href="{{ Storage::url($m->file_path) }}" target="_blank">{{ basename($m->file_path) }}</a></div>
         @endif
         <input type="file" name="file" accept="application/pdf" class="form-control">
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Batas server: post_max_size={{ ini_get('post_max_size') }} , upload_max_filesize={{ ini_get('upload_max_filesize') }}.</div>
       </div>
 
       <div class="mb-2">

@@ -8,6 +8,7 @@
     </div>
 
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
     <div class="mb-4 p-3" style="background:#fff;border-radius:8px">
       <h5>Upload Pengurus</h5>
@@ -47,6 +48,7 @@
         <div class="mb-2">
           <label class="form-label small">File bukti (PDF)</label>
           <input type="file" name="file" accept="application/pdf" class="form-control">
+          <div style="font-size:12px;color:#6b7280;margin-top:6px">Batas server: post_max_size={{ ini_get('post_max_size') }} , upload_max_filesize={{ ini_get('upload_max_filesize') }}. Jika file gagal upload karena terlalu besar, kurangi ukuran file atau hubungi admin.</div>
         </div>
 
         <div class="mb-2">
@@ -60,7 +62,7 @@
       <div class="overflow-auto">
         <table class="w-full text-sm" style="width:100%">
           <thead>
-            <tr style="text-align:left"><th class="p-2">Periode</th><th class="p-2">Nama Masjid</th><th class="p-2">Regions Masjid</th><th class="p-2">Uploader</th><th class="p-2">Dibuat</th><th class="p-2">Aksi</th></tr>
+            <tr style="text-align:left"><th class="p-2">Periode</th><th class="p-2">Nama Masjid</th><th class="p-2">Regions Masjid</th><th class="p-2">Jumlah</th><th class="p-2">Ketua</th><th class="p-2">File</th><th class="p-2">Uploader</th><th class="p-2">Dibuat</th><th class="p-2">Aksi</th></tr>
           </thead>
           <tbody>
             @foreach($items as $it)
@@ -68,6 +70,16 @@
                 <td class="p-2">{{ $it->period_start?->toDateString() ?? '-' }} @if($it->period_end) — {{ $it->period_end->toDateString() }}@endif</td>
                 <td class="p-2">{{ $it->mosque?->name ?? '-' }}</td>
                 <td class="p-2">{{ $it->mosque?->province?->name ?? $it->mosque?->city?->name ?? '-' }}</td>
+                <td class="p-2">{{ $it->jumlah_pengurus ?? '-' }}</td>
+                <td class="p-2">{{ $it->ketua_pengurus ?? '-' }}</td>
+                <td class="p-2">
+                  @if($it->file_path)
+                    <a href="{{ Storage::url($it->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">Lihat PDF</a>
+                    <a href="{{ Storage::url($it->file_path) }}" download class="btn btn-sm btn-outline-secondary">Unduh</a>
+                  @else
+                    -
+                  @endif
+                </td>
                 <td class="p-2">{{ $it->creator?->name ?? ('User #'.($it->created_by ?? '-')) }}</td>
                 <td class="p-2">{{ $it->created_at->toDateTimeString() }}</td>
                 <td class="p-2">
