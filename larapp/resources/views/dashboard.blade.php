@@ -47,9 +47,7 @@
                 <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1.2"/><path d="M7 8h10" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round"/></svg></span>Articles
               </a>
             </li>
-            <li style="margin-bottom:8px" data-key="unduh">
-              <div style="color:#94a3b8;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:not-allowed"><span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11l4 4 4-4" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 21H3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg></span>Unduh Data <span style="margin-left:6px">🚧</span></div>
-            </li>
+            <!-- Unduh Data menu removed -->
             <li style="margin-bottom:8px" data-key="inbox">
               <a id="inbox-link" href="{{ route('admin.messages.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px">
                 <span style="width:18px;display:inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8l9 6 9-6" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="#cbd5e1" stroke-width="1.2"/></svg></span>
@@ -290,14 +288,30 @@
                 <tr><th>#</th><th>Nama</th><th>Lokasi</th><th>Kelengkapan</th></tr>
               </thead>
               <tbody>
-                @for($i=1;$i<=10;$i++)
-                  <tr>
-                    <td>{{ $i }}</td>
-                    <td>Masjid Contoh {{ $i }}</td>
-                    <td>Kota {{ ['Surabaya','Malang','Bali','Denpasar','Mataram'][($i-1)%5] }}</td>
-                    <td>{{ rand(60,100) }}%</td>
-                  </tr>
-                @endfor
+                @php
+                  // Fetch up to 10 mosques to show on the dashboard. Adjust ordering as needed.
+                  try {
+                    $dashboardMosques = \App\Models\Mosque::with(['regional','area','witel','sto','province','city'])
+                      ->orderBy('name')
+                      ->limit(10)
+                      ->get();
+                  } catch (\Throwable $__e) {
+                    $dashboardMosques = collect();
+                  }
+                @endphp
+
+                @if($dashboardMosques->count())
+                  @foreach($dashboardMosques as $idx => $m)
+                    <tr>
+                      <td>{{ $idx + 1 }}</td>
+                      <td>{{ $m->name ?? '-' }}</td>
+                      <td>{{ method_exists($m, 'regionPath') ? $m->regionPath() : ($m->region?->name ?? '-') }}</td>
+                      <td>{{ is_null($m->completion_percentage) ? '-' : (intval($m->completion_percentage) . '%') }}</td>
+                    </tr>
+                  @endforeach
+                @else
+                  <tr><td colspan="4">No mosques found.</td></tr>
+                @endif
               </tbody>
             </table>
           </div>
