@@ -64,6 +64,12 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		Route::delete('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'destroy'])->name('admin.cash_positions.destroy');
 	Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
 	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
+		// Mosque managers (Pengurus Masjid)
+		Route::get('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'index'])->name('admin.mosque_managers.index');
+		Route::post('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'store'])->name('admin.mosque_managers.store');
+		Route::get('mosque-managers/{id}/edit', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'edit'])->name('admin.mosque_managers.edit');
+		Route::patch('mosque-managers/{id}', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'update'])->name('admin.mosque_managers.update');
+		Route::delete('mosque-managers/{id}', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'destroy'])->name('admin.mosque_managers.destroy');
 		// photo management for mosques
 		Route::delete('mosque-photos/{photo}', [\App\Http\Controllers\Admin\MosquePhotoController::class, 'destroy'])->name('admin.mosque_photos.destroy');
 
