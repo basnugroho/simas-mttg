@@ -81,6 +81,11 @@ class Mosque extends Model
         return $this->hasMany(MosquePhoto::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    public function managers()
+    {
+        return $this->hasMany(MosqueManager::class);
+    }
+
     /**
      * Return a human-friendly region path for this mosque.
      * Order: regional -> area -> witel -> sto -> province -> city
