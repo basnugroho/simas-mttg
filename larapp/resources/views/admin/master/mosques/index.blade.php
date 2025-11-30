@@ -134,6 +134,9 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
 
+              {{-- Aktivitas: quick link to create/assign activity for this mosque (preselects mosque on activities page) --}}
+              <a href="{{ url('/admin/mosque-activities') . '?mosque_ids[]=' . $m->id }}" class="btn btn-sm btn-outline-success" style="margin-left:6px" title="Tambah Aktivitas">Aktivitas</a>
+
               {{-- Facilities available for all users (opens modal) --}}
               <button type="button" class="btn btn-sm btn-info btn-manage-facilities" data-id="{{ $m->id }}" style="margin-left:6px">Facilities</button>
 
