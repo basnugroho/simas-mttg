@@ -10,30 +10,12 @@
 				<div class="card p-3 shadow-sm">
 					<h5 class="mb-3">Filter</h5>
 					<form method="GET" action="{{ route('article') }}">
-						<div class="mb-2">
-							<label class="form-label small">Provinsi</label>
-							<select name="province_id" class="form-select">
-								<option value="">Semua Provinsi</option>
-								@foreach($provinces ?? collect() as $p)
-									<option value="{{ $p->id }}" {{ request()->query('province_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-								@endforeach
-							</select>
-						</div>
-						<div class="mb-2">
-							<label class="form-label small">Witel</label>
-							<select name="witel_id" class="form-select" data-selected="{{ request()->query('witel_id') }}">
-								<option value="">Semua Witel</option>
-								@foreach($witels ?? collect() as $w)
-									<option value="{{ $w->id }}" {{ request()->query('witel_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
-								@endforeach
-							</select>
-						</div>
-						<div class="mb-2">
-							<label class="form-label small">STO</label>
-							<select name="sto_id" class="form-select" data-selected="{{ request()->query('sto_id') }}">
-								<option value="">Semua STO</option>
-								@foreach($stos ?? collect() as $s)
-									<option value="{{ $s->id }}" {{ request()->query('sto_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+						<div class="mb-3">
+							<label class="form-label small">Kategori</label>
+							<select name="category_id" class="form-select">
+								<option value="">Semua Kategori</option>
+								@foreach(($categories ?? collect()) as $c)
+									<option value="{{ $c->id }}" {{ request('category_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
 								@endforeach
 							</select>
 						</div>
@@ -88,88 +70,7 @@
 	</section>
 	<x-home._footer />
 </x-home.layout>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-	const provinceSel = document.querySelector('select[name=province_id]');
-	const witelSel = document.querySelector('select[name=witel_id]');
-	const stoSel = document.querySelector('select[name=sto_id]');
-
-	function emptySelect(sel, placeholder) {
-		sel.innerHTML = '';
-		const opt = document.createElement('option');
-		opt.value = '';
-		opt.textContent = placeholder || 'Pilih...';
-		sel.appendChild(opt);
-	}
-
-	async function fetchChildren(parentId, level) {
-		if (!parentId) return [];
-		try {
-				const base = '{{ route("admin.regions.children") }}';
-				const url = new URL(base, window.location.origin);
-				url.searchParams.set('parent_id', parentId);
-			if (level) url.searchParams.set('level', level);
-			const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
-			if (!res.ok) return [];
-			const data = await res.json();
-			return Array.isArray(data) ? data : [];
-		} catch (e) {
-			return [];
-		}
-	}
-
-	async function onProvinceChange() {
-		const pid = provinceSel.value;
-		emptySelect(witelSel, 'Semua Witel');
-		if (!pid) return;
-		// Fetch direct children for witel level
-		const witels = await fetchChildren(pid, 'WITEL');
-		if (Array.isArray(witels) && witels.length) {
-			witels.forEach(w => {
-				const o = document.createElement('option'); o.value = w.id; o.textContent = w.name; witelSel.appendChild(o);
-			});
-		}
-	}
-
-	async function onWitelChange() {
-		if (!stoSel) return;
-		const wid = witelSel.value;
-		emptySelect(stoSel, 'Semua STO');
-		if (!wid) return;
-		const stos = await fetchChildren(wid, 'STO');
-		if (Array.isArray(stos) && stos.length) {
-			stos.forEach(s => {
-				const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; stoSel.appendChild(o);
-			});
-		}
-	}
-
-	if (provinceSel) {
-		provinceSel.addEventListener('change', onProvinceChange);
-		// If there is an initial province selected (from query), trigger load and select existing city/witel
-		const initialProvince = provinceSel.value;
-		if (initialProvince) {
-			// capture currently selected witel and sto to reselect after load
-			const selWitel = witelSel.getAttribute('data-selected') || '{{ request()->query('witel_id') }}';
-			const selSto = stoSel ? (stoSel.getAttribute('data-selected') || '{{ request()->query('sto_id') }}') : null;
-			// Use the children endpoint to populate selects so the options match selected province
-			onProvinceChange().then(async () => {
-				if (selWitel) { witelSel.value = selWitel; }
-				// populate STOs after witel is set
-				if (selWitel && stoSel) {
-					await onWitelChange();
-					if (selSto) { stoSel.value = selSto; }
-				}
-			});
-		}
-
-		// Wire witel change to populate STOs
-		if (witelSel) {
-			witelSel.addEventListener('change', onWitelChange);
-		}
-	}
-});
-</script>
+<!-- Location JS removed: filter only by category -->
 <style>
 /* Scroll wrapper for mosque cards: will be sized by JS to show up to 9 cards */
 .mosque-scroll-wrapper { overflow-y: auto; }

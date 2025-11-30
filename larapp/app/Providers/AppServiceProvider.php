@@ -27,5 +27,8 @@ class AppServiceProvider extends ServiceProvider
         // Register model policies for Region and Mosque authorization
         Gate::policy(Regions::class, RegionPolicy::class);
         Gate::policy(Mosque::class, MosquePolicy::class);
+
+        // Use Bootstrap 5 styles for Laravel paginator links
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
     }
 }

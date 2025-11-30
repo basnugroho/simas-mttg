@@ -11,9 +11,9 @@
 					<h5 class="mb-3">Filter</h5>
 					<form method="GET" action="{{ route('masjid') }}">
 						<div class="mb-2">
-							<label class="form-label small">Provinsi</label>
+							<label class="form-label small">Area</label>
 							<select name="province_id" class="form-select">
-								<option value="">Semua Provinsi</option>
+								<option value="">Semua Area</option>
 								@foreach($provinces ?? collect() as $p)
 									<option value="{{ $p->id }}" {{ request()->query('province_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
 								@endforeach
@@ -30,9 +30,9 @@
 							</select>
 						</div>
 						<div class="mb-2">
-							<label class="form-label small">STO</label>
+							<label class="form-label small">Datel</label>
 							<select name="sto_id" class="form-select" data-selected="{{ request()->query('sto_id') }}">
-								<option value="">Semua STO</option>
+								<option value="">Semua Datel</option>
 								@foreach($stos ?? collect() as $s)
 									<option value="{{ $s->id }}" {{ request()->query('sto_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
 								@endforeach
@@ -115,7 +115,11 @@
 					</div>
 				</div>
 				<div class="mt-4">
-					{{ $mosques->links() }}
+					<div class="row align-items-center">
+						<div class="col-12 d-flex justify-content-center">
+							{{ $mosques->onEachSide(1)->links() }}
+						</div>
+					</div>
 				</div>
 				
 				</div>
@@ -170,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	async function onWitelChange() {
 		if (!stoSel) return;
 		const wid = witelSel.value;
-		emptySelect(stoSel, 'Semua STO');
+		emptySelect(stoSel, 'Semua DATEL');
 		if (!wid) return;
 		const stos = await fetchChildren(wid, 'STO');
 		if (Array.isArray(stos) && stos.length) {
@@ -229,6 +233,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	border: 1px solid #dc2626;
 	padding: 0.18rem 0.6rem;
 }
+</style>
+<style>
+/* Keep pagination summary on a single line */
+.pagination-summary { white-space: nowrap; }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
