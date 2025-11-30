@@ -28,7 +28,8 @@
                 </div>
                 <div class="card-body pt-2 pb-4 px-4">
                     <div class="news-grid">
-                        @foreach($articles->take(8) as $a)
+                        {{-- Show only 4 latest articles in Informasi Terkini --}}
+                        @foreach($articles->take(4) as $a)
                             @php
                                 $img = asset('images/mosque.webp');
                                 $rel = ($a->published_at ?? null) ? \Carbon\Carbon::parse($a->published_at)->diffForHumans() : '';
