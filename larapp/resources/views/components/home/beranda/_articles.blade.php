@@ -1,3 +1,5 @@
+@props(['showHeader' => false, 'mtClass' => 'mt-0'])
+
 @php
     // Controller idealnya mengirim $articles (collection Article) terbaru.
     $articles = $articles ?? ($latestArticles ?? collect());
@@ -11,11 +13,23 @@
         ]);
     }
 @endphp
-<section class="news-section mt-0">
+<section class="news-section {{ $mtClass }}">
     <div class="container">
         <div class="news-wrap p-0" style="background:transparent;padding:0;">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                {{-- Header removed as requested: no Informasi Terkini, subtext, or Lihat Semua button --}}
+                @if($showHeader)
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap">
+                        <div class="header-left">
+                            <h2 class="mb-1" style="font-weight:700;font-size:1.85rem;margin:0;">Informasi Terkini</h2>
+                            <div class="sub" style="font-size:.85rem;color:#6b7280;">informasi / berita terkini sekitar masjid Telkom Regional 3</div>
+                        </div>
+                        <div class="header-right ms-3">
+                            <a href="{{ route('article') }}" class="btn btn-outline-dark rounded-pill">Lihat Semua</a>
+                        </div>
+                    </div>
+                </div>
+                @endif
                 <div class="card-body pt-2 pb-4 px-4">
                     <div class="news-scroll" style="max-height: calc( (320px * 3) + 32px ); overflow-y:auto; padding-right:8px;">
                         <div class="news-grid">
