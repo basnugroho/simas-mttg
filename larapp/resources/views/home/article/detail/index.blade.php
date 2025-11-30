@@ -4,13 +4,7 @@
     <x-home._navbar />
 
     <section class="container my-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="mb-3">
-                    <a href="{{ url()->previous() }}" class="btn btn-sm btn-outline-secondary">&larr; Kembali</a>
-                </div>
-            </div>
-        </div>
+        {{-- Back button removed per request --}}
 
         <div class="row gy-4">
             <main class="col-12 col-lg-8">
