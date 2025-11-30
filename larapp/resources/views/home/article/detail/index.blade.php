@@ -84,14 +84,16 @@
             <aside class="col-12 col-lg-4">
                 <div class="card shadow-sm rounded-4 p-3 mb-3">
                     <h5 class="mb-2" style="font-weight:700;">Artikel Terkait</h5>
-                    <div class="list-group list-group-flush">
-                        @if(isset($related) && $related->count())
-                            @foreach($related->take(6) as $r)
-                                <a href="{{ route('article.show', ['id' => $r->id]) }}" class="list-group-item list-group-item-action">{{ Str::limit($r->title, 70) }}</a>
-                            @endforeach
-                        @else
-                            <div class="text-muted">Tidak ada artikel terkait.</div>
-                        @endif
+                    <div class="related-scroll" style="max-height:360px; overflow-y:auto; padding-right:6px;">
+                        <div class="list-group list-group-flush">
+                            @if(isset($related) && $related->count())
+                                @foreach($related->take(12) as $r)
+                                    <a href="{{ route('article.show', ['id' => $r->id]) }}" class="list-group-item list-group-item-action">{{ Str::limit($r->title, 70) }}</a>
+                                @endforeach
+                            @else
+                                <div class="text-muted">Tidak ada artikel terkait.</div>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
