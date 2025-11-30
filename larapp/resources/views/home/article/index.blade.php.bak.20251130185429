@@ -1,52 +1,12 @@
 <x-home.layout :title="'Simas MTTG - List Article'">
 	<x-home._navbar />
  	<x-home.beranda._hero>
-        <h3 class="hero-title display-6 mb-2">Article Masjid Telkom Regional 3</h3>
-			<p class="mb-4 fw-medium" style="font-size:0.95rem">Telkom Regional 3 (Jawa Timur, Bali dan Nusa Tenggara)</p>
+		<h3 class="hero-title display-6 mb-2" style="color:#333;">Article Masjid Telkom Regional 3</h3>
+			<p class="mb-4 fw-medium" style="font-size:0.95rem; color:#333;">Telkom Regional 3 (Jawa Timur, Bali dan Nusa Tenggara)</p>
     </x-home._hero>
 	<section class="container my-5 mt-4">
 		<div class="row">
-			<aside class="col-md-3 mb-4">
-				<div class="card p-3 shadow-sm">
-					<h5 class="mb-3">Filter</h5>
-					<form method="GET" action="{{ route('article') }}">
-						<div class="mb-2">
-							<label class="form-label small">Provinsi</label>
-							<select name="province_id" class="form-select">
-								<option value="">Semua Provinsi</option>
-								@foreach($provinces ?? collect() as $p)
-									<option value="{{ $p->id }}" {{ request()->query('province_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-								@endforeach
-							</select>
-						</div>
-						<div class="mb-2">
-							<label class="form-label small">Witel</label>
-							<select name="witel_id" class="form-select" data-selected="{{ request()->query('witel_id') }}">
-								<option value="">Semua Witel</option>
-								@foreach($witels ?? collect() as $w)
-									<option value="{{ $w->id }}" {{ request()->query('witel_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
-								@endforeach
-							</select>
-						</div>
-						<div class="mb-2">
-							<label class="form-label small">STO</label>
-							<select name="sto_id" class="form-select" data-selected="{{ request()->query('sto_id') }}">
-								<option value="">Semua STO</option>
-								@foreach($stos ?? collect() as $s)
-									<option value="{{ $s->id }}" {{ request()->query('sto_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
-								@endforeach
-							</select>
-						</div>
-						<div class="d-flex gap-2">
-							<a href="{{ route('article') }}" class="btn btn-light w-50">Reset</a>
-							<button type="submit" class="btn btn-success w-50">Cari</button>
-						</div>
-					</form>
-				</div>
-			</aside>
-			<main class="col-md-9">
-				<x-home.beranda._articles :articles="$articles ?? null" />
-			</main>
+			<x-home.beranda._articles :articles="$articles ?? null" />
 		</div>
 	</section>
 	<x-home._footer />

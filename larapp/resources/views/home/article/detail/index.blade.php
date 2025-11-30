@@ -20,14 +20,22 @@
                         $author = $article->author ?? ($article->author_name ?? 'Admin');
                         $published = isset($article->published_at) ? \Carbon\Carbon::parse($article->published_at)->format('d M Y') : null;
                         $img = asset('images/mosque-1.jpg');
-                        if(!empty($article->image_url)){
-                            $a = $article->image_url;
-                            if(preg_match('/^https?:\/\//', $a)){
-                                $img = $a;
-                            } elseif(strpos($a, 'storage/') === 0) {
+                        if (!empty($article->image_url)) {
+                            $raw = $article->image_url;
+                            // normalize leading slashes to avoid producing storage/storage
+                            $a = preg_replace('#^/+#', '', $raw);
+                            if (preg_match('/^https?:\/\//', $raw)) {
+                                // absolute URL as provided by user
+                                $img = $raw;
+                            } elseif (strpos($a, 'storage/') === 0) {
+                                // already a storage path like 'storage/...'
                                 $img = asset($a);
                             } else {
-                                try { $img = \Illuminate\Support\Facades\Storage::disk('public')->url($a); } catch (Exception $e) { $img = asset('images/mosque-1.jpg'); }
+                                try {
+                                    $img = \Illuminate\Support\Facades\Storage::disk('public')->url($a);
+                                } catch (Exception $e) {
+                                    $img = asset('images/mosque-1.jpg');
+                                }
                             }
                         }
                     @endphp
