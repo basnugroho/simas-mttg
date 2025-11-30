@@ -16,27 +16,6 @@
 	<x-home.beranda._prayerbar />
 	<x-home.beranda._summary :regions="$regions" :summary="$summary" />
 	<x-home.beranda._facility :masjids="$masjids" :mushollas="$mushollas" :provinces="$provinces" />
-
-	{{-- Section unduh data masjid & mushalla --}}
-	<section class="py-4 py-md-5 bg-light">
-		<div class="container">
-			<div class="row align-items-center">
-				<div class="col-md-6 mb-3 mb-md-0">
-					<h5 class="mb-2">Unduh Data Masjid &amp; Mushalla</h5>
-					<p class="mb-0" style="font-size:0.95rem">Unduh data lengkap masjid dan mushalla SIMAS MTTG dalam format CSV.</p>
-				</div>
-				<div class="col-md-6 text-md-end">
-					<a href="{{ route('admin.mosques.export', ['type' => 'MASJID']) }}" class="btn btn-sm btn-primary me-2">
-						<i class="bi bi-download"></i> Unduh Masjid
-					</a>
-					<a href="{{ route('admin.mosques.export', ['type' => 'MUSHOLLA']) }}" class="btn btn-sm btn-outline-primary">
-						<i class="bi bi-download"></i> Unduh Mushalla
-					</a>
-				</div>
-			</div>
-		</div>
-	</section>
-
 	<x-home.beranda._map :provinces="$provinces" />
 	<x-home.beranda._articles :articles="$latestArticles" :showHeader="true" mtClass="mt-3" :limit="4" />
     <x-home._footer />
