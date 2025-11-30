@@ -10,18 +10,30 @@
     }
 
     .office-photo {
-      background-image: url('{{ asset("images/mosque.webp") }}');
+      /* use a subtle left-to-right gradient overlay so text/forms on the left read well
+         and crop the image to focus on the right side (palm/architecture) */
+      background-image: linear-gradient(to right, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 30%, rgba(255,255,255,0.0) 65%), url('{{ asset("images/mosque.webp") }}');
       background-size: cover;
-      background-position: center;
+      background-position: right center; /* focus on right side like attachment */
+      background-repeat: no-repeat;
       border-radius: 24px 0 0 24px;
       height: 100%;
-      min-height: 320px;
+      min-height: 420px;
+      display: block;
+    }
+
+    @media (max-width: 991.98px) {
+      .office-photo {
+        /* slightly shorter on tablet */
+        min-height: 360px;
+      }
     }
 
     @media (max-width: 767.98px) {
       .office-photo {
         border-radius: 24px 24px 0 0;
-        min-height: 220px;
+        min-height: 260px;
+        background-position: center top; /* mobile crop */
       }
     }
 
