@@ -64,7 +64,7 @@ class BerandaController extends Controller
             ->where('status', 'PUBLISHED')
             ->whereNotNull('published_at')
             ->orderByDesc('published_at')
-            ->take(8)
+            ->take(4)
             ->get();
 
         return view('home.beranda.index', [
