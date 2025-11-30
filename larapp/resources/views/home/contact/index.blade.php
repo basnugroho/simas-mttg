@@ -10,18 +10,29 @@
     }
 
     .office-photo {
-      background-image: url('{{ asset("images/nabawi.png") }}');
+      /* show raw image, positioned further to the right to match attachment */
+      background-image: url('{{ asset("images/mosque.webp") }}');
       background-size: cover;
-      background-position: center;
+      background-position: 85% center; /* shift crop to the right */
+      background-repeat: no-repeat;
       border-radius: 24px 0 0 24px;
       height: 100%;
-      min-height: 320px;
+      min-height: 420px;
+      display: block;
+    }
+
+    @media (max-width: 991.98px) {
+      .office-photo {
+        /* slightly shorter on tablet */
+        min-height: 360px;
+      }
     }
 
     @media (max-width: 767.98px) {
       .office-photo {
         border-radius: 24px 24px 0 0;
-        min-height: 220px;
+        min-height: 260px;
+        background-position: center top; /* mobile crop */
       }
     }
 

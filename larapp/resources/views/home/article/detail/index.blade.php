@@ -4,13 +4,7 @@
     <x-home._navbar />
 
     <section class="container my-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="mb-3">
-                    <a href="{{ url()->previous() }}" class="btn btn-sm btn-outline-secondary">&larr; Kembali</a>
-                </div>
-            </div>
-        </div>
+        {{-- Back button removed per request --}}
 
         <div class="row gy-4">
             <main class="col-12 col-lg-8">
@@ -20,14 +14,22 @@
                         $author = $article->author ?? ($article->author_name ?? 'Admin');
                         $published = isset($article->published_at) ? \Carbon\Carbon::parse($article->published_at)->format('d M Y') : null;
                         $img = asset('images/mosque-1.jpg');
-                        if(!empty($article->image_url)){
-                            $a = $article->image_url;
-                            if(preg_match('/^https?:\/\//', $a)){
-                                $img = $a;
-                            } elseif(strpos($a, 'storage/') === 0) {
+                        if (!empty($article->image_url)) {
+                            $raw = $article->image_url;
+                            // normalize leading slashes to avoid producing storage/storage
+                            $a = preg_replace('#^/+#', '', $raw);
+                            if (preg_match('/^https?:\/\//', $raw)) {
+                                // absolute URL as provided by user
+                                $img = $raw;
+                            } elseif (strpos($a, 'storage/') === 0) {
+                                // already a storage path like 'storage/...'
                                 $img = asset($a);
                             } else {
-                                try { $img = \Illuminate\Support\Facades\Storage::disk('public')->url($a); } catch (Exception $e) { $img = asset('images/mosque-1.jpg'); }
+                                try {
+                                    $img = \Illuminate\Support\Facades\Storage::disk('public')->url($a);
+                                } catch (Exception $e) {
+                                    $img = asset('images/mosque-1.jpg');
+                                }
                             }
                         }
                     @endphp
@@ -51,12 +53,28 @@
                     </div>
 
                     <footer class="mt-4">
+                        @php
+                            $shareUrl = urlencode(request()->fullUrl());
+                            $shareTitle = urlencode($article->title ?? '');
+                            $waLink = "https://wa.me/?text={$shareTitle}%20-%20{$shareUrl}";
+                            $tgLink = "https://t.me/share/url?url={$shareUrl}&text={$shareTitle}";
+                            $twitterLink = "https://x.com/intent/tweet?text={$shareTitle}&url={$shareUrl}";
+                            $facebookLink = "https://www.facebook.com/sharer/sharer.php?u={$shareUrl}";
+                        @endphp
+
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
                             <div class="text-muted small">Bagikan:</div>
                             <div class="d-flex gap-2">
-                                <a class="btn btn-outline-secondary btn-sm" href="#" aria-label="Share to Whatsapp">WA</a>
-                                <a class="btn btn-outline-secondary btn-sm" href="#" aria-label="Share to Twitter">TW</a>
-                                <a class="btn btn-outline-secondary btn-sm" href="#" aria-label="Share to Facebook">FB</a>
+                                <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ $waLink }}" target="_blank" rel="noopener noreferrer" aria-label="Share to Whatsapp">
+                                    <i class="bi bi-whatsapp me-1"></i> <span class="d-none d-sm-inline">WhatsApp</span>
+                                </a>
+                                <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ $tgLink }}" target="_blank" rel="noopener noreferrer" aria-label="Share to Telegram">
+                                    <i class="bi bi-telegram me-1"></i> <span class="d-none d-sm-inline">Telegram</span>
+                                </a>
+                                {{-- Twitter/X removed per request --}}
+                                <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ $facebookLink }}" target="_blank" rel="noopener noreferrer" aria-label="Share to Facebook">
+                                    <i class="bi bi-facebook me-1"></i> <span class="d-none d-sm-inline">Facebook</span>
+                                </a>
                             </div>
                         </div>
                     </footer>
@@ -66,14 +84,16 @@
             <aside class="col-12 col-lg-4">
                 <div class="card shadow-sm rounded-4 p-3 mb-3">
                     <h5 class="mb-2" style="font-weight:700;">Artikel Terkait</h5>
-                    <div class="list-group list-group-flush">
-                        @if(isset($related) && $related->count())
-                            @foreach($related->take(6) as $r)
-                                <a href="{{ route('article.show', ['id' => $r->id]) }}" class="list-group-item list-group-item-action">{{ Str::limit($r->title, 70) }}</a>
-                            @endforeach
-                        @else
-                            <div class="text-muted">Tidak ada artikel terkait.</div>
-                        @endif
+                    <div class="related-scroll" style="max-height:360px; overflow-y:auto; padding-right:6px;">
+                        <div class="list-group list-group-flush">
+                            @if(isset($related) && $related->count())
+                                @foreach($related->take(12) as $r)
+                                    <a href="{{ route('article.show', ['id' => $r->id]) }}" class="list-group-item list-group-item-action">{{ Str::limit($r->title, 70) }}</a>
+                                @endforeach
+                            @else
+                                <div class="text-muted">Tidak ada artikel terkait.</div>
+                            @endif
+                        </div>
                     </div>
                 </div>
 

@@ -17,6 +17,6 @@
 	<x-home.beranda._summary :regions="$regions" :summary="$summary" />
 	<x-home.beranda._facility :masjids="$masjids" :mushollas="$mushollas" :provinces="$provinces" />
 	<x-home.beranda._map :provinces="$provinces" />
-	<x-home.beranda._articles :articles="$latestArticles" />
+	<x-home.beranda._articles :articles="$latestArticles" :showHeader="true" mtClass="mt-3" :limit="4" />
     <x-home._footer />
 </x-home.layout>

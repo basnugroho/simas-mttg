@@ -28,9 +28,33 @@
                 </div>
                 <div class="card-body pt-2 pb-4 px-4">
                     <div class="news-grid">
-                        @foreach($articles->take(8) as $a)
+                        {{-- Show only 4 latest articles in Informasi Terkini --}}
+                        @foreach($articles->take(4) as $a)
                             @php
-                                $img = asset('images/mosque.webp');
+                                $defaultImg = asset('images/mosque.webp');
+                                $img = $defaultImg;
+                                if(!empty($a->image_url)){
+                                    $candidate = $a->image_url;
+                                    // absolute URL
+                                    if(preg_match('/^https?:\/\//', $candidate)){
+                                        $img = $candidate;
+                                    } else {
+                                        try {
+                                            // if storage disk public contains it
+                                            if(\Illuminate\Support\Facades\Storage::disk('public')->exists($candidate)){
+                                                $img = \Illuminate\Support\Facades\Storage::disk('public')->url($candidate);
+                                            } elseif(strpos($candidate, 'storage/') === 0) {
+                                                // already a public storage path
+                                                $img = asset($candidate);
+                                            } else {
+                                                // fallback: assume asset path
+                                                $img = asset($candidate);
+                                            }
+                                        } catch (\Throwable $_) {
+                                            $img = $defaultImg;
+                                        }
+                                    }
+                                }
                                 $rel = ($a->published_at ?? null) ? \Carbon\Carbon::parse($a->published_at)->diffForHumans() : '';
                                 $author = $a->author ?? ($a->author_name ?? 'Admin');
                                 $summary = Str::limit($a->summary ?? ($a->content ?? ''), 140);

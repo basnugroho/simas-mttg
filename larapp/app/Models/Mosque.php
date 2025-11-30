@@ -86,6 +86,11 @@ class Mosque extends Model
         return $this->hasMany(MosqueManager::class);
     }
 
+    public function cashPositions()
+    {
+        return $this->hasMany(CashPosition::class);
+    }
+
     /**
      * Return a human-friendly region path for this mosque.
      * Order: regional -> area -> witel -> sto -> province -> city

@@ -18,6 +18,18 @@
 					
 				</div>
 			</a>
+			<a href="#activities" class="mosque-action text-muted" data-tab="activities">
+				<span class="icon"><i class="bi bi-calendar-event"></i></span>
+				<div>
+					<div class="label">Aktifitas</div>
+				</div>
+			</a>
+			<a href="#cash-positions" class="mosque-action text-muted" data-tab="cash-positions">
+				<span class="icon"><i class="bi bi-cash-coin"></i></span>
+				<div>
+					<div class="label">Cash</div>
+				</div>
+			</a>
 		</div>
 </div>        
 

@@ -101,7 +101,7 @@ class MosqueController extends Controller
     }
     public function show(Mosque $mosque)
     {
-        $mosque->load(['province','city','witel','mosqueFacility.facility','mosqueFacility.photos','photos']);
+        $mosque->load(['province','city','witel','mosqueFacility.facility','mosqueFacility.photos','photos','activities','cashPositions.photos']);
 
         // Map facilities to include available flag and note
         $facilities = $mosque->mosqueFacility->map(function ($mf) {
@@ -152,7 +152,10 @@ class MosqueController extends Controller
         // Normalize: remove nulls and duplicates, reindex
         $images = array_values(array_filter(array_unique($images)));
 
-        return view('home.mosque.detail.index', compact('mosque', 'images'));
+        $activities = $mosque->activities ?? collect();
+        $cashPositions = $mosque->cashPositions()->where('is_deleted', false)->orderByDesc('period_start')->limit(12)->get();
+
+        return view('home.mosque.detail.index', compact('mosque', 'images', 'activities', 'cashPositions'));
     }
 
     
