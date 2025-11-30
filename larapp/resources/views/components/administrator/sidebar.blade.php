@@ -13,7 +13,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="index.html">
+            <a class="nav-link" href="{{ route('admin.mosques.index') }}">
               <i class="ti-home menu-icon"></i>
               <span class="menu-title">Masjid</span>
             </a>
@@ -43,10 +43,21 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="index.html">
+            <a class="nav-link" data-bs-toggle="collapse" href="#unduh-menu" aria-expanded="false" aria-controls="unduh-menu">
               <i class="ti-download menu-icon"></i>
               <span class="menu-title">Unduh Data</span>
+              <i class="menu-arrow"></i>
             </a>
+            <div class="collapse" id="unduh-menu">
+              <ul class="nav flex-column sub-menu">
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ route('admin.mosques.export', ['type' => 'MASJID']) }}">Unduh Data Masjid</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ route('admin.mosques.export', ['type' => 'MUSHOLLA']) }}">Unduh Data Mushalla</a>
+                </li>
+              </ul>
+            </div>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="index.html">

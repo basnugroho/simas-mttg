@@ -8,6 +8,7 @@ use App\Models\Regions;
 use App\Models\MosquePhoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MosqueController extends Controller
 {
@@ -249,6 +250,93 @@ class MosqueController extends Controller
         if (!empty($lockedValues)) { foreach ($lockedValues as $field => $id) { try { $r = Regions::find($id); if ($r) $lockedLabels[$field] = $r->name; } catch (\Throwable $e) { } } }
 
         return view('admin.master.mosques.edit', compact('mosque', 'regionals', 'witels', 'stos', 'regions', 'myRole', 'myAssignments', 'lockedValues', 'lockedFields', 'lockedLabels'));
+    }
+
+    public function exportAll(Request $request): StreamedResponse
+    {
+        $type = $request->query('type');
+
+        $query = Mosque::query();
+        if ($type === 'MASJID' || $type === 'MUSHOLLA') {
+            $query->where('type', $type);
+        }
+
+        $filename = 'data_masjid_musholla_' . ($type ?: 'semua') . '_' . date('Ymd_His') . '.csv';
+
+        $callback = function () use ($query) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Nama',
+                'Kode',
+                'Tipe',
+                'Alamat',
+                'Regional',
+                'Area',
+                'Witel',
+                'STO',
+                'Provinsi',
+                'Kota',
+                'Daya Tampung',
+                'Tahun Didirikan',
+                'Fasilitas',
+                'Aktivitas',
+                'Cash Flow Terakhir',
+            ]);
+
+                    $query->with(['regional','area','witel','sto','province','city','facility','activities','cashPositions'])
+                ->orderBy('name')
+                ->chunk(200, function ($mosques) use ($handle) {
+                            foreach ($mosques as $m) {
+                        $facilities = $m->facility->map(function ($f) {
+                            $status = $f->pivot && $f->pivot->is_available ? 'ya' : 'tidak';
+                            return $f->name . ' (' . $status . ')';
+                        })->implode('; ');
+
+                        $activities = $m->activities->map(function ($a) {
+                            $range = '';
+                            if ($a->pivot) {
+                                $start = $a->pivot->event_start ? $a->pivot->event_start : null;
+                                $end = $a->pivot->event_end ? $a->pivot->event_end : null;
+                                if ($start || $end) {
+                                    $range = ' [' . trim(($start ?? '') . ' - ' . ($end ?? '')) . ']';
+                                }
+                            }
+                            return $a->name . $range;
+                        })->implode('; ');
+
+                        $latestCash = $m->cashPositions->sortByDesc('created_at')->first();
+                        $cashSummary = '';
+                        if ($latestCash) {
+                            $cashSummary = 'Saldo: ' . ($latestCash->saldo_akhir ?? '-') . ' | Periode: ' . ($latestCash->periode ?? $latestCash->created_at);
+                        }
+
+                                fputcsv($handle, [
+                                    $m->name,
+                            $m->code,
+                            $m->type,
+                            $m->address,
+                            optional($m->regional)->name,
+                            optional($m->area)->name,
+                            optional($m->witel)->name,
+                            optional($m->sto)->name,
+                            optional($m->province)->name,
+                            optional($m->city)->name,
+                            $m->daya_tampung,
+                            $m->tahun_didirikan,
+                            $facilities,
+                            $activities,
+                            $cashSummary,
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     protected function generateThumbnail(string $publicPath)

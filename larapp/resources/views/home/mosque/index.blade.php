@@ -62,6 +62,18 @@
 						</div>
 					</form>
 				</div>
+					<div class="card p-3 shadow-sm mt-3">
+						<h6 class="mb-2">Unduh Data</h6>
+						<p class="small text-muted mb-3">Unduh data masjid atau mushalla dalam format CSV.</p>
+						<div class="d-grid gap-2">
+							<a href="{{ route('admin.mosques.export', ['type' => 'MASJID']) }}" class="btn btn-sm" style="background-color:#dc2626;color:#ffffff;">
+								<i class="bi bi-download"></i> Unduh Masjid
+							</a>
+							<a href="{{ route('admin.mosques.export', ['type' => 'MUSHOLLA']) }}" class="btn btn-sm" style="background-color:#ffffff;color:#dc2626;border:1px solid #dc2626;">
+								<i class="bi bi-download"></i> Unduh Mushalla
+							</a>
+						</div>
+					</div>
 			</aside>
 			<main class="col-md-9">
 				<div class="mosque-scroll-wrapper">

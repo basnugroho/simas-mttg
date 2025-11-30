@@ -78,6 +78,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		Route::delete('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'destroy'])->name('admin.cash_positions.destroy');
 		Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
 		Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
+
+		// export data masjid & mushalla
+		Route::get('mosques-export', [\App\Http\Controllers\Admin\MosqueController::class, 'exportAll'])
+			->name('admin.mosques.export');
 		// Mosque managers (Pengurus Masjid)
 		Route::get('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'index'])->name('admin.mosque_managers.index');
 		Route::post('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'store'])->name('admin.mosque_managers.store');
