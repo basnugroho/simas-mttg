@@ -59,12 +59,28 @@
                     </div>
 
                     <footer class="mt-4">
+                        @php
+                            $shareUrl = urlencode(request()->fullUrl());
+                            $shareTitle = urlencode($article->title ?? '');
+                            $waLink = "https://wa.me/?text={$shareTitle}%20-%20{$shareUrl}";
+                            $tgLink = "https://t.me/share/url?url={$shareUrl}&text={$shareTitle}";
+                            $twitterLink = "https://x.com/intent/tweet?text={$shareTitle}&url={$shareUrl}";
+                            $facebookLink = "https://www.facebook.com/sharer/sharer.php?u={$shareUrl}";
+                        @endphp
+
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
                             <div class="text-muted small">Bagikan:</div>
                             <div class="d-flex gap-2">
-                                <a class="btn btn-outline-secondary btn-sm" href="#" aria-label="Share to Whatsapp">WA</a>
-                                <a class="btn btn-outline-secondary btn-sm" href="#" aria-label="Share to Twitter">TW</a>
-                                <a class="btn btn-outline-secondary btn-sm" href="#" aria-label="Share to Facebook">FB</a>
+                                <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ $waLink }}" target="_blank" rel="noopener noreferrer" aria-label="Share to Whatsapp">
+                                    <i class="bi bi-whatsapp me-1"></i> <span class="d-none d-sm-inline">WhatsApp</span>
+                                </a>
+                                <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ $tgLink }}" target="_blank" rel="noopener noreferrer" aria-label="Share to Telegram">
+                                    <i class="bi bi-telegram me-1"></i> <span class="d-none d-sm-inline">Telegram</span>
+                                </a>
+                                {{-- Twitter/X removed per request --}}
+                                <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ $facebookLink }}" target="_blank" rel="noopener noreferrer" aria-label="Share to Facebook">
+                                    <i class="bi bi-facebook me-1"></i> <span class="d-none d-sm-inline">Facebook</span>
+                                </a>
                             </div>
                         </div>
                     </footer>
