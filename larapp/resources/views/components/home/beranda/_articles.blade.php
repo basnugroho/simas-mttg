@@ -1,4 +1,4 @@
-@props(['showHeader' => false, 'mtClass' => 'mt-0'])
+@props(['showHeader' => false, 'mtClass' => 'mt-0', 'limit' => 9])
 
 @php
     // Controller idealnya mengirim $articles (collection Article) terbaru.
@@ -34,7 +34,7 @@
                     <div class="news-scroll" style="max-height: calc( (320px * 3) + 32px ); overflow-y:auto; padding-right:8px;">
                         <div class="news-grid">
                         {{-- Show up to 9 latest articles (3 rows) --}}
-                        @foreach($articles->take(9) as $a)
+                        @foreach($articles->take($limit) as $a)
                             @php
                                 $defaultImg = asset('images/mosque.webp');
                                 $img = $defaultImg;
