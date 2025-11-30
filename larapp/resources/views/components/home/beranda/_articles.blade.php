@@ -17,9 +17,10 @@
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
                 {{-- Header removed as requested: no Informasi Terkini, subtext, or Lihat Semua button --}}
                 <div class="card-body pt-2 pb-4 px-4">
-                    <div class="news-grid">
-                        {{-- Show only 4 latest articles in Informasi Terkini --}}
-                        @foreach($articles->take(4) as $a)
+                    <div class="news-scroll" style="max-height: calc( (320px * 3) + 32px ); overflow-y:auto; padding-right:8px;">
+                        <div class="news-grid">
+                        {{-- Show up to 9 latest articles (3 rows) --}}
+                        @foreach($articles->take(9) as $a)
                             @php
                                 $defaultImg = asset('images/mosque.webp');
                                 $img = $defaultImg;
@@ -60,6 +61,7 @@
                                 </div>
                             </a>
                         @endforeach
+                        </div>
                     </div>
                     
                 </div>
