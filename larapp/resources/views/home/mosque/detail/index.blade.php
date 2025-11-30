@@ -7,6 +7,8 @@
 		<div class="mosque-main">
 			@include('home.mosque.detail._gallery')
 			@include('home.mosque.detail._bkm_information')
+			@include('home.mosque.detail._activities')
+			@include('home.mosque.detail._cash_positions')
 			<script>
 				(function(){
 					const actions = document.querySelectorAll('.mosque-action');

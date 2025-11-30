@@ -70,8 +70,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		Route::get('cash-positions/{id}/edit', [\App\Http\Controllers\Admin\CashPositionController::class, 'edit'])->name('admin.cash_positions.edit');
 		Route::patch('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'update'])->name('admin.cash_positions.update');
 		Route::delete('cash-positions/{id}', [\App\Http\Controllers\Admin\CashPositionController::class, 'destroy'])->name('admin.cash_positions.destroy');
-	Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
-	Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
+		Route::resource('subsidiaries', \App\Http\Controllers\Admin\SubsidiaryController::class)->names('admin.subsidiaries');
+		Route::resource('mosques', \App\Http\Controllers\Admin\MosqueController::class)->names('admin.mosques');
 		// Mosque managers (Pengurus Masjid)
 		Route::get('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'index'])->name('admin.mosque_managers.index');
 		Route::post('mosque-managers', [\App\Http\Controllers\Admin\MosqueManagerController::class, 'store'])->name('admin.mosque_managers.store');
