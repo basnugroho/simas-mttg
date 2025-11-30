@@ -9,7 +9,7 @@
           }
         @endphp
         <h3 style="margin:0">Aktivitas Masjid{{ $titleSuffix }}</h3>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px">Masjid · <a href="{{ route('admin.mosques.index') }}">Daftar Masjid</a> / <strong>Aktivitas Masjid</strong></div>
+        <div style="font-size:12px;color:#6b7280;margin-top:4px">Masjid · <a href="{{ route('admin.mosques.index') }}">Kelola Masjid</a> / <strong>Aktivitas Masjid</strong></div>
       </div>
         <div>
           @php $createUrl = route('admin.mosque_activities.create'); if(isset($selected_mosque) && $selected_mosque){ $createUrl .= '?mosque=' . $selected_mosque->id; } @endphp

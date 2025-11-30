@@ -61,7 +61,7 @@
         <li data-key="masjid" style="margin-bottom:6px">
           <a href="#" class="menu-link" style="color:#fff;text-decoration:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;background:linear-gradient(90deg,#ef4444,#f97316);box-shadow:0 12px 40px rgba(249,115,22,.12)">◦ <strong style="margin-left:8px">Masjid</strong></a>
           <ul class="submenu" style="list-style:none;padding-left:18px;margin-top:8px">
-            <li style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Daftar Masjid</a></li>
+            <li style="margin-bottom:6px"><a href="{{ route('admin.mosques.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Kelola Masjid</a></li>
             {{-- Aktivitas moved to Masques list; submenu entry removed --}}
             <li style="margin-bottom:6px"><a href="{{ route('admin.cash_positions.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Cash</a></li>
             <li style="margin-bottom:6px"><a href="{{ route('admin.mosque_managers.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Pengurus Masjid</a></li>
