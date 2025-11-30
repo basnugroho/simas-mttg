@@ -1,5 +1,3 @@
-@props(['showHeader' => false, 'mtClass' => 'mt-0', 'limit' => 9])
-
 @php
     // Controller idealnya mengirim $articles (collection Article) terbaru.
     $articles = $articles ?? ($latestArticles ?? collect());
@@ -13,11 +11,10 @@
         ]);
     }
 @endphp
-<section class="news-section {{ $mtClass }}">
+<section class="news-section mt-3">
     <div class="container">
         <div class="news-wrap p-0" style="background:transparent;padding:0;">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                @if($showHeader)
                 <div class="card-header bg-white border-0 pt-3 pb-2">
                     <div class="d-flex justify-content-between align-items-start flex-wrap">
                         <div class="header-left">
@@ -29,12 +26,10 @@
                         </div>
                     </div>
                 </div>
-                @endif
                 <div class="card-body pt-2 pb-4 px-4">
-                    <div class="news-scroll" style="max-height: calc( (320px * 3) + 32px ); overflow-y:auto; padding-right:8px;">
-                        <div class="news-grid">
-                        {{-- Show up to 9 latest articles (3 rows) --}}
-                        @foreach($articles->take($limit) as $a)
+                    <div class="news-grid">
+                        {{-- Show only 4 latest articles in Informasi Terkini --}}
+                        @foreach($articles->take(4) as $a)
                             @php
                                 $defaultImg = asset('images/mosque.webp');
                                 $img = $defaultImg;
@@ -67,7 +62,7 @@
                             @php $articleUrl = isset($a->id) ? route('article.show', ['id' => $a->id]) : '#'; @endphp
                             <a href="{{ $articleUrl }}" class="news-card position-relative text-decoration-none text-body">
                                 <span class="badge bg-danger position-absolute" style="top:10px;left:10px;font-size:.55rem;letter-spacing:.05em;padding:.35rem .5rem;">TERKINI</span>
-                                <img src="{{ $img }}" alt="{{ $a->title }}" class="thumb" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='{{ asset('images/mosque.webp') }}'">
+                                <img src="{{ $img }}" alt="{{ $a->title }}" class="thumb" loading="lazy">
                                 <div class="body">
                                     <div class="news-meta"><span>{{ $author }}</span><span>{{ $rel }}</span></div>
                                     <h3 class="news-title" title="{{ $a->title }}">{{ Str::limit($a->title, 70) }}</h3>
@@ -75,7 +70,6 @@
                                 </div>
                             </a>
                         @endforeach
-                        </div>
                     </div>
                     
                 </div>

@@ -121,8 +121,8 @@ Route::get('/musholla', [\App\Http\Controllers\Home\Mosque\MosqueController::cla
 Route::get('/contact', function () {return view('home.contact.index');})->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 
-// Article list
-Route::get('/article', [App\Http\Controllers\Home\ArticleController::class, 'index'])->name('article');
+// Article listing with filters
+Route::get('/article', [\App\Http\Controllers\Home\ArticleController::class, 'index'])->name('article');
 // Article detail
 Route::get('/article/{id}', [\App\Http\Controllers\Home\ArticleController::class, 'show'])->name('article.show');
 

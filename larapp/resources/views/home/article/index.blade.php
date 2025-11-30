@@ -45,7 +45,44 @@
 				</div>
 			</aside>
 			<main class="col-md-9">
-				<x-home.beranda._articles :articles="$articles ?? null" />
+				@if(($articles ?? collect())->count() === 0)
+					<div class="alert alert-light border shadow-sm">Belum ada artikel yang dapat ditampilkan.</div>
+				@else
+					<div class="mosque-scroll-wrapper">
+						<div class="row g-3">
+							@foreach($articles as $article)
+								<div class="col-md-6 col-lg-4">
+									<div class="card h-100 shadow-sm position-relative">
+										@if($article->image_url)
+											<img src="{{ $article->image_url }}" class="card-img-top" alt="{{ $article->title }}" style="object-fit:cover;height:180px;">
+										@else
+											<div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+												<span class="text-muted small">Tidak ada gambar</span>
+											</div>
+										@endif
+										<div class="card-body d-flex flex-column">
+											@if($article->category)
+												<span class="badge bg-success mb-2">{{ $article->category->name }}</span>
+											@endif
+											<h6 class="card-title mb-2" style="min-height:3rem;overflow:hidden;">{{ Str::limit($article->title, 70) }}</h6>
+											@if($article->mosque)
+												<p class="mb-1 small text-muted">{{ $article->mosque->name }}</p>
+											@endif
+											@if($article->published_at)
+												<p class="mb-2 small text-muted">Dipublikasikan {{ $article->published_at->format('d M Y') }}</p>
+											@endif
+											<p class="card-text small flex-grow-1">{{ Str::limit(strip_tags($article->summary ?? $article->content), 110) }}</p>
+											<a href="{{ route('article.show', $article->id) }}" class="mt-2 btn btn-outline-success btn-sm align-self-start">Baca selengkapnya</a>
+										</div>
+									</div>
+								</div>
+							@endforeach
+							</div>
+						</div>
+						<div class="mt-3 d-flex justify-content-center">
+							{{ $articles->links() }}
+						</div>
+				@endif
 			</main>
 		</div>
 	</section>
