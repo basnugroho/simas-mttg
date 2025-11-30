@@ -10,7 +10,7 @@
     }
 
     .office-photo {
-      background-image: url('{{ asset("images/nabawi.png") }}');
+      background-image: url('{{ asset("images/mosque.webp") }}');
       background-size: cover;
       background-position: center;
       border-radius: 24px 0 0 24px;
