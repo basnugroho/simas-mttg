@@ -42,7 +42,7 @@
   </div>
 
   <div class="form-row">
-    <label class="form-label">Area</label>
+    <label class="form-label">Wilayah</label>
     <div class="field">
   <select name="area_id" class="form-input" data-selected="{{ old('area_id', $mosque->area_id ?? ($lockedValues['area_id'] ?? '')) }}" data-locked="{{ $lockedValues['area_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('area_id', $lockedFields)) disabled @endif>
         @if(!empty($lockedLabels['area_id']))
@@ -82,7 +82,7 @@
   </div>
 
   <div class="form-row">
-    <label class="form-label">STO</label>
+    <label class="form-label">Datel</label>
     <div class="field">
   <select name="sto_id" class="form-input" data-selected="{{ old('sto_id', $mosque->sto_id ?? ($lockedValues['sto_id'] ?? '')) }}" data-locked="{{ $lockedValues['sto_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('sto_id', $lockedFields)) disabled @endif>
         @if(!empty($lockedLabels['sto_id']))

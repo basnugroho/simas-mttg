@@ -59,9 +59,15 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	Route::resource('activities', \App\Http\Controllers\Admin\ActivityController::class)->names('admin.activities');
 	// mosque-scoped activities (assign master activities to masjid)
 	Route::get('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'index'])->name('admin.mosque_activities.index');
+	// new: dedicated create/edit pages
+	Route::get('mosque-activities/create', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'create'])->name('admin.mosque_activities.create');
+	Route::get('mosque-activities/{id}/edit', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'edit'])->name('admin.mosque_activities.edit');
 	Route::post('mosque-activities', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'store'])->name('admin.mosque_activities.store');
+	Route::post('mosque-activities/toggle-active', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'toggleActive'])->name('admin.mosque_activities.toggle_active');
 	Route::patch('mosque-activities/{id}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'update'])->name('admin.mosque_activities.update');
 	Route::delete('mosque-activities/{id}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'destroy'])->name('admin.mosque_activities.destroy');
+	// JSON endpoint to fetch a single assignment with photos (used by client-side edit prefill)
+	Route::get('mosque-activities/{id}/json', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'showJson']);
 
 		// cash positions: upload last-known cash position for a mosque
 		Route::get('cash-positions', [\App\Http\Controllers\Admin\CashPositionController::class, 'index'])->name('admin.cash_positions.index');
@@ -99,6 +105,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		Route::post('mosques/{mosque}/facilities/{facility}/photos', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'store']);
 		Route::patch('mosque-facility-photos/{photo}', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'update']);
 		Route::delete('mosque-facility-photos/{photo}', [\App\Http\Controllers\Admin\MosqueFacilityPhotoController::class, 'destroy']);
+
+		// Activity-mosque photos (delete)
+		Route::delete('mosque-activity-photos/{photo}', [\App\Http\Controllers\Admin\MosqueActivityController::class, 'destroyPhoto'])->name('admin.mosque_activity_photos.destroy');
 });
 
 Route::get('/', [App\Http\Controllers\Home\Beranda\BerandaController::class, 'index']);

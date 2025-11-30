@@ -64,13 +64,13 @@
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'regional', 'dir' => (isset($sort) && $sort==='regional' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Regional @if(isset($sort) && $sort==='regional'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
-            <a href="{{ request()->fullUrlWithQuery(['sort' => 'area', 'dir' => (isset($sort) && $sort==='area' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Area @if(isset($sort) && $sort==='area'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'area', 'dir' => (isset($sort) && $sort==='area' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Wilayah @if(isset($sort) && $sort==='area'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'witel', 'dir' => (isset($sort) && $sort==='witel' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Witel @if(isset($sort) && $sort==='witel'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
-            <a href="{{ request()->fullUrlWithQuery(['sort' => 'sto', 'dir' => (isset($sort) && $sort==='sto' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">STO @if(isset($sort) && $sort==='sto'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'sto', 'dir' => (isset($sort) && $sort==='sto' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Datel @if(isset($sort) && $sort==='sto'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'completion_percentage', 'dir' => (isset($sort) && $sort==='completion_percentage' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Kelengkapan Fasilitas @if(isset($sort) && $sort==='completion_percentage'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
@@ -134,6 +134,9 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
 
+              {{-- Aktivitas: quick link to create/assign activity for this mosque (preselects mosque on activities page) --}}
+              <a href="{{ url('/admin/mosque-activities') . '?mosque_ids[]=' . $m->id }}" class="btn btn-sm btn-outline-success" style="margin-left:6px" title="Tambah Aktivitas">Aktivitas</a>
+
               {{-- Facilities available for all users (opens modal) --}}
               <button type="button" class="btn btn-sm btn-info btn-manage-facilities" data-id="{{ $m->id }}" style="margin-left:6px">Facilities</button>
 
@@ -175,7 +178,7 @@
                   <div><strong>Type:</strong> {{ $m->type ?? '-' }}</div>
                   <div><strong>Address:</strong> {{ $m->address ?? '-' }}</div>
                   <div><strong>Province / City:</strong> {{ $m->province_id ? ($m->province?->name ?? $m->province_id) : '-' }} / {{ $m->city_id ? ($m->city?->name ?? $m->city_id) : '-' }}</div>
-                  <div><strong>Regional / Witel / STO:</strong> {{ $m->regional?->name ?? '-' }} / {{ $m->witel?->name ?? '-' }} / {{ $m->sto?->name ?? '-' }}</div>
+                  <div><strong>Regional / Witel / Datel:</strong> {{ $m->regional?->name ?? '-' }} / {{ $m->witel?->name ?? '-' }} / {{ $m->sto?->name ?? '-' }}</div>
                   <div><strong>Tahun didirikan:</strong> {{ $m->tahun_didirikan ?? '-' }}</div>
                   <div><strong>Jumlah BKM:</strong> {{ $m->jml_bkm ?? 0 }}</div>
                   <div><strong>Luas Tanah:</strong> {{ $m->luas_tanah ?? '-' }} m2</div>
