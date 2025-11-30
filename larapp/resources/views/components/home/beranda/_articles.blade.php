@@ -11,7 +11,7 @@
         ]);
     }
 @endphp
-<section class="news-section mt-3">
+<section class="news-section mt-0">
     <div class="container">
         <div class="news-wrap p-0" style="background:transparent;padding:0;">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
