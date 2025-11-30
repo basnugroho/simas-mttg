@@ -10,11 +10,10 @@
     }
 
     .office-photo {
-      /* use a subtle left-to-right gradient overlay so text/forms on the left read well
-         and crop the image to focus on the right side (palm/architecture) */
-      background-image: linear-gradient(to right, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 30%, rgba(255,255,255,0.0) 65%), url('{{ asset("images/mosque.webp") }}');
+      /* show raw image, positioned further to the right to match attachment */
+      background-image: url('{{ asset("images/mosque.webp") }}');
       background-size: cover;
-      background-position: right center; /* focus on right side like attachment */
+      background-position: 85% center; /* shift crop to the right */
       background-repeat: no-repeat;
       border-radius: 24px 0 0 24px;
       height: 100%;
