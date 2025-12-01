@@ -18,7 +18,7 @@
 				@forelse($firstThree as $r)
 					<div class="col-12 col-md-6 col-lg-3">
 						<div class="region-card p-4 rounded-3 bg-white shadow-sm h-100 border" style="border-color:rgba(0,0,0,0.04)">
-							<div class="text-danger small">Wilayah</div>
+							<div class="text-danger small">Area</div>
 							<h5 class="mt-1" style="font-weight:700">{{ $r->name }}</h5>
 							<div class="text-muted small mt-3"> Data Keseluruhan</div>
 							<ul class="list-unstyled mt-2 mb-3" style="line-height:1.8">
@@ -28,8 +28,8 @@
 							</ul>
 							<div class="text-muted small"> Kelengkapan Fasilitas</div>
 							<ul class="list-unstyled mt-2 mb-3" style="line-height:1.8">
-								<li><i class="bi bi-door-open-fill me-2"></i> Masjid : <strong>{{ $r->complete_masjid_count ?? 0 }}/{{ $r->masjid_count ?? 0 }}</strong></li>
-								<li><i class="bi bi-x-square me-2"></i> Musholla : <strong>{{ $r->complete_musholla_count ?? 0 }}/{{ $r->musholla_count ?? 0 }}</strong></li>
+								<li><i class="bi bi-door-open-fill me-2"></i> Masjid: <strong>{{ $r->avg_facilities_masjid_percent ?? 0 }}%</strong></li>
+								<li><i class="bi bi-x-square me-2"></i> Musholla: <strong>{{ $r->avg_facilities_musholla_percent ?? 0 }}%</strong></li>
 							</ul>
 							<div class="d-grid">
 								<a href="{{ route('masjid', ['province_id' => $r->id, 'witel_id' => '', 'sto_id' => '', 'type' => '', 'facility_id' => '']) }}" class="btn btn-dark rounded-pill">Lihat Selengkapnya</a>
@@ -43,7 +43,7 @@
 				@isset($summary)
 				<div class="col-12 col-md-6 col-lg-3">
 					<div class="region-card p-4 rounded-3 bg-dark text-white h-100 shadow-lg position-relative">
-						<div class="text-danger small">Wilayah</div>
+						<div class="text-danger small">Area</div>
 						<h5 class="mt-1" style="font-weight:700">Keseluruhan</h5>
 						<div class="text-white-50 small mt-3"> Data Keseluruhan</div>
 						<ul class="list-unstyled mt-2 mb-3" style="line-height:1.8">
@@ -53,8 +53,8 @@
 						</ul>
 						<div class="text-white-50 small"> Kelengkapan Fasilitas</div>
 						<ul class="list-unstyled mt-2 mb-3" style="line-height:1.8">
-							<li><i class="bi bi-door-open-fill me-2"></i> Masjid : <strong>{{ $summary['complete_masjid_total'] }}/{{ $summary['masjid_total'] }}</strong></li>
-							<li><i class="bi bi-x-square me-2"></i> Musholla : <strong>{{ $summary['complete_musholla_total'] }}/{{ $summary['musholla_total'] }}</strong></li>
+							<li><i class="bi bi-door-open-fill me-2"></i> Masjid: <strong>{{ $summary['avg_facilities_masjid_percent_total'] }}%</strong></li>
+							<li><i class="bi bi-x-square me-2"></i> Musholla: <strong>{{ $summary['avg_facilities_musholla_percent_total'] }}%</strong></li>
 						</ul>
 						<div class="d-grid">
 							<a href="{{ route('masjid', ['province_id' => $summary['province_id'] ?? '', 'witel_id' => '', 'sto_id' => '', 'type' => '', 'facility_id' => '']) }}" class="btn btn-light rounded-pill">Lihat Selengkapnya</a>

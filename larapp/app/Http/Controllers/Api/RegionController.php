@@ -63,6 +63,10 @@ class RegionController extends Controller
             });
         }
 
+        if ($level = $request->query('level')) {
+            $query->where('level', $level);
+        }
+
         if ($parentId = $request->query('parent_id')) {
             $query->where('parent_id', $parentId);
         }

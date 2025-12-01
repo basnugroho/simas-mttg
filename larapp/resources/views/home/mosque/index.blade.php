@@ -10,8 +10,17 @@
 				<div class="card p-3 shadow-sm">
 					<h5 class="mb-3">Filter</h5>
 					<form method="GET" action="{{ route('masjid') }}">
+							<div class="mb-2">
+								<label class="form-label small">Regional</label>
+								<select name="regional_id" class="form-select">
+									<option value="">Semua Regional</option>
+									@foreach($regionals ?? collect() as $r)
+										<option value="{{ $r->id }}" {{ request()->query('regional_id') == $r->id ? 'selected' : '' }}>{{ $r->name }}</option>
+									@endforeach
+								</select>
+							</div>
 						<div class="mb-2">
-							<label class="form-label small">Area</label>
+								<label class="form-label small">Area</label>
 							<select name="province_id" class="form-select">
 								<option value="">Semua Area</option>
 								@foreach($provinces ?? collect() as $p)
@@ -130,6 +139,7 @@
 </x-home.layout>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+	const regionalSel = document.querySelector('select[name=regional_id]');
 	const provinceSel = document.querySelector('select[name=province_id]');
 	const witelSel = document.querySelector('select[name=witel_id]');
 	const stoSel = document.querySelector('select[name=sto_id]');
@@ -158,6 +168,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
+	async function onRegionalChange() {
+		const rid = regionalSel.value;
+		// Reset downstream selects
+		emptySelect(provinceSel, 'Semua Area');
+		emptySelect(witelSel, 'Semua Witel');
+		if (stoSel) emptySelect(stoSel, 'Semua DATEL');
+		if (!rid) return;
+		const areas = await fetchChildren(rid, 'AREA');
+		if (Array.isArray(areas) && areas.length) {
+			areas.forEach(a => {
+				const o = document.createElement('option'); o.value = a.id; o.textContent = a.name; provinceSel.appendChild(o);
+			});
+		}
+	}
+
 	async function onProvinceChange() {
 		const pid = provinceSel.value;
 		emptySelect(witelSel, 'Semua Witel');
@@ -180,6 +205,18 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (Array.isArray(stos) && stos.length) {
 			stos.forEach(s => {
 				const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; stoSel.appendChild(o);
+			});
+		}
+	}
+
+	if (regionalSel) {
+		regionalSel.addEventListener('change', onRegionalChange);
+		const initialRegional = regionalSel.value;
+		if (initialRegional && provinceSel) {
+			const selArea = provinceSel.getAttribute('data-selected') || '{{ request()->query('province_id') }}';
+			onRegionalChange().then(async () => {
+				if (selArea) { provinceSel.value = selArea; }
+				if (selArea) { await onProvinceChange(); }
 			});
 		}
 	}

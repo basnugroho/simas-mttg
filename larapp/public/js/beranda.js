@@ -362,7 +362,7 @@
 		provinceSel.addEventListener('change', async function(e){
 			const id = e.target.value;
 			if(!citySel) return;
-			citySel.innerHTML = `<option value="">Semua Kota / Kabupaten</option>`;
+			citySel.innerHTML = `<option value="">Semua Witel</option>`;
 			if(!id) return; // all selected -> keep only default
 			try{
 				const res = await fetch(`/api/regions?parent_id=${id}`);

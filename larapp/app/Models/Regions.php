@@ -233,7 +233,7 @@ class Regions extends Model
 
     public function mosques()
     {
-        return $this->hasMany(Mosque::class, 'province_id'); // atau city_id/witel_id tergantung kebutuhan
+        return $this->hasMany(Mosque::class, 'area_id'); // gunakan area_id untuk keterkaitan ke Area
     }
 
     /**
