@@ -35,8 +35,8 @@
 					<select id="mfWitel" class="form-select disabled-select" disabled data-placeholder="Pilih Witel"></select>
 				</div>
 				<div class="form-group">
-					<label for="mfDatel" class="d-none d-md-block">Datel</label>
-					<select id="mfDatel" class="form-select disabled-select" disabled data-placeholder="Pilih Datel"></select>
+					<label for="mfDatel" class="d-none d-md-block">STO</label>
+					<select id="mfDatel" class="form-select disabled-select" disabled data-placeholder="Pilih STO"></select>
 				</div>
 				<div class="form-group">
 					<label for="mfType" class="d-none d-md-block">Jenis</label>
@@ -97,13 +97,16 @@ document.addEventListener('DOMContentLoaded', function(){
 		return json.data || [];
 	}
 
-	// Load regional initially (type PROVINCE, level REGIONAL)
-	fetchRegions({ type: 'PROVINCE', level: 'REGIONAL' })
+	// Load regional initially (level REGIONAL)
+	fetchRegions({ level: 'REGIONAL' })
 		.then(list => {
 			setOptions(selRegional, list, selRegional.dataset.placeholder || 'Pilih Regional');
 			setDisabled(selArea, true);
 			setDisabled(selWitel, true);
 			setDisabled(selDatel, true);
+			// Clear existing markers when filter initializes
+			if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+			window.dispatchEvent(new CustomEvent('mapClearMarkers'));
 			window.dispatchEvent(new CustomEvent('mapFilterChange', { detail: {
 				regional_id: null, area_id: null, witel_id: null,
 				type: document.getElementById('mfType')?.value || null
@@ -111,27 +114,30 @@ document.addEventListener('DOMContentLoaded', function(){
 		})
 		.catch(console.error);
 
-	// When regional changes, load areas (type PROVINCE, level AREA)
+	// When regional changes, load areas (level AREA)
 	selRegional.addEventListener('change', async function(){
 		const regionalId = this.value;
 		if(!regionalId){
 			setOptions(selArea, [], selArea.dataset.placeholder || 'Pilih Area');
 			setOptions(selWitel, [], selWitel.dataset.placeholder || 'Pilih Witel');
-			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih Datel');
+			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih STO');
 			setDisabled(selArea, true);
 			setDisabled(selWitel, true);
 			setDisabled(selDatel, true);
 			return;
 		}
 		try{
-			const areas = await fetchRegions({ type: 'PROVINCE', level: 'AREA', parent_id: regionalId });
+			const areas = await fetchRegions({ level: 'AREA', parent_id: regionalId });
 			setOptions(selArea, areas, selArea.dataset.placeholder || 'Pilih Area');
 			setDisabled(selArea, false);
 			// Reset witel & datel
 			setOptions(selWitel, [], selWitel.dataset.placeholder || 'Pilih Witel');
 			setDisabled(selWitel, true);
-			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih Datel');
+			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih STO');
 			setDisabled(selDatel, true);
+			// Clear markers before applying new Area selection
+			if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+			window.dispatchEvent(new CustomEvent('mapClearMarkers'));
 			window.dispatchEvent(new CustomEvent('mapFilterChange', { detail: {
 				regional_id: selRegional.value || null,
 				area_id: null, witel_id: null,
@@ -140,44 +146,57 @@ document.addEventListener('DOMContentLoaded', function(){
 		}catch(err){ console.error(err); }
 	});
 
-	// When area changes, load witels (type WITEL, level WITEL)
+	// When area changes, load witels (level WITEL)
 	selArea.addEventListener('change', async function(){
 		const areaId = this.value;
+		const areaText = this.options[this.selectedIndex]?.text || '';
 		if(!areaId){
 			setOptions(selWitel, [], selWitel.dataset.placeholder || 'Pilih Witel');
 			setDisabled(selWitel, true);
-			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih Datel');
+			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih STO');
 			setDisabled(selDatel, true);
 			return;
 		}
 		try{
-			const witels = await fetchRegions({ type: 'WITEL', level: 'WITEL', parent_id: areaId });
+			const witels = await fetchRegions({ level: 'WITEL', parent_id: areaId });
 			setOptions(selWitel, witels, selWitel.dataset.placeholder || 'Pilih Witel');
 			setDisabled(selWitel, false);
 			// reset datel
-			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih Datel');
+			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih STO');
 			setDisabled(selDatel, true);
+
+			// If area is Jawa Timur, force type to MASJID
+			const typeSel = document.getElementById('mfType');
+			if(areaText.trim().toLowerCase() === 'jawa timur'){
+				if(typeSel) typeSel.value = 'MASJID';
+			}
+			// Clear markers before applying new Witel options
+			if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+			window.dispatchEvent(new CustomEvent('mapClearMarkers'));
 			window.dispatchEvent(new CustomEvent('mapFilterChange', { detail: {
 				regional_id: selRegional.value || null,
 				area_id: selArea.value || null,
 				witel_id: null,
-				type: document.getElementById('mfType')?.value || null
+				type: typeSel?.value || null
 			}}));
 		}catch(err){ console.error(err); }
 	});
 
-	// When witel changes, load datels (type CITY, level STO)
+	// When witel changes, load STOs (level STO)
 	selWitel.addEventListener('change', async function(){
 		const witelId = this.value;
 		if(!witelId){
-			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih Datel');
+			setOptions(selDatel, [], selDatel.dataset.placeholder || 'Pilih STO');
 			setDisabled(selDatel, true);
 			return;
 		}
 		try{
-			const datels = await fetchRegions({ type: 'CITY', level: 'STO', parent_id: witelId });
-			setOptions(selDatel, datels, selDatel.dataset.placeholder || 'Pilih Datel');
+			const stos = await fetchRegions({ level: 'STO', parent_id: witelId });
+			setOptions(selDatel, stos, selDatel.dataset.placeholder || 'Pilih STO');
 			setDisabled(selDatel, false);
+			// Clear markers before applying selected STOs
+			if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+			window.dispatchEvent(new CustomEvent('mapClearMarkers'));
 			window.dispatchEvent(new CustomEvent('mapFilterChange', { detail: {
 				regional_id: selRegional.value || null,
 				area_id: selArea.value || null,
@@ -185,9 +204,13 @@ document.addEventListener('DOMContentLoaded', function(){
 				type: document.getElementById('mfType')?.value || null
 			}}));
 		}catch(err){ console.error(err); }
+	});
 
 	// Broadcast on type change as well
 	document.getElementById('mfType').addEventListener('change', function(){
+		// Clear markers before applying type change
+		if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+		window.dispatchEvent(new CustomEvent('mapClearMarkers'));
 		window.dispatchEvent(new CustomEvent('mapFilterChange', { detail: {
 			regional_id: selRegional.value || null,
 			area_id: selArea.value || null,
@@ -195,6 +218,65 @@ document.addEventListener('DOMContentLoaded', function(){
 			type: this.value || null
 		}}));
 	});
+
+	// Map data loader: listen for filter changes and fetch mosques
+	async function fetchMosques(params){
+		const q = new URLSearchParams(params).toString();
+		const res = await fetch(`/api/mosques?${q}`);
+		if(!res.ok) throw new Error('Gagal memuat data masjid');
+		const json = await res.json();
+		return json.data || [];
+	}
+
+	function renderMosqueMarkers(features){
+		// If a global renderer exists, delegate to it
+		if(typeof window.renderMosqueMarkers === 'function'){
+			try{ window.renderMosqueMarkers(features); return; }catch(e){ console.error(e); }
+		}
+		// Leaflet fallback renderer: place markers by latitude/longitude
+		if(window.L){
+			if(!window._mosqueMarkerLayer){
+				window._mosqueMarkerLayer = L.layerGroup();
+				if(window._mapInstance){ window._mosqueMarkerLayer.addTo(window._mapInstance); }
+			}
+			window._mosqueMarkerLayer.clearLayers();
+			features.forEach(f => {
+				if(f.latitude && f.longitude){
+					const m = L.marker([f.latitude, f.longitude], { title: f.name || '' });
+					m.bindPopup(`<strong>${f.name||''}</strong><br/>${f.address||''}`);
+					window._mosqueMarkerLayer.addLayer(m);
+				}
+			});
+			return;
+		}
+		// Fallback: log only
+		console.log('Mosque features', features);
+	}
+
+	window.addEventListener('mapFilterChange', async function(ev){
+		const d = ev.detail || {};
+		try{
+			// Build query ensuring area_id is preferred if present
+			const query = {};
+			if(d.type) query.type = d.type; // MASJID/MUSHOLLA
+			if(d.datel_id) query.datel_id = d.datel_id; // optional if supported
+			if(d.witel_id) query.witel_id = d.witel_id; // optional if supported
+			if(d.area_id) query.area_id = d.area_id; // primary filter requested
+			if(!query.area_id && d.regional_id) query.regional_id = d.regional_id;
+
+			// Clear existing markers before render
+			if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+			window.dispatchEvent(new CustomEvent('mapClearMarkers'));
+
+			const mosquesResp = await fetchMosques(query);
+			// Normalize to array of items (supports paginated response shape)
+			const mosques = Array.isArray(mosquesResp.items) ? mosquesResp.items : mosquesResp;
+			renderMosqueMarkers(mosques);
+		}catch(err){
+			console.error(err);
+			const statusEl = document.getElementById('mapStatus');
+			if(statusEl){ statusEl.textContent = 'Gagal memuat data masjid'; statusEl.style.display='block'; }
+		}
 	});
 });
 </script>

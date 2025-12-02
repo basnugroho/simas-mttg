@@ -13,8 +13,8 @@ class MosqueController extends Controller
     public function index()
     {
         $query = Mosque::query()->where('is_active', true)->with(['city','province','witel','photos','regional','area','sto']);
-
-        $provinceId = request()->query('province_id');
+        // Area param: dukung keduanya (area_id baru, province_id lama)
+        $areaId = request()->query('area_id') ?? request()->query('province_id');
         $cityId = request()->query('city_id');
         $witelId = request()->query('witel_id');
         $stoId = request()->query('sto_id');
@@ -22,15 +22,11 @@ class MosqueController extends Controller
         $type = request()->query('type');
         $q = request()->query('q');
         $regionalId = request()->query('regional_id');
-        $areaId = request()->query('province_id'); // area is carried via province_id param in current UI
 
         if ($regionalId) {
             $query->where('regional_id', $regionalId);
         }
-        if ($provinceId) {
-            $query->where('province_id', $provinceId);
-        }
-
+        // Filter area menggunakan area_id
         if ($areaId) {
             $query->where('area_id', $areaId);
         }
@@ -95,9 +91,9 @@ class MosqueController extends Controller
             $provinces = \App\Models\Regions::where('level', 'AREA')->orderBy('name')->get();
         }
 
-        // If a province is selected, scope cities and witels to that province's direct children
-        if ($provinceId) {
-            $witels = \App\Models\Regions::where('parent_id', $provinceId)->where('level', 'WITEL')->orderBy('name')->get();
+        // If an area is selected, scope witels to that area's direct children
+        if ($areaId) {
+            $witels = \App\Models\Regions::where('parent_id', $areaId)->where('level', 'WITEL')->orderBy('name')->get();
         } else {
             // no area selected: if regional selected, witels are children of areas under that regional
             if ($regionalId) {
@@ -113,8 +109,8 @@ class MosqueController extends Controller
             $stos = \App\Models\Regions::where('parent_id', $witelId)->where('level', 'STO')->orderBy('name')->get();
         } else {
             // if regional/area selected but no witel, provide STOs under selected witels
-            if ($provinceId) {
-                $witelIds = \App\Models\Regions::where('level','WITEL')->where('parent_id',$provinceId)->pluck('id');
+            if ($areaId) {
+                $witelIds = \App\Models\Regions::where('level','WITEL')->where('parent_id',$areaId)->pluck('id');
                 $stos = \App\Models\Regions::where('level','STO')->whereIn('parent_id',$witelIds)->orderBy('name')->get();
             } elseif ($regionalId) {
                 $areaIds = \App\Models\Regions::where('level','AREA')->where('parent_id',$regionalId)->pluck('id');

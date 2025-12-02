@@ -17,17 +17,26 @@ class SearchController extends Controller
         if ($q === '') {
             return response()->json([]);
         }
-        $results = Mosque::with('city')
-            ->where('name', 'like', '%' . $q . '%')
+        $results = Mosque::with(['city','witel'])
+            ->where(function($qb) use ($q){
+                $qb->where('name', 'like', '%' . $q . '%')
+                   ->orWhereHas('witel', function($wq) use ($q){
+                       $wq->where('name', 'like', '%' . $q . '%');
+                   })
+                   ->orWhereHas('city', function($cq) use ($q){
+                       $cq->where('name', 'like', '%' . $q . '%');
+                   });
+            })
             ->orderBy('name')
-            ->limit(7)
-            ->get(['id', 'name', 'type', 'city_id'])
+            ->limit(10)
+            ->get(['id', 'name', 'type', 'city_id', 'witel_id'])
             ->map(function ($m) {
                 return [
                     'id' => $m->id,
                     'name' => $m->name,
                     'type' => $m->type,
                     'city' => $m->city ? $m->city->name : '',
+                    'witel' => $m->witel ? $m->witel->name : '',
                 ];
             });
 

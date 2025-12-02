@@ -17,16 +17,16 @@ class RegionController extends Controller
      *     tags={"Regions"},
      *     summary="Daftar wilayah",
      *     @OA\Parameter(
-     *         name="type",
+     *         name="level",
      *         in="query",
      *         required=false,
-     *         description="PROVINCE / CITY / WITEL / OTHER",
-     *         @OA\Schema(type="string", enum={"PROVINCE","CITY","WITEL","OTHER"})
+     *         description="REGIONAL / AREA / WITEL / STO",
+     *         @OA\Schema(type="string", enum={"REGIONAL","AREA","WITEL","STO"})
      *     ),
      *     @OA\Parameter(
      *         name="parent_id",
      *         in="query",
-     *         required=false,
+         *         required=false,
      *         description="Filter berdasarkan parent region",
      *         @OA\Schema(type="integer")
      *     ),
@@ -42,7 +42,8 @@ class RegionController extends Controller
      *                 @OA\Items(
      *                     @OA\Property(property="id", type="integer"),
      *                     @OA\Property(property="name", type="string"),
-     *                     @OA\Property(property="type", type="string"),
+     *                     @OA\Property(property="level", type="string"),
+     *                     @OA\Property(property="level_label", type="string", nullable=true),
      *                     @OA\Property(property="code", type="string", nullable=true),
      *                     @OA\Property(property="parent_id", type="integer", nullable=true)
      *                 )
@@ -55,14 +56,7 @@ class RegionController extends Controller
     {
         $query = Regions::query();
 
-        if ($type = $request->query('type')) {
-            // Accept either legacy type or canonical type_key: match either column
-            $query->where(function($q) use ($type) {
-                $q->where('type_key', $type)
-                  ->orWhere('type', $type);
-            });
-        }
-
+        // Filter strictly by level; deprecate legacy type/type_key
         if ($level = $request->query('level')) {
             $query->where('level', $level);
         }
@@ -73,13 +67,13 @@ class RegionController extends Controller
 
         $regions = $query->orderBy('name')->get();
 
-        // Transform output: include canonical type_key and human label
+        // Transform output: expose level and human label; omit type/type_key
         $out = $regions->map(function($r) {
             return [
                 'id' => $r->id,
                 'name' => $r->name,
-                'type' => $r->type_key ?? $r->type,
-                'type_label' => method_exists($r, 'displayTypeLabel') ? $r->displayTypeLabel() : ($r->type_key ? (Regions::TYPES[$r->type_key] ?? $r->type_key) : $r->type),
+                'level' => $r->level,
+                'level_label' => method_exists($r, 'displayLevelLabel') ? $r->displayLevelLabel() : ($r->level ?? null),
                 'code' => $r->code,
                 'parent_id' => $r->parent_id,
                 'pov' => $r->pov ?? null,

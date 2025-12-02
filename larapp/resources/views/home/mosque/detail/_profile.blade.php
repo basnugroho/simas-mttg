@@ -28,9 +28,18 @@
 			</ul>
 
 			@php
-				$all = [
-					'Tempat Wudhu','Karpet','Lemari Quran','Lemari Sarung / Mukena','AC','Kipas Angin','Lampu / Penerangan','Rak Sepatu','Sandal Wudhu','Tirai Jamaah','Sound System'
-				];
+				// ambil daftar fasilitas dari tabel facilities (model Facility)
+				try {
+					$all = \App\Models\Facility::query()
+						->orderBy('name')
+						->pluck('name')
+						->toArray();
+				} catch (Exception $e) {
+					// fallback jika DB tidak tersedia
+					$all = [
+						'Tempat Wudhu','Karpet','Lemari Quran','Lemari Sarung / Mukena','AC','Kipas Angin','Lampu / Penerangan','Rak Sepatu','Sandal Wudhu','Tirai Jamaah','Sound System'
+					];
+				}
 				$have = [];
 				if(is_array($mosque->facilities)){
 					foreach($mosque->facilities as $f){
@@ -139,9 +148,6 @@
 					@foreach($thumbs as $k => $t)
 						<img data-hero-index="{{ $k }}" src="{{ $t['src'] }}" class="img-fluid rounded hero-thumb" style="height:120px; object-fit:cover;" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/mosque-2.jpg') }}'" />
 					@endforeach
-				@else
-					<img data-hero-index="0" src="{{ $heroPhotos[0]['src'] }}" class="img-fluid rounded hero-thumb" style="height:120px; object-fit:cover;" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/mosque-2.jpg') }}'" />
-					<img src="{{ asset('images/mosque-2.jpg') }}" class="img-fluid rounded" style="height:120px; object-fit:cover;" loading="lazy" />
 				@endif
 				<div class="flex-fill rounded d-flex align-items-center justify-content-center bg-dark text-white">
 					@if($remaining > 0)
@@ -287,10 +293,6 @@
 				}
 			}
 			// fallback to generic images
-			if(empty($thumbs)){
-				for($i=1;$i<=4;$i++) $thumbs[] = asset('images/mosque-'.$i.'.jpg');
-			}
-			$thumbs = array_filter($thumbs);
 			foreach(array_slice($thumbs,0,4) as $t){
 				echo '<div class="thumb"><img src="'.e($t).'" data-src="'.e($t).'" loading="lazy" class="img-fluid rounded" /></div>';
 			}
