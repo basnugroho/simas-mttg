@@ -1,4 +1,4 @@
-@props(['masjids' => null, 'mushollas' => null, 'provinces' => null])
+@props(['masjids' => null, 'mushollas' => null, 'provinces' => null, 'regions' => null])
 <section class="facility-section mt-4">
 	<div class="container">
 		<div class="row mb-3 align-items-center g-2 prayer-card">
@@ -8,8 +8,16 @@
 			</div>
 			<div class="col-12 col-md-7 col-lg-7 prayer-card-body">
 				<div class="d-flex flex-wrap justify-content-end gap-2 align-items-center">
-					<select id="filterProvince" class="form-select form-select-sm w-auto" style="min-width:150px;" aria-label="Pilih provinsi">
-						<option value="">Semua Provinsi</option>
+					<select id="filterRegional" class="form-select form-select-sm w-auto" style="min-width:150px;" aria-label="Pilih Regional">
+						<option value="">Semua Regional</option>
+						@if(!empty($regions))
+							@foreach(($regions instanceof \Illuminate\Support\Collection ? $regions->where('level', 'REGIONAL') : $regions) as $r)
+								<option value="{{ $r->id }}">{{ $r->name }}</option>
+							@endforeach
+						@endif
+					</select>
+					<select id="filterProvince" class="form-select form-select-sm w-auto" style="min-width:150px;" aria-label="Pilih Area">
+						<option value="">Semua Area</option>
 						@if(!empty($provinces))
 							@foreach($provinces as $p)
 								<option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -17,14 +25,10 @@
 						@endif
 					</select>
 					<select id="filterCity" class="form-select form-select-sm w-auto" style="min-width:120px;">
-						<option value="">Semua Kota / Kabupaten</option>
+						<option value="">Semua Witel</option>
 						<!-- cities will be populated dynamically when a province is selected -->
 					</select>
-					<select id="filterCompleteness" class="form-select form-select-sm w-auto" style="min-width:120px;">
-						<option value="">Semua Kelengkapan</option>
-						<option value="100">100%</option>
-						<option value="80">>= 80%</option>
-					</select>
+					
 				</div>
 			</div>
 		</div>
@@ -50,7 +54,7 @@
 											<img src="{{ $img }}" alt="Foto {{ $m->name }}" loading="lazy">
 											<div class="fc-body">
 												<h6 class="fc-title" title="{{ $m->name }}">{{ $m->name }}</h6>
-												<div class="fc-sub">{{ trim(($m->province?->name ?? '') . ' / ' . ($m->city?->name ?? '')) }}</div>
+												<div class="fc-sub">{{ trim(($m->witel?->name ?? '') . ' / ' . ($m->sto?->name ?? '')) }}</div>
 												<div class="fc-label">Fasilitas</div>
 												<div class="fc-progress-wrap">
 													<div class="progress"><div class="progress-bar" role="progressbar" style="width:{{ $pct }}%" aria-valuenow="{{ $pct }}" aria-valuemin="0" aria-valuemax="100"></div></div>
@@ -86,7 +90,7 @@
 											<img src="{{ $img }}" alt="Foto {{ $m->name }}" loading="lazy">
 											<div class="fc-body">
 												<h6 class="fc-title" title="{{ $m->name }}">{{ $m->name }}</h6>
-												<div class="fc-sub">{{ trim(($m->province?->name ?? '') . ' / ' . ($m->city?->name ?? '')) }}</div>
+												<div class="fc-sub">{{ trim(($m->witel?->name ?? '') . ' / ' . ($m->sto?->name ?? '')) }}</div>
 												<div class="fc-label">Fasilitas</div>
 												<div class="fc-progress-wrap">
 													<div class="progress"><div class="progress-bar" role="progressbar" style="width:{{ $pct }}%" aria-valuenow="{{ $pct }}" aria-valuemin="0" aria-valuemax="100"></div></div>

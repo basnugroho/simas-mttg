@@ -172,6 +172,11 @@ class MosqueController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
+        // Sesuai permintaan: samakan province_id = regional_id dan city_id = area_id saat create.
+        // Diset setelah validasi agar mengikuti nilai yang dimasukkan user.
+        $data['province_id'] = $data['regional_id'] ?? null;
+        $data['city_id'] = $data['area_id'] ?? null;
+
         $candidate = new Mosque($data);
         $this->authorize('create', $candidate);
 
@@ -389,6 +394,10 @@ class MosqueController extends Controller
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
         ]);
+
+        // Samakan juga saat update agar konsisten.
+        $data['province_id'] = $data['regional_id'] ?? null;
+        $data['city_id'] = $data['area_id'] ?? null;
 
         try {
             // Debug/logging: record received files and request keys to help diagnose upload issues

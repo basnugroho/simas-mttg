@@ -27,17 +27,24 @@ class ArticleController extends Controller
             });
         }
 
+        // Only category filter per request
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        
+        // Default sort: latest
+        $query->orderByDesc('published_at');
+
         $articles = $query->with(['category', 'mosque'])
-            ->orderByDesc('published_at')
             ->paginate(9)
             ->withQueryString();
 
         // Load region filters from Region model if available
-        $provinces = \App\Models\Region::where('level', 'PROVINCE')->orderBy('name')->get();
-        $witels = collect();
-        $stos = collect();
+        // For category filter options
+        $categories = \App\Models\Category::orderBy('name')->get();
 
-        return view('home.article.index', compact('articles', 'provinces', 'witels', 'stos'));
+        // Return only necessary data for category filtering
+        return view('home.article.index', compact('articles', 'categories'));
     }
 
     public function show($id)

@@ -26,6 +26,8 @@ class MosqueController extends Controller
      *     @OA\Parameter(name="province_id", in="query", @OA\Schema(type="integer")),
      *     @OA\Parameter(name="city_id", in="query", @OA\Schema(type="integer")),
      *     @OA\Parameter(name="witel_id", in="query", @OA\Schema(type="integer")),
+    *     @OA\Parameter(name="area_id", in="query", description="Filter berdasarkan AREA (melalui WITEL)", @OA\Schema(type="integer")),
+    *     @OA\Parameter(name="regional_id", in="query", description="Filter berdasarkan REGIONAL (semua AREA di bawahnya)", @OA\Schema(type="integer")),
      *     @OA\Parameter(
      *         name="type",
      *         in="query",
@@ -104,6 +106,27 @@ class MosqueController extends Controller
 
         if ($witelId = $request->query('witel_id')) {
             $query->where('witel_id', $witelId);
+        }
+
+        // Filter by Area: match mosques whose witel has parent_id = area_id
+        if ($areaId = $request->query('area_id')) {
+            // Ensure mosque has witel linkage when filtering by area
+            $query->whereNotNull('witel_id')
+                  ->whereHas('witel', function ($q) use ($areaId) {
+                      $q->where('parent_id', $areaId);
+                  });
+        }
+
+        // Filter by Regional: witel.parent_id in areas under this regional
+        if ($regionalId = $request->query('regional_id')) {
+            $query->whereHas('witel', function ($q) use ($regionalId) {
+                $q->whereIn('parent_id', function ($sub) use ($regionalId) {
+                    $sub->select('id')
+                        ->from('regions')
+                        ->where('level', 'AREA')
+                        ->where('parent_id', $regionalId);
+                });
+            });
         }
 
         if ($type = $request->query('type')) {

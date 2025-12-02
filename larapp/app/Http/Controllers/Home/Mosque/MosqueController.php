@@ -12,18 +12,23 @@ class MosqueController extends Controller
 {
     public function index()
     {
-        $query = Mosque::query()->where('is_active', true)->with(['city','province','witel','photos']);
-
-        $provinceId = request()->query('province_id');
+        $query = Mosque::query()->where('is_active', true)->with(['city','province','witel','photos','regional','area','sto']);
+        // Area param: dukung keduanya (area_id baru, province_id lama)
+        $areaId = request()->query('area_id') ?? request()->query('province_id');
         $cityId = request()->query('city_id');
         $witelId = request()->query('witel_id');
         $stoId = request()->query('sto_id');
         $facilityId = request()->query('facility_id');
         $type = request()->query('type');
         $q = request()->query('q');
+        $regionalId = request()->query('regional_id');
 
-        if ($provinceId) {
-            $query->where('province_id', $provinceId);
+        if ($regionalId) {
+            $query->where('regional_id', $regionalId);
+        }
+        // Filter area menggunakan area_id
+        if ($areaId) {
+            $query->where('area_id', $areaId);
         }
 
         if ($cityId) {
@@ -78,26 +83,47 @@ class MosqueController extends Controller
         });
 
         // Options for filters
-        $provinces = \App\Models\Regions::where('level', 'AREA')->orderBy('name')->get();
-
-        // If a province is selected, scope cities and witels to that province's direct children
-        if ($provinceId) {
-            $witels = \App\Models\Regions::where('parent_id', $provinceId)->where('level', 'WITEL')->orderBy('name')->get();
+        $regionals = \App\Models\Regions::where('level', 'REGIONAL')->orderBy('name')->get();
+        // Area list (named provinces in existing view)
+        if ($regionalId) {
+            $provinces = \App\Models\Regions::where('level', 'AREA')->where('parent_id', $regionalId)->orderBy('name')->get();
         } else {
-            // no province selected: provide full list of witels so the select remains usable
-            $witels = \App\Models\Regions::where('level', 'WITEL')->orderBy('name')->get();
+            $provinces = \App\Models\Regions::where('level', 'AREA')->orderBy('name')->get();
+        }
+
+        // If an area is selected, scope witels to that area's direct children
+        if ($areaId) {
+            $witels = \App\Models\Regions::where('parent_id', $areaId)->where('level', 'WITEL')->orderBy('name')->get();
+        } else {
+            // no area selected: if regional selected, witels are children of areas under that regional
+            if ($regionalId) {
+                $areaIds = \App\Models\Regions::where('level','AREA')->where('parent_id',$regionalId)->pluck('id');
+                $witels = \App\Models\Regions::where('level','WITEL')->whereIn('parent_id', $areaIds)->orderBy('name')->get();
+            } else {
+                $witels = \App\Models\Regions::where('level', 'WITEL')->orderBy('name')->get();
+            }
         }
 
         // STOs: if a witel selected, scope to that parent; otherwise provide all STOs
         if ($witelId) {
             $stos = \App\Models\Regions::where('parent_id', $witelId)->where('level', 'STO')->orderBy('name')->get();
         } else {
-            $stos = \App\Models\Regions::where('level', 'STO')->orderBy('name')->get();
+            // if regional/area selected but no witel, provide STOs under selected witels
+            if ($areaId) {
+                $witelIds = \App\Models\Regions::where('level','WITEL')->where('parent_id',$areaId)->pluck('id');
+                $stos = \App\Models\Regions::where('level','STO')->whereIn('parent_id',$witelIds)->orderBy('name')->get();
+            } elseif ($regionalId) {
+                $areaIds = \App\Models\Regions::where('level','AREA')->where('parent_id',$regionalId)->pluck('id');
+                $witelIds = \App\Models\Regions::where('level','WITEL')->whereIn('parent_id',$areaIds)->pluck('id');
+                $stos = \App\Models\Regions::where('level','STO')->whereIn('parent_id',$witelIds)->orderBy('name')->get();
+            } else {
+                $stos = \App\Models\Regions::where('level', 'STO')->orderBy('name')->get();
+            }
         }
 
         $facilities = \App\Models\Facility::orderBy('name')->get();
 
-        return view('home.mosque.index', compact('mosques', 'provinces', 'witels', 'stos', 'facilities'));
+        return view('home.mosque.index', compact('mosques', 'regionals', 'provinces', 'witels', 'stos', 'facilities'));
     }
     public function show(Mosque $mosque)
     {

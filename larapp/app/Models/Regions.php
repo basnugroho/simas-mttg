@@ -162,17 +162,18 @@ class Regions extends Model
                 $region->pov = $isArea ? 'ALL' : 'TELKOM_OLD';
             }
 
-            // Map canonical type_key back to legacy enum when possible; otherwise clear to avoid DB enum errors
+            // Map canonical type_key back to legacy enum when possible; otherwise set safe default to avoid DB enum errors
             if (!empty($region->type_key)) {
                 $legacy = self::typeKeyToLegacy($region->type_key);
                 if ($legacy) {
                     $region->type = $legacy;
                 } else {
-                    $region->type = null;
+                    // Fallback to a valid enum value to satisfy NOT NULL/enum constraints
+                    $region->type = 'OTHER';
                 }
             } else {
                 if (!empty($region->type) && !in_array(strtoupper($region->type), array_keys(self::LEGACY_MAP))) {
-                    $region->type = null;
+                    $region->type = 'OTHER';
                 }
             }
         });
@@ -233,7 +234,7 @@ class Regions extends Model
 
     public function mosques()
     {
-        return $this->hasMany(Mosque::class, 'province_id'); // atau city_id/witel_id tergantung kebutuhan
+        return $this->hasMany(Mosque::class, 'area_id'); // gunakan area_id untuk keterkaitan ke Area
     }
 
     /**

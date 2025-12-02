@@ -17,11 +17,13 @@
 				if(!data.length){ box.innerHTML = `<div class='autocomplete-empty'>Tidak ada saran</div>`; box.classList.remove('d-none'); return; }
 				lastSuggestions = data || [];
 				box.innerHTML = data.map(item=>{
-					const city = item.city ? String(item.city).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+					const rawWitel = item.witel || item.city || '';
+					const witel = rawWitel ? String(rawWitel).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
 					const name = item.name ? String(item.name).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
-					const type = item.type ? String(item.type).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+					let type = item.type ? String(item.type).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+					if(type) type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 					const display = `${name}`;
-					return `<div class='autocomplete-item' data-id="${item.id}" data-name="${name}"><span>${display}</span><small>${city} | ${type}</small></div>`;
+					return `<div class='autocomplete-item' data-id="${item.id}" data-name="${name}"><span>${display}</span><small>${witel} | ${type}</small></div>`;
 				}).join('');
 				box.classList.remove('d-none');
 			})
@@ -362,7 +364,7 @@
 		provinceSel.addEventListener('change', async function(e){
 			const id = e.target.value;
 			if(!citySel) return;
-			citySel.innerHTML = `<option value="">Semua Kota / Kabupaten</option>`;
+			citySel.innerHTML = `<option value="">Semua Witel</option>`;
 			if(!id) return; // all selected -> keep only default
 			try{
 				const res = await fetch(`/api/regions?parent_id=${id}`);
@@ -432,11 +434,12 @@
 	const filterForm = document.getElementById('mapFilterForm');
 
 	function resetSelect(sel, placeholder){
+		if(!sel) return;
 		sel.innerHTML = `<option value="">${placeholder}</option>`;
 	}
 
-	function enableSelect(sel){ sel.classList.remove('disabled-select'); sel.disabled = false; }
-	function disableSelect(sel){ sel.classList.add('disabled-select'); sel.disabled = true; }
+	function enableSelect(sel){ if(!sel) return; sel.classList.remove('disabled-select'); sel.disabled = false; }
+	function disableSelect(sel){ if(!sel) return; sel.classList.add('disabled-select'); sel.disabled = true; }
 
 	async function fetchRegions(){
 		try{

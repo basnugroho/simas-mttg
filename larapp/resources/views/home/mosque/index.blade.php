@@ -10,19 +10,28 @@
 				<div class="card p-3 shadow-sm">
 					<h5 class="mb-3">Filter</h5>
 					<form method="GET" action="{{ route('masjid') }}">
+							<div class="mb-2">
+								<label class="form-label small">Regional</label>
+								<select name="regional_id" class="form-select">
+									<option value="">Semua Regional</option>
+									@foreach($regionals ?? collect() as $r)
+										<option value="{{ $r->id }}" {{ request()->query('regional_id') == $r->id ? 'selected' : '' }}>{{ $r->name }}</option>
+									@endforeach
+								</select>
+							</div>
 						<div class="mb-2">
-							<label class="form-label small">Provinsi</label>
-							<select name="province_id" class="form-select">
-								<option value="">Semua Provinsi</option>
+								<label class="form-label small">Area</label>
+							<select name="area_id" class="form-select" data-selected="{{ request()->query('area_id') ?? request()->query('province_id') }}">
+								<option value="">Semua Area</option>
 								@foreach($provinces ?? collect() as $p)
-									<option value="{{ $p->id }}" {{ request()->query('province_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+									<option value="{{ $p->id }}" {{ (request()->query('area_id') ?? request()->query('province_id')) == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
 								@endforeach
 							</select>
 						</div>
 						<!-- Kota / Kabupaten removed per request -->
 						<div class="mb-2">
 							<label class="form-label small">Witel</label>
-							<select name="witel_id" class="form-select" data-selected="{{ request()->query('witel_id') }}">
+							<select name="witel_id" class="form-select" data-selected="{{ request()->query('witel_id') ?? request()->query('witel_id') }}">
 								<option value="">Semua Witel</option>
 								@foreach($witels ?? collect() as $w)
 									<option value="{{ $w->id }}" {{ request()->query('witel_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
@@ -31,7 +40,7 @@
 						</div>
 						<div class="mb-2">
 							<label class="form-label small">STO</label>
-							<select name="sto_id" class="form-select" data-selected="{{ request()->query('sto_id') }}">
+							<select name="sto_id" class="form-select" data-selected="{{ request()->query('sto_id')  }}">
 								<option value="">Semua STO</option>
 								@foreach($stos ?? collect() as $s)
 									<option value="{{ $s->id }}" {{ request()->query('sto_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
@@ -91,7 +100,7 @@
 											<div class="text-end small text-muted">{{ $mosque->witel->name ?? $mosque->city->name ?? $mosque->province->name ?? '' }}</div>
 										</div>
 										<div class="d-flex justify-content-between align-items-start mb-2">
-											<div class="text-muted small">{!! nl2br(e($mosque->address)) !!}</div>
+											<div class="text-muted small">{!! nl2br(e(\Illuminate\Support\Str::limit($mosque->address, 21))) !!}</div>
 											<div class="text-end small text-muted ms-2">{{ $mosque->sto->name ?? '' }}</div>
 										</div>
 										@if(isset($mosque->completion_percentage))
@@ -115,7 +124,11 @@
 					</div>
 				</div>
 				<div class="mt-4">
-					{{ $mosques->links() }}
+					<div class="row align-items-center">
+						<div class="col-12 d-flex justify-content-center">
+							{{ $mosques->onEachSide(1)->links() }}
+						</div>
+					</div>
 				</div>
 				
 				</div>
@@ -126,9 +139,47 @@
 </x-home.layout>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-	const provinceSel = document.querySelector('select[name=province_id]');
+	const regionalSel = document.querySelector('select[name=regional_id]');
+	const provinceSel = document.querySelector('select[name=area_id]');
 	const witelSel = document.querySelector('select[name=witel_id]');
 	const stoSel = document.querySelector('select[name=sto_id]');
+	const typeSel = document.querySelector('select[name=type]');
+	const facilitySel = document.querySelector('select[name=facility_id]');
+
+	// Sync data-selected attribute (used by some UI helpers) with current value after user changes
+	function syncDataSelected(sel) {
+		if (!sel) return;
+		sel.setAttribute('data-selected', sel.value);
+	}
+	[witelSel, stoSel, provinceSel, regionalSel].forEach(sel => {
+		if (!sel) return;
+		sel.addEventListener('change', () => syncDataSelected(sel));
+	});
+
+	function updateLabel(select) {
+		if (!select) return;
+		const wrapper = select.closest('.mb-2');
+		if (!wrapper) return;
+		const label = wrapper.querySelector('label.form-label');
+		if (!label) return;
+		if (!label.dataset.original) {
+			label.dataset.original = label.textContent.trim();
+		}
+		if (select.value) {
+			const optText = (select.selectedOptions[0]?.textContent || '').trim();
+			label.textContent = label.dataset.original + ': ' + optText;
+		} else {
+			label.textContent = label.dataset.original;
+		}
+	}
+
+	function bindDynamicLabel(select) {
+		if (!select) return;
+		updateLabel(select);
+		select.addEventListener('change', () => updateLabel(select));
+	}
+
+	[regionalSel, provinceSel, witelSel, stoSel, typeSel, facilitySel].forEach(bindDynamicLabel);
 
 	function emptySelect(sel, placeholder) {
 		sel.innerHTML = '';
@@ -154,28 +205,110 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
+	async function onRegionalChange() {
+		const rid = regionalSel.value;
+		// Reset downstream selects
+		emptySelect(provinceSel, 'Semua Area');
+		emptySelect(witelSel, 'Semua Witel');
+		if (stoSel) emptySelect(stoSel, 'Semua STO');
+		if (!rid) return;
+		const areas = await fetchChildren(rid, 'AREA');
+		if (Array.isArray(areas) && areas.length) {
+			areas.forEach(a => {
+				const o = document.createElement('option'); o.value = a.id; o.textContent = a.name; provinceSel.appendChild(o);
+			});
+		}
+	}
+
 	async function onProvinceChange() {
 		const pid = provinceSel.value;
+		const currentSelectedWitel = witelSel.getAttribute('data-selected');
 		emptySelect(witelSel, 'Semua Witel');
-		if (!pid) return;
+		if (!pid) {
+			// If no province selected, try to keep previously selected witel visible
+			if (currentSelectedWitel) {
+				const opt = document.createElement('option');
+				opt.value = currentSelectedWitel;
+				opt.textContent = 'Terpilih';
+				witelSel.appendChild(opt);
+				witelSel.value = currentSelectedWitel;
+				updateLabel(witelSel);
+			}
+			return;
+		}
 		// Fetch direct children for witel level
 		const witels = await fetchChildren(pid, 'WITEL');
 		if (Array.isArray(witels) && witels.length) {
+			let hasSelected = false;
 			witels.forEach(w => {
 				const o = document.createElement('option'); o.value = w.id; o.textContent = w.name; witelSel.appendChild(o);
+				if (String(w.id) === String(currentSelectedWitel)) { hasSelected = true; }
 			});
+			// Reselect previously chosen witel if it exists in the new list
+			if (currentSelectedWitel) {
+				if (hasSelected) {
+					witelSel.value = currentSelectedWitel;
+				} else {
+					// If previous selection does not belong to this province, append it to preserve user context
+					const o = document.createElement('option');
+					o.value = currentSelectedWitel;
+					o.textContent = 'Terpilih';
+					witelSel.appendChild(o);
+					witelSel.value = currentSelectedWitel;
+				}
+				updateLabel(witelSel);
+			}
 		}
 	}
 
 	async function onWitelChange() {
 		if (!stoSel) return;
 		const wid = witelSel.value;
+		const currentSelectedSto = stoSel.getAttribute('data-selected');
 		emptySelect(stoSel, 'Semua STO');
-		if (!wid) return;
+		if (!wid) {
+			// No witel selected: keep previously chosen STO visible if any
+			if (currentSelectedSto) {
+				const opt = document.createElement('option');
+				opt.value = currentSelectedSto;
+				opt.textContent = 'Terpilih';
+				stoSel.appendChild(opt);
+				stoSel.value = currentSelectedSto;
+				updateLabel(stoSel);
+			}
+			return;
+		}
 		const stos = await fetchChildren(wid, 'STO');
 		if (Array.isArray(stos) && stos.length) {
+			let hasSelected = false;
 			stos.forEach(s => {
 				const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; stoSel.appendChild(o);
+				if (String(s.id) === String(currentSelectedSto)) { hasSelected = true; }
+			});
+			// Reselect previously chosen STO if present; otherwise, append it to preserve context
+			if (currentSelectedSto) {
+				if (hasSelected) {
+					stoSel.value = currentSelectedSto;
+				} else {
+					const o = document.createElement('option');
+					o.value = currentSelectedSto;
+					o.textContent = 'Terpilih';
+					stoSel.appendChild(o);
+					stoSel.value = currentSelectedSto;
+				}
+				updateLabel(stoSel);
+			}
+		}
+	}
+
+	if (regionalSel) {
+		regionalSel.addEventListener('change', onRegionalChange);
+		const initialRegional = regionalSel.value;
+		if (initialRegional && provinceSel) {
+			const selArea = provinceSel.getAttribute('data-selected') || '{{ request()->query('area_id') ?? request()->query('province_id') }}';
+			onRegionalChange().then(async () => {
+				if (selArea) { provinceSel.value = selArea; }
+				if (selArea) { await onProvinceChange(); }
 			});
 		}
 	}
@@ -204,6 +337,44 @@ document.addEventListener('DOMContentLoaded', function () {
 			witelSel.addEventListener('change', onWitelChange);
 		}
 	}
+
+	// Initial restoration when Area/Witel are empty but URL has selections
+	(function restoreInitialSelections(){
+		const selWitel = witelSel ? witelSel.getAttribute('data-selected') : null;
+		const selSto = stoSel ? stoSel.getAttribute('data-selected') : null;
+		// If no area selected but we have a witel from query, ensure it's visible
+		if (provinceSel && !provinceSel.value && selWitel) {
+			onProvinceChange().then(async () => {
+				// Province change will insert the selected Witel as 'Terpilih' when none
+				witelSel.value = selWitel;
+				updateLabel(witelSel);
+				if (stoSel) {
+					await onWitelChange();
+					if (selSto) {
+						stoSel.value = selSto;
+						updateLabel(stoSel);
+					}
+				}
+			});
+		} else if (witelSel && !witelSel.value && selWitel) {
+			// If witel select is empty but we have selection, ensure it's added
+			onProvinceChange().then(() => {
+				witelSel.value = selWitel;
+				updateLabel(witelSel);
+				if (stoSel) {
+					onWitelChange().then(() => {
+						if (selSto) { stoSel.value = selSto; updateLabel(stoSel); }
+					});
+				}
+			});
+		} else if (stoSel && !stoSel.value && selSto) {
+			// As a last resort, if STO is empty but we have selection, ensure it's added
+			onWitelChange().then(() => {
+				stoSel.value = selSto;
+				updateLabel(stoSel);
+			});
+		}
+	})();
 });
 </script>
 <style>
@@ -229,6 +400,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	border: 1px solid #dc2626;
 	padding: 0.18rem 0.6rem;
 }
+</style>
+<style>
+/* Keep pagination summary on a single line */
+.pagination-summary { white-space: nowrap; }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
