@@ -144,3 +144,11 @@ Route::get('/api/sholat-cities', [\App\Http\Controllers\Api\SholatCityController
 
 // Local endpoint for frontend to get prayer times (fallback/proxy)
 Route::get('/prayer-times', [\App\Http\Controllers\Api\PrayerTimesController::class, 'index'])->name('prayer.times');
+
+// Contact form submit
+Route::get('/tes', function () {return view('administrator.dashboard.index');})->name('contact');
+
+// Example AdminLTE test route
+Route::get('/admin/example', function () {
+	return view('administrator.example');
+})->middleware('auth')->name('admin.example');
