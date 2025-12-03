@@ -6,12 +6,15 @@ services:
     image: simas-mttg-prod
     container_name: simas-mttg-prod
     ports:
-      - "${APP_HOST_PORT:-8090}:80"
+      - "80:80"
     env_file:
       - ./larapp/.env.prod
     depends_on:
       - db
+    volumes:
+      - /mnt/data/simas-mttg-uploads:/var/www/html/storage/app/public
     restart: unless-stopped
+
 
   db:
     image: mysql:8.0
