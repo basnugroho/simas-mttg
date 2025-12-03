@@ -80,16 +80,18 @@ Keamanan / `.gitignore`
 
 Quick steps to start on a server (one-time per deploy machine):
 ```bash
-# populate root .env from larapp/.env.prod (this file is ignored and contains secrets)
-./scripts/sync-env.sh
-
-# build & start services (docker-compose will interpolate APP_HOST_PORT from root .env)
-docker compose -f docker-compose.prod.yml up -d --build
+# build & start services (gunakan --env-file untuk baca variabel dari larapp/.env.prod)
+docker compose -f docker-compose.prod.yml --env-file larapp/.env.prod up -d --build
 
 # check status and follow logs
 docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs -f app
+
+# stop services
+docker compose -f docker-compose.prod.yml --env-file larapp/.env.prod down
 ```
+
+**Penting:** Selalu gunakan `--env-file larapp/.env.prod` saat menjalankan docker compose production agar variabel seperti `DB_DATABASE` terbaca dengan benar.
 
 Notes:
 - The host port for the app is configurable with `APP_HOST_PORT` in `larapp/.env.prod` (default `8090`). `docker-compose.prod.yml` uses `${APP_HOST_PORT:-8090}:80` so you can change the host mapping without editing compose.
