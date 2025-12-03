@@ -140,7 +140,7 @@ Route::get('/article', [\App\Http\Controllers\Home\ArticleController::class, 'in
 Route::get('/article/{id}', [\App\Http\Controllers\Home\ArticleController::class, 'show'])->name('article.show');
 
 // API: search sholat cities (used by frontend prayer bar)
-Route::get('/api/sholat-cities', [\App\Http\Controllers\Api\SholatCityController::class, 'search'])->name('api.sholat_cities.search');
+Route::get('/api/sholat-cities', [\App\Http\Controllers\Api\SholatCityController::class, 'index'])->name('api.sholat_cities.search');
 
 // Local endpoint for frontend to get prayer times (fallback/proxy)
 Route::get('/prayer-times', [\App\Http\Controllers\Api\PrayerTimesController::class, 'index'])->name('prayer.times');

@@ -7,8 +7,15 @@
 			/* On small screens: make overlay a horizontal, full-width bar above the map */
 			@media (max-width:768px){
 				.map-overlay-controls{position:relative;top:auto;left:auto;right:auto;width:100%;max-width:100%;border-radius:8px;margin-bottom:8px;padding:8px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-				.map-overlay-controls .map-filter-form{flex-direction:row;gap:8px;width:100%;align-items:center}
-				.map-overlay-controls .form-group{margin:0}
+				.map-overlay-controls .map-filter-form{flex-direction:row;gap:8px;width:100%;align-items:center;flex-wrap:wrap}
+				.map-overlay-controls .form-group{margin:0;flex:1 1 120px;min-width:120px}
+				.map-overlay-controls .form-group select.form-select{min-width:0}
+				.map-overlay-controls label{display:none}
+				/* compact controls on mobile */
+				.map-overlay-controls .form-group .form-select{padding:.35rem .5rem;font-size:.85rem}
+				.map-overlay-controls .btn-search-map{padding:.45rem .6rem;font-size:.9rem}
+				/* ensure the reset/filter buttons stay visible */
+				.map-filter-header h6{font-size:1rem}
 			}
 		</style>
 
@@ -47,6 +54,10 @@
 				</div>
 				<div class="form-group text-end d-none d-md-block">
 					<button type="submit" class="btn btn-search-map">Cari</button>
+				</div>
+				<!-- Mobile: show search button in the filter bar -->
+				<div class="form-group text-end d-md-none" style="width:100%;">
+					<button type="submit" class="btn btn-search-map w-100">Cari</button>
 				</div>
 			</form>
 			</div>

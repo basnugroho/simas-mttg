@@ -2,33 +2,35 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Routing\Controller as BaseController;
 
-class SholatCityController extends Controller
+class SholatCityController extends BaseController
 {
     /**
-     * Search sholat_cities by name (simple autocomplete)
+     * GET /api/sholat-cities?q=surabaya
+     * Returns [{id, name, province, api_id, tz}]
      */
-    public function search(Request $request)
+    public function index(Request $request)
     {
-        $q = $request->query('q', '');
+        $q = trim((string)$request->query('q', ''));
 
         $cities = DB::table('sholat_cities')
             ->when($q !== '', function ($query) use ($q) {
-                $query->where('name', 'like', '%' . $q . '%');
+                $query->where(function($w) use ($q){
+                    $w->where('name', 'like', '%' . $q . '%')
+                      ->orWhere('province', 'like', '%' . $q . '%');
+                });
             })
             ->orderBy('province')
             ->orderBy('name')
-            ->limit(20)
+            ->limit((int)min(max((int)$request->query('limit', 20), 1), 50))
             ->get(['id', 'api_id', 'name', 'province']);
 
-        // attach timezone label based on province or api_id prefix
         $mapped = $cities->map(function($c){
             $prov = strtoupper($c->province ?? '');
             $tz = 'WIB';
-
             if(strpos($prov, 'MALUKU') !== false || strpos($prov, 'PAPUA') !== false){
                 $tz = 'WIT';
             } elseif(strpos($prov, 'BALI') !== false || strpos($prov, 'NTB') !== false || strpos($prov, 'NTT') !== false || strpos($prov, 'SULAWESI') !== false) {
@@ -41,7 +43,6 @@ class SholatCityController extends Controller
                     if(in_array($prefix, ['20','21','22'])) $tz = 'WIT';
                 }
             }
-
             return [
                 'id' => $c->id,
                 'api_id' => $c->api_id,

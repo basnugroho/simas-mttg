@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\FacilityController;
 use App\Http\Controllers\Api\PrayerTimesController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\SholatCityController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -28,6 +29,9 @@ Route::get('facilities/overview', [FacilityController::class, 'overview']);
 
 // Prayer times endpoint used by frontend when displaying mosque detail
 Route::get('prayertimes', [PrayerTimesController::class, 'index']);
+
+// City autocomplete for prayer bar
+Route::get('sholat-cities', [SholatCityController::class, 'index']);
 
 // Admin (protected)
 Route::middleware('auth:sanctum')->group(function () {

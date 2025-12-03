@@ -17,14 +17,14 @@
   </style>
 </head>
 <body class="min-h-screen">
-  <div class="min-h-screen grid md:grid-cols-2">
+  <div class="min-h-screen md:grid md:grid-cols-2">
     <div class="flex items-center justify-center p-6 md:p-10 bg-black">
       <div class="card-dark text-white rounded-2xl p-8 md:p-12 w-full max-w-md shadow-xl">
         {{ $slot }}
       </div>
     </div>
 
-    <div class="pink-bg relative flex flex-col items-center justify-center p-8">
+    <div class="pink-bg relative hidden md:flex flex-col items-center justify-center p-8">
       <div class="absolute inset-0 pointer-events-none rounded-2xl md:rounded-none border border-pink-200/40 m-2"></div>
       <div class="max-w-lg text-center">
         <img src="{{ asset('images/logo-mttg.png') }}" alt="Logo" class="mx-auto w-56 md:w-72 mb-6">
