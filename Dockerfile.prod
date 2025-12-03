@@ -69,6 +69,9 @@ RUN php artisan l5-swagger:generate || true
 # Generate application key if not set
 RUN php artisan key:generate || true
 
+# Create storage symlink
+RUN php artisan storage:link || true
+
 # Cache configuration, routes, and views for production
 RUN php artisan config:cache
 RUN php artisan route:cache
