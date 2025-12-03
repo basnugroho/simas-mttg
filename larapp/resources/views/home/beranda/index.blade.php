@@ -13,7 +13,7 @@
 				<div id="autocomplete" class="d-none autocomplete-box"></div>
 			</form>
     </x-home._hero>
-	<x-home.beranda._prayerbar />
+	@include('components.home.beranda._prayerbar')
 	<x-home.beranda._summary :regions="$regions" :summary="$summary" />
 
 	<x-home.beranda._map :provinces="$provinces" />

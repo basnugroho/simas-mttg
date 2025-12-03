@@ -199,6 +199,8 @@
 			saveSelectedCity();
 			// notify and refresh times
 			try{ window.dispatchEvent(new CustomEvent('prayer-city-changed', { detail: currentCity })); }catch(e){}
+			// Also trigger immediate refresh to ensure times update in all environments
+			try{ if(typeof loadPrayerTimes === 'function') loadPrayerTimes(); }catch(e){}
 		}
 
 		citySearch.addEventListener('input', function(){
