@@ -99,6 +99,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 		Route::post('messages/{id}/open', [\App\Http\Controllers\Admin\MessageController::class, 'open'])->name('admin.messages.open');
 		// AJAX: bulk mark messages as unread (accepts JSON { ids: [1,2,3] })
 		Route::post('messages/mark-unread', [\App\Http\Controllers\Admin\MessageController::class, 'markUnread'])->name('admin.messages.mark_unread');
+		// AJAX: unread count for sidebar polling
+		Route::get('messages/unread-count', [\App\Http\Controllers\Admin\MessageController::class, 'unreadCount'])->name('admin.messages.unread_count');
 
 		// Facilities management endpoints (used by admin UI JS)
 		Route::get('mosques/{mosque}/facilities', [\App\Http\Controllers\Admin\MosqueFacilityController::class, 'show']);
@@ -144,3 +146,11 @@ Route::get('/api/sholat-cities', [\App\Http\Controllers\Api\SholatCityController
 
 // Local endpoint for frontend to get prayer times (fallback/proxy)
 Route::get('/prayer-times', [\App\Http\Controllers\Api\PrayerTimesController::class, 'index'])->name('prayer.times');
+
+// Contact form submit
+Route::get('/tes-dashboard', function () {return view('administrator.dashboard.main');})->name('tes-dashboard');
+
+// Example AdminLTE test route
+Route::get('/admin/example', function () {
+	return view('administrator.example');
+})->middleware('auth')->name('admin.example');

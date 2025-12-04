@@ -1,6 +1,6 @@
 <x-auth.layout :title="'Masuk'">
   <h2 class="text-3xl font-extrabold">Log In Sekarang</h2>
-  <p class="text-white/60 mt-2 mb-8">Silahkan masuk menggunakan username dan password anda</p>
+  <p class="text-white/60 mt-2 mb-5">Silahkan masuk menggunakan username dan password anda</p>
 
   <form method="POST" action="{{ route('login') }}" class="space-y-5">
     @csrf

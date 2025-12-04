@@ -1,9 +1,19 @@
-<x-admin.layout title="Kotak Masuk">
-  <div class="p-4">
-    <nav style="font-size:13px;margin-bottom:8px">
-      <a href="{{ route('dashboard') }}">Dashboard</a> &raquo; Kotak Masuk
-    </nav>
+@component('components.administrator.layout')
+  @slot('title')
+    {{ $title ?? 'Kotak Masuk' }}
+  @endslot
 
+   @section('header')
+        <div class="col-sm-6"><h3 class="mb-0">Kotak Masuk</h3></div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+              <li class="breadcrumb-item active">Kotak Masuk</a></li>
+            </ol>
+        </div>  
+        @show
+
+  @section('content')
     @php
       // compute unread messages for display header
       $unreadMessages = 0;
@@ -44,21 +54,24 @@
     @endphp
 
     <div>
-      <form method="GET" class="mb-3" id="filter-form">
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <div><input type="text" name="search" value="{{ request('search') }}" placeholder="Cari subject / pengirim" class="form-control"></div>
-          <div><select name="mosque_id" class="form-select"><option value="">-- Semua Masjid --</option>@foreach($mosques as $m)<option value="{{ $m->id }}" @if(request('mosque_id') == $m->id) selected @endif>{{ $m->name }}</option>@endforeach</select></div>
-          <div style="display:flex;gap:8px"><input type="date" name="from" value="{{ request('from') }}" class="form-control"><input type="date" name="to" value="{{ request('to') }}" class="form-control"></div>
-          <div><button class="btn btn-sm btn-primary">Filter</button> <a href="{{ route('admin.messages.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a></div>
-        </div>
-      </form>
-
       <div style="background:#fff;padding:12px;border-radius:8px">
         <style>
           /* highlight unread rows */
           .message-row.unread td { background: #eef6ff !important; }
           .detail-row td { background: #f8fafc; padding:12px; }
         </style>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h5 style="margin:0">List Kotak Masuk</h5>
+        </div>
+        <form method="GET" class="mb-3" id="filter-form">
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <div><input type="text" name="search" value="{{ request('search') }}" placeholder="Cari subject / pengirim" class="form-control"></div>
+            <div><select name="mosque_id" class="form-select"><option value="">-- Semua Masjid --</option>@foreach($mosques as $m)<option value="{{ $m->id }}" @if(request('mosque_id') == $m->id) selected @endif>{{ $m->name }}</option>@endforeach</select></div>
+            <div style="display:flex;gap:8px"><input type="date" name="from" value="{{ request('from') }}" class="form-control"><input type="date" name="to" value="{{ request('to') }}" class="form-control"></div>
+            <div><button class="btn btn-sm btn-primary">Filter</button> <a href="{{ route('admin.messages.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a></div>
+          </div>
+        </form>
+
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div>
             <button id="btn-mark-unread" class="btn btn-sm btn-primary" disabled>Mark as Unread</button>
@@ -101,7 +114,7 @@
         {{-- detail panel removed; inline detail rows are used instead --}}
       </div>
     </div>
-  </div>
+
   <span id="inbox-flag" data-has-status="{{ \Illuminate\Support\Facades\Schema::hasColumn('messages','is_read') ? 'true' : 'false' }}" style="display:none"></span>
   @push('scripts')
     <script>
@@ -251,4 +264,5 @@
       }
     </script>
   @endpush
-</x-admin.layout>
+  @show
+@endcomponent

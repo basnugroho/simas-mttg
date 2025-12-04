@@ -183,6 +183,48 @@ class MessageController extends Controller
         return response()->json(['status' => 'ok', 'unread' => $unread]);
     }
 
+    /**
+     * Return unread count for current user's scope (used by sidebar AJAX polling).
+     */
+    public function unreadCount(Request $request)
+    {
+        $user = auth()->user();
+        $allExpanded = [];
+        try {
+            foreach ($user->regionsRoles()->get() as $ar) {
+                $rid = (int)$ar->region_id;
+                try { $desc = Regions::collectDescendantIds($rid); }
+                catch (\Throwable $e) { $desc = [$rid]; }
+                $expanded = is_array($desc) ? $desc : (is_callable([$desc, 'toArray']) ? $desc->toArray() : [$rid]);
+                $allExpanded = array_merge($allExpanded, $expanded);
+            }
+            $allExpanded = array_values(array_unique($allExpanded));
+        } catch (\Throwable $e) { $allExpanded = []; }
+
+        $unread = 0;
+        try {
+            if (!Schema::hasColumn('messages', 'is_read')) {
+                $unread = 0;
+            } else {
+                if (!empty($allExpanded)) {
+                    $mq = Mosque::query();
+                    $mq->whereIn('regional_id', $allExpanded)
+                       ->orWhereIn('area_id', $allExpanded)
+                       ->orWhereIn('witel_id', $allExpanded)
+                       ->orWhereIn('sto_id', $allExpanded);
+                    $mosqueIds = $mq->pluck('id')->toArray();
+                    if (count($mosqueIds)) {
+                        $unread = Message::whereIn('mosque_id', $mosqueIds)->where('is_read', false)->count();
+                    }
+                } else {
+                    $unread = Message::where('is_read', false)->count();
+                }
+            }
+        } catch (\Throwable $e) { $unread = 0; }
+
+        return response()->json(['unread' => $unread]);
+    }
+
     // delete message
     public function destroy($id)
     {

@@ -1,23 +1,38 @@
-<x-admin.layout title="Master - Facilities">
-  <div class="p-4">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div>
-          <h3 style="margin:0">Facilities</h3>
-          <div style="font-size:12px;color:#6b7280;margin-top:4px">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Facilities</strong></div>
+@component('components.administrator.layout')
+    @slot('title')
+        {{ $title ?? 'Facilities' }}
+    @endslot
+        @section('header')
+        <div class="col-sm-6"><h3 class="mb-0">Facilities</h3></div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+              <li class="breadcrumb-item active">Facilities</a></li>
+            </ol>
+        </div>  
+        @show
+    @section('content')
+
+    <div class="card mb-4">
+     <div class="card-header">
+          <h3 class="card-title">List Facilities</h3>
         </div>
+
+      <div class="card-body">
+        <form method="GET" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
+          <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Search name" class="form-control" style="width:260px;display:inline-block" />
+          <button class="btn btn-sm btn-secondary">Search</button>
+          <a href="{{ route('admin.facilities.index') }}" class="btn btn-sm btn-outline-secondary" title="Reset filters">Reset</a>
+          <div style="margin-left:auto;"><a href="{{ route('admin.facilities.create') }}" class="btn btn-sm btn-primary">Create Facility</a></div>
+        </form>
       </div>
-      <div><a href="{{ route('admin.facilities.create') }}" class="btn btn-sm btn-primary">Create Facility</a></div>
-    </div>
-    <form method="GET" style="margin-bottom:12px">
-      <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Search name" class="form-control" style="width:260px;display:inline-block" />
-      <button class="btn btn-sm btn-secondary">Search</button>
-    </form>
-    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-    <table class="table table-sm">
+
+      @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+      <div class="card-body p-0 border-top" style="padding-top:8px;">
+      <table class="table table-sm table-striped">
       <thead>
         <tr>
-          <th>#</th>
+          <th style="width:10px">#</th>
           @php
             $curSort = $sort ?? request('sort');
             $curDir = $dir ?? request('dir', 'asc');
@@ -26,11 +41,11 @@
               return 'asc';
             };
           @endphp
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'name','dir'=>$toggle('name')]) }}">Name @if(($curSort ?? '')==='name')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'slug','dir'=>$toggle('slug')]) }}">Slug @if(($curSort ?? '')==='slug')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'unit','dir'=>$toggle('unit')]) }}">Unit @if(($curSort ?? '')==='unit')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'is_required','dir'=>$toggle('is_required')]) }}">Required @if(($curSort ?? '')==='is_required')({{ ($curDir ?? '')==='asc' ? '↑' : '↓' }})@endif</a></th>
-          <th>Actions</th>
+          <th><a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'name','dir'=>$toggle('name')]) }}">Name @if(($curSort ?? '')==='name') @if(($curDir ?? '')==='asc') ▲ @else ▼ @endif @endif</a></th>
+          <th><a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'slug','dir'=>$toggle('slug')]) }}">Slug @if(($curSort ?? '')==='slug') @if(($curDir ?? '')==='asc') ▲ @else ▼ @endif @endif</a></th>
+          <th><a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'unit','dir'=>$toggle('unit')]) }}">Unit @if(($curSort ?? '')==='unit') @if(($curDir ?? '')==='asc') ▲ @else ▼ @endif @endif</a></th>
+          <th><a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'is_required','dir'=>$toggle('is_required')]) }}">Required @if(($curSort ?? '')==='is_required') @if(($curDir ?? '')==='asc') ▲ @else ▼ @endif @endif</a></th>
+          <th style="width:120px">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -54,10 +69,14 @@
     </table>
     {{ $items->withQueryString()->links() }}
   </div>
-  @push('scripts')
+  </div>
+    @show
+      @push('scripts')
     <script>
       // keyboard shortcut: Alt+Shift+D to go back to dashboard
       (function(){ document.addEventListener('keydown', function(e){ if(e.altKey && e.shiftKey && String(e.key).toLowerCase() === 'd'){ window.location = '{{ route("dashboard") }}'; } }); })();
     </script>
   @endpush
-</x-admin.layout>
+@endcomponent
+
+
