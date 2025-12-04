@@ -1,6 +1,14 @@
-<x-admin.layout title="Edit Cash Position">
+@component('components.administrator.layout')
+    @slot('title')
+        {{ $title ?? 'Edit Cash Position' }}
+    @endslot
+
+    @section('content')
+
   <div class="p-4">
-    <h3>Edit Cash Position</h3>
+    <div class="card">
+      <div class="card-header">Edit Cash Position</div>
+      <div class="card-body">
     <form method="POST" action="{{ route('admin.cash_positions.update', $cp->id) }}" enctype="multipart/form-data">
       @csrf
       @method('PATCH')
@@ -59,5 +67,9 @@
         <a href="{{ route('admin.cash_positions.index') }}" class="btn btn-secondary">Batal</a>
       </div>
     </form>
+      </div>
+    </div>
   </div>
-</x-admin.layout>
+
+    @show
+@endcomponent

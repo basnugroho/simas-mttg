@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ $title ?? 'Auth' }}</title>
+  <?php
+    $baseTitlePrefix = 'Simas MTTG - ';
+    $rawTitle = $title ?? 'Auth';
+    $fullTitle = \Illuminate\Support\Str::startsWith($rawTitle, $baseTitlePrefix) ? $rawTitle : $baseTitlePrefix . $rawTitle;
+  ?>
+  <title>{{ $fullTitle }}</title>
+  @include('components._favicon')
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .pink-bg { background: radial-gradient(1200px 600px at 60% 50%, rgba(255,255,255,.35), transparent 60%),
@@ -24,7 +30,7 @@
       </div>
     </div>
 
-    <div class="pink-bg relative hidden md:flex flex-col items-center justify-center p-8">
+    <div class=" relative hidden md:flex flex-col items-center justify-center p-8">
       <div class="absolute inset-0 pointer-events-none rounded-2xl md:rounded-none border border-pink-200/40 m-2"></div>
       <div class="max-w-lg text-center">
         <img src="{{ asset('images/logo-mttg.png') }}" alt="Logo" class="mx-auto w-56 md:w-72 mb-6">

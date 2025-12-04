@@ -1,28 +1,32 @@
-<x-admin.layout title="Master - Regions">
-  <div class="p-4">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div>
-          <h3 style="margin:0">Regions</h3>
-          <div style="font-size:12px;color:#6b7280;margin-top:4px">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Regions</strong></div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        @php
+@component('components.administrator.layout')
+    @slot('title')
+        {{ $title ?? 'Regional' }}
+    @endslot
+
+    @section('header')
+    <div class="col-sm-6"><h3 class="mb-0">Regional</h3></div>
+    <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-end">
+          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+          <li class="breadcrumb-item active">Regional</a></li>
+        </ol>
+    </div>
+    @show
+
+    @section('content')
+     @php
           $me = auth()->user();
           $effective = [];
           try { if($me) $effective = $me->getEffectiveRegionIds(); } catch(\Throwable $__e) { $effective = []; }
           $canCreateAny = $me && ($me->isWebmaster() || count($effective)>0);
         @endphp
-        @if($canCreateAny)
-          <a href="{{ route('admin.regions.create') }}" class="btn btn-sm btn-primary">Create Region</a>
-        @else
-          <button class="btn btn-sm btn-primary" disabled title="Create disabled: no allowed parent region">Create Region 🔒</button>
-        @endif
-      </div>
-    </div>
+ <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">List Regional</h3>
+        </div>
+        <div class="card-body">
+          <form method="GET" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
 
-    <form method="GET" style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
       <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Search name" class="form-control" style="width:260px;display:inline-block" />
       <select name="pov" class="form-control" style="width:220px">
         <option value="">-- POV / Ordering --</option>
@@ -38,20 +42,79 @@
         @endforeach
       </select>
       <button class="btn btn-sm btn-secondary">Search</button>
+      <a href="{{ route('admin.regions.index') }}" class="btn btn-sm btn-outline-secondary" title="Reset filters">Reset</a>
+      
+      <div style="margin-left:auto;">
+       @if($canCreateAny)
+          <a href="{{ route('admin.regions.create') }}" class="btn btn-sm btn-primary">Create Region</a>
+        @else
+          <button class="btn btn-sm btn-primary" disabled title="Create disabled: no allowed parent region">Create Region 🔒</button>
+        @endif
+      </div>
     </form>
-
+        </div>
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 
-    <table class="table table-sm">
+    <div class="card-body p-0 border-top" style="padding-top:8px;">
+    <table class="table table-sm table-striped" role="table">
       <thead>
         <tr>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'id','dir' => (request('sort')=='id' && request('dir')=='asc') ? 'desc' : 'asc']) }}"># @if(request('sort')=='id') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'name','dir' => (request('sort')=='name' && request('dir')=='asc') ? 'desc' : 'asc']) }}">Name @if(request('sort')=='name') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'pov','dir' => (request('sort')=='pov' && request('dir')=='asc') ? 'desc' : 'asc']) }}">POV @if(request('sort')=='pov') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'type','dir' => (request('sort')=='type' && request('dir')=='asc') ? 'desc' : 'asc']) }}">Type @if(request('sort')=='type') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'code','dir' => (request('sort')=='code' && request('dir')=='asc') ? 'desc' : 'asc']) }}">Code @if(request('sort')=='code') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'parent','dir' => (request('sort')=='parent' && request('dir')=='asc') ? 'desc' : 'asc']) }}">Parent @if(request('sort')=='parent') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
-          <th><a href="{{ request()->fullUrlWithQuery(['sort'=>'level','dir' => (request('sort')=='level' && request('dir')=='asc') ? 'desc' : 'asc']) }}">Level @if(request('sort')=='level') ({{ strtoupper(request('dir','asc')) }}) @endif</a></th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'id','dir' => (request('sort')=='id' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              #
+              @if(request('sort')=='id')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'name','dir' => (request('sort')=='name' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              Name
+              @if(request('sort')=='name')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'pov','dir' => (request('sort')=='pov' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              POV
+              @if(request('sort')=='pov')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'type','dir' => (request('sort')=='type' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              Type
+              @if(request('sort')=='type')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'code','dir' => (request('sort')=='code' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              Code
+              @if(request('sort')=='code')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'parent','dir' => (request('sort')=='parent' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              Parent
+              @if(request('sort')=='parent')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
+          <th>
+            <a class="text-dark text-decoration-none" style="color:#000;text-decoration:none;" href="{{ request()->fullUrlWithQuery(['sort'=>'level','dir' => (request('sort')=='level' && request('dir')=='asc') ? 'desc' : 'asc']) }}">
+              Level
+              @if(request('sort')=='level')
+                @if(request('dir')=='asc') ▲ @else ▼ @endif
+              @endif
+            </a>
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -96,7 +159,7 @@
 
     {{ $regions->withQueryString()->links() }}
   </div>
-  </div>
+</div>
 
   @push('scripts')
     <script>
@@ -104,4 +167,13 @@
       (function(){ document.addEventListener('keydown', function(e){ if(e.altKey && e.shiftKey && String(e.key).toLowerCase() === 'd'){ window.location = '{{ route("dashboard") }}'; } }); })();
     </script>
   @endpush
-</x-admin.layout>
+
+    @show
+@endcomponent
+  @push('scripts')
+    <script>
+      // keyboard shortcut: Alt+Shift+D to go back to dashboard
+      (function(){ document.addEventListener('keydown', function(e){ if(e.altKey && e.shiftKey && String(e.key).toLowerCase() === 'd'){ window.location = '{{ route("dashboard") }}'; } }); })();
+    </script>
+  @endpush
+

@@ -1,17 +1,27 @@
-<x-admin.layout title="Cash Positions">
-  <div class="p-4">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div>
-        <h3 style="margin:0">Cash Positions</h3>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px">Admin · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Cash</strong></div>
-      </div>
-    </div>
+@component('components.administrator.layout')
+    @slot('title')
+        {{ $title ?? 'Cash Positions' }}
+    @endslot
+     @section('header')
+        <div class="col-sm-6"><h3 class="mb-0">Cash Position</h3></div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+              <li class="breadcrumb-item active">Cash Position</a></li>
+            </ol>
+        </div>  
+        @show
 
-    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    @section('content')
+  
+    <div class="card mb-3">
+      <div class="card-header">Upload Posisi Cash Terkakhir</div>
+      <div class="card-body">
+        @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 
-    <div class="mb-4 p-3" style="background:#fff;border-radius:8px">
-      <h5>Upload Posisi Cash Terakhir</h5>
-      <form method="POST" action="{{ route('admin.cash_positions.store') }}" enctype="multipart/form-data">
+        <div class="mb-2">
+         
+          <form method="POST" action="{{ route('admin.cash_positions.store') }}" enctype="multipart/form-data">
         @csrf
         <div class="row g-2">
           <div class="col-md-6">
@@ -63,8 +73,13 @@
       </form>
     </div>
 
-    <div class="p-3" style="background:#fff;border-radius:8px">
-      <h5>Daftar Posisi Cash</h5>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Daftar Posisi Cash</div>
+      <div class="card-body p-3">
       <form method="GET" class="mb-3" action="{{ route('admin.cash_positions.index') }}">
         <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
           <div style="min-width:220px">
@@ -143,9 +158,12 @@
         </table>
       </div>
       <div class="mt-3">{{ $positions->links() }}</div>
+      </div>
     </div>
-  </div>
-</x-admin.layout>
+
+
+    @show
+@endcomponent
 
 @push('scripts')
   <script>

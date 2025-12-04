@@ -1,82 +1,89 @@
-<x-admin.layout title="Management User BKM">
-  <div class="container admin-content">
-    
+@component('components.administrator.layout')
+  @slot('title') Management User BKM @endslot
 
-    @if(session('status'))
-      <div class="alert alert-success">{{ session('status') }}</div>
-    @endif
+   @section('header')
+        <div class="col-sm-6"><h3 class="mb-0">Management User BKM</h3></div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+              <li class="breadcrumb-item active">Management User BKM</a></li>
+            </ol>
+        </div>  
+        @show
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="display:flex;flex-direction:column;justify-content:center;gap:6px">
-        <h2 style="margin:0">Management User BKM</h2>
-        <div style="font-size:12px;color:#6b7280;margin-top:0;">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Management User BKM</strong></div>
+  @section('content')
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center">
+        <div style="font-weight:600">List Users</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary">Create User</a>
+
+      <div class="card-body">
+        @if(session('status'))
+          <div class="alert alert-success">{{ session('status') }}</div>
+        @endif
+
+        <div class="d-flex flex-wrap align-items-center" style="gap:12px;">
+          <form id="search-form" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items-center" style="gap:6px">
+            <input type="search" name="q" placeholder="Search name, username, email" value="{{ request('q') }}" class="form-control form-control-sm" style="min-width:260px" />
+            <button class="btn btn-sm btn-primary" type="submit">Search</button>
+            <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-secondary ms-2">Reset</a>
+          </form>
+
+          <form id="filter-form" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items-center" style="gap:8px">
+            <div class="d-flex align-items-center" style="gap:6px">
+              <label class="small mb-0">Role</label>
+              <select name="filter_role" id="filter-role-select" class="form-select form-select-sm">
+                <option value="">All</option>
+                @php $roleOptions = ['admin_regional' => 'Admin Regional', 'admin_area' => 'Admin Area', 'admin_witel' => 'Admin Witel', 'admin_sto' => 'Admin STO']; @endphp
+                @foreach($roleOptions as $rk => $rl)
+                  <option value="{{ $rk }}" {{ request('filter_role') === $rk ? 'selected' : '' }}>{{ $rl }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="d-flex align-items-center" style="gap:6px">
+              <label class="small mb-0">Scope</label>
+              <select name="filter_region" id="filter-region-select" class="form-select form-select-sm">
+                <option value="">All</option>
+              </select>
+            </div>
+
+            <div class="d-flex align-items-center" style="gap:6px">
+              <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+            </div>
+             <div class="d-flex" style="text-align:right;">
+              <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary ms-auto">Create User</a>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
 
-    {{-- Search + Filter area: separate Search form and Filter form per request --}}
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-      {{-- Search form: only submits 'q' --}}
-      <form id="search-form" method="GET" action="{{ route('admin.users') }}" style="display:flex;align-items:center;gap:6px">
-        <input type="search" name="q" placeholder="Search name, username, email" value="{{ request('q') }}" class="form-control form-control-sm" style="min-width:260px" />
-        <button class="btn btn-sm btn-primary" type="submit">Search</button>
-      </form>
-
-      {{-- Filter form: submits filter_role and filter_region. Reset is placed next to Filter per request. --}}
-      <form id="filter-form" method="GET" action="{{ route('admin.users') }}" style="display:flex;align-items:center;gap:8px">
-        <div style="display:flex;align-items:center;gap:6px">
-          <label class="small" style="margin-bottom:0">Role</label>
-          <select name="filter_role" id="filter-role-select" class="form-select form-select-sm">
-            <option value="">All</option>
-            @php $roleOptions = ['admin_regional' => 'Admin Regional', 'admin_area' => 'Admin Area', 'admin_witel' => 'Admin Witel', 'admin_sto' => 'Admin STO']; @endphp
-            @foreach($roleOptions as $rk => $rl)
-              <option value="{{ $rk }}" {{ request('filter_role') === $rk ? 'selected' : '' }}>{{ $rl }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <label class="small" style="margin-bottom:0">Scope</label>
-          <select name="filter_region" id="filter-region-select" class="form-select form-select-sm">
-            <option value="">All</option>
-            {{-- options populated by JS based on selected role (deterministic mapping) --}}
-          </select>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:6px;margin-left:6px">
-          <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-          <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-        </div>
-      </form>
-    </div>
-
-    <table class="table">
-      <thead>
-        <tr>
-          @php
-            $currentSort = request('sort');
-            $currentDir = request('dir','desc');
-            function sortLink($col, $label) {
-              $currentSort = request('sort');
-              $currentDir = request('dir','desc');
-              $newdir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
-              $url = request()->fullUrlWithQuery(['sort' => $col, 'dir' => $newdir]);
-              $arrow = '';
-              if ($currentSort === $col) $arrow = ($currentDir === 'asc') ? ' ▲' : ' ▼';
-              return '<a href="' . e($url) . '">' . e($label) . $arrow . '</a>';
-            }
-          @endphp
-          <th>{!! sortLink('id', '#') !!}</th>
-          <th>{!! sortLink('name', 'Name') !!}</th>
-          <th>{!! sortLink('username', 'Username') !!}</th>
-          <th>region_roles</th>
-          <th>Approved</th>
-          <th style="max-width:260px;">Scope</th>
-          <th style="white-space:nowrap">Action</th>
-        </tr>
-      </thead>
-      <tbody>
+      <div class="card-body p-0 border-top" style="padding-top:8px;">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              @php
+                $currentSort = request('sort');
+                $currentDir = request('dir','desc');
+                function sortLink($col, $label) {
+                  $currentSort = request('sort');
+                  $currentDir = request('dir','desc');
+                  $newdir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
+                  $url = request()->fullUrlWithQuery(['sort' => $col, 'dir' => $newdir]);
+                  $arrow = '';
+                  if ($currentSort === $col) $arrow = ($currentDir === 'asc') ? ' ▲' : ' ▼';
+                  return '<a href="' . e($url) . '" class="text-dark" style="color:#000;text-decoration:none;">' . e($label) . '</a>' . ($arrow ? $arrow : '');
+                }
+              @endphp
+              <th>{!! sortLink('id', '#') !!}</th>
+              <th>{!! sortLink('name', 'Name') !!}</th>
+              <th>{!! sortLink('username', 'Username') !!}</th>
+              <th>region_roles</th>
+              <th>Approved</th>
+              <th style="max-width:260px;">Scope</th>
+              <th style="white-space:nowrap">Action</th>
+            </tr>
+          </thead>
+          <tbody>
         @foreach($users as $u)
           <tr>
             @php $canDelete = in_array($u->id, $manageableUserIds ?? []) || (auth()->user() && auth()->user()->isWebmaster()); @endphp
@@ -764,4 +771,5 @@
     })();
   </script>
   @endpush
-</x-admin.layout>
+  @endsection
+@endcomponent

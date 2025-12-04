@@ -4,7 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}" />
-  <title>{{ $title ?? 'Admin - Simas MTTG' }}</title>
+  <?php
+    $baseTitlePrefix = 'Simas MTTG - ';
+    $rawTitle = $title ?? 'Admin';
+    $fullTitle = \Illuminate\Support\Str::startsWith($rawTitle, $baseTitlePrefix) ? $rawTitle : $baseTitlePrefix . $rawTitle;
+  ?>
+  <title>{{ $fullTitle }}</title>
+
+  @include('components._favicon')
 
   <!-- Bootstrap CSS -->
   <link

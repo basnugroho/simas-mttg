@@ -21,6 +21,7 @@ class DashboardController extends Controller
         }
 
         // show dashboard view
-        return view('dashboard');
+        // return view('dashboard');
+        return view('administrator.dashboard.main');
     }
 }
