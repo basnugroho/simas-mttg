@@ -65,6 +65,12 @@
             {{-- Aktivitas moved to Masques list; submenu entry removed --}}
             <li style="margin-bottom:6px"><a href="{{ route('admin.cash_positions.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Cash</a></li>
             <li style="margin-bottom:6px"><a href="{{ route('admin.mosque_managers.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Pengurus Masjid</a></li>
+            <li style="margin-bottom:6px"><a href="{{ route('admin.users') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">User BKM</a></li>
+            <li style="margin-bottom:6px"><a href="{{ route('admin.articles.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Articles</a></li>
+            <li style="margin-bottom:6px;display:flex;align-items:center;gap:6px">
+              <a id="inbox-link" href="{{ route('admin.messages.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:6px 8px;display:block">Kotak Masuk</a>
+              <span id="inbox-unread" style="background:#ef4444;color:#fff;padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px">{{ $unreadMessages ?? 0 }}</span>
+            </li>
           </ul>
         </li>
 
@@ -74,17 +80,8 @@
         <li data-key="master.facilities" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">🧰</span><a href="{{ route('admin.facilities.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Facilities</a></li>
         <li data-key="master.activities" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">▦</span><a href="{{ route('admin.activities.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Activities</a></li>
         <li data-key="master.subsidiaries" style="margin-bottom:6px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">▢</span><a href="{{ route('admin.subsidiaries.index') ?? '#' }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Subsidiaries</a></li>
-        <li data-key="userbkm" style="margin-bottom:12px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">👤</span><a href="{{ route('admin.users') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">User BKM</a></li>
-
-        <li data-key="articles" style="margin:12px 0 6px 0; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">▭</span><a href="{{ route('admin.articles.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Articles</a></li>
 
         <li data-key="download" style="margin-bottom:10px; display:flex; align-items:center; gap:10px"><span style="width:26px;opacity:.85">⬇️</span><a href="#" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:block">Unduh Data</a></li>
-
-        <li data-key="inbox" style="margin-top:6px; display:flex; align-items:center; gap:10px">
-          <span style="width:26px;opacity:.85">✉️</span>
-          <a id="inbox-link" href="{{ route('admin.messages.index') }}" class="menu-link" style="color:#cbd5e1;text-decoration:none;padding:8px 10px;display:flex;align-items:center;gap:8px">Kotak Masuk</a>
-          <span id="inbox-unread" style="margin-left:auto;background:#ef4444;color:#fff;padding:2px 8px;border-radius:999px;font-weight:700">{{ $unreadMessages ?? 0 }}</span>
-        </li>
       </ul>
     </nav>
 
