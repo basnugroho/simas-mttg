@@ -1,25 +1,25 @@
-<x-admin.layout title="Aktivitas Masjid">
-  <div class="p-4">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div>
-        @php
+@component('components.administrator.layout')
+  @php
           $titleSuffix = '';
           if(isset($selected_mosque) && $selected_mosque){
             $titleSuffix = ' — ' . ($selected_mosque->name ?? ('#' . $selected_mosque->id));
           }
         @endphp
-        <h3 style="margin:0">Aktivitas Masjid{{ $titleSuffix }}</h3>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px">Masjid · <a href="{{ route('admin.mosques.index') }}">Kelola Masjid</a> / <strong>Aktivitas Masjid</strong></div>
-      </div>
-        <div>
-          @php $createUrl = route('admin.mosque_activities.create'); if(isset($selected_mosque) && $selected_mosque){ $createUrl .= '?mosque=' . $selected_mosque->id; } @endphp
-          <a href="{{ $createUrl }}" class="btn btn-primary me-2">Buat Aktivitas</a>
-          @if(isset($selected_mosque) && $selected_mosque)
-              <a href="{{ route('admin.mosques.index') }}" class="btn btn-secondary">Kembali ke Masjid</a>
-          @endif
-        </div>
-    </div>
+  @slot('title') Aktivitas Masjid{{ $titleSuffix }} @endslot
 
+   @section('header')
+        <div class="col-sm-6"><h3 class="mb-0">Aktivitas Masjid</h3></div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+              <li class="breadcrumb-item"><a href="{{ route('admin.mosques.index') }}">Kelola Masjid</a></li>
+              <li class="breadcrumb-item active">Aktivitas Masjid</li>
+            </ol>
+        </div>
+        @show
+
+  @section('content')
+  
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 
     <div>
@@ -27,19 +27,23 @@
       @php
         $ms = $selected_mosque ?? null;
       @endphp
-      <div class="p-4 border rounded" style="background:#fff">
-        <h3 class="font-semibold">Tabel Aktivitas Masjid{{ $ms ? (' — ' . ($ms->name ?? ('#' . $ms->id))) : '' }}</h3>
+      <div class="card">
+        <div class="card-header">List Aktivitas Masjid{{ $ms ? (' — ' . ($ms->name ?? ('#' . $ms->id))) : '' }}
+        </div>
+        <div class="card-body">
 
-      
-        <form method="GET" class="mb-3 flex space-x-2">
-          <input type="text" name="filter_mosque" value="{{ request('filter_mosque') }}" placeholder="Cari nama masjid" class="border p-2 w-1/3">
-          <input type="date" name="date_from" value="{{ request('date_from') }}" class="border p-2">
-          <input type="date" name="date_to" value="{{ request('date_to') }}" class="border p-2">
-          <button type="submit" class="bg-gray-200 p-2 rounded">Filter</button>
+        <form method="GET" class="mb-3 d-flex align-items-center gap-2">
+          <input type="text" name="filter_mosque" value="{{ request('filter_mosque') }}" placeholder="Cari nama masjid" class="form-control" style="max-width:320px">
+          <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control" style="max-width:180px">
+          <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="max-width:180px">
+          <button type="submit" class="btn btn-outline-secondary">Filter</button>
+
+          @php $createUrl = route('admin.mosque_activities.create'); if(isset($selected_mosque) && $selected_mosque){ $createUrl .= '?mosque=' . $selected_mosque->id; } @endphp
+          <a href="{{ $createUrl }}" class="btn btn-success me-2">Buat Aktivitas</a>
         </form>
 
-        <div class="overflow-auto">
-          <table class="w-full text-sm">
+        <div class="table-responsive">
+          <table class="table table-sm">
             <thead>
               <tr class="text-left">
                 <th class="p-2">Masjid</th>
@@ -120,11 +124,13 @@
         <div class="mt-3">
           {{ $assignments->links() }}
         </div>
+        </div>
       </div>
     </div>
 
   </div>
-</x-admin.layout>
+  @endsection
+@endcomponent
 
 <!-- Photo modals removed — thumbnails displayed inline in table for simplicity -->
 

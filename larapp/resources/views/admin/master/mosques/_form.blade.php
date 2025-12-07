@@ -8,13 +8,13 @@
 
   <div class="form-row">
     <label class="form-label">Name</label>
-    <div class="field"><input type="text" name="name" class="form-input" value="{{ old('name', $mosque->name ?? '') }}" required /></div>
+    <div class="field"><input type="text" name="name" class="form-control" value="{{ old('name', $mosque->name ?? '') }}" required /></div>
   </div>
 
   <div class="form-row">
     <label class="form-label">Type</label>
     <div class="field">
-      <select name="type" class="form-input">
+      <select name="type" class="form-control">
         <option value="">-- Select Type --</option>
         <option value="MASJID" {{ (old('type', $mosque->type ?? '') == 'MASJID') ? 'selected' : '' }}>Masjid</option>
         <option value="MUSHOLLA" {{ (old('type', $mosque->type ?? '') == 'MUSHOLLA') ? 'selected' : '' }}>Mushalla</option>
@@ -25,7 +25,7 @@
   <div class="form-row">
     <label class="form-label">Regional</label>
     <div class="field">
-  <select name="regional_id" class="form-input" data-selected="{{ old('regional_id', $mosque->regional_id ?? ($lockedValues['regional_id'] ?? '')) }}" data-locked="{{ $lockedValues['regional_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('regional_id', $lockedFields)) disabled @endif>
+  <select name="regional_id" class="form-control" data-selected="{{ old('regional_id', $mosque->regional_id ?? ($lockedValues['regional_id'] ?? '')) }}" data-locked="{{ $lockedValues['regional_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('regional_id', $lockedFields)) disabled @endif>
         @if(!empty($lockedLabels['regional_id']))
           <option value="{{ $lockedValues['regional_id'] }}">{{ $lockedLabels['regional_id'] }}</option>
         @endif
@@ -44,7 +44,7 @@
   <div class="form-row">
     <label class="form-label">Wilayah</label>
     <div class="field">
-  <select name="area_id" class="form-input" data-selected="{{ old('area_id', $mosque->area_id ?? ($lockedValues['area_id'] ?? '')) }}" data-locked="{{ $lockedValues['area_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('area_id', $lockedFields)) disabled @endif>
+  <select name="area_id" class="form-control" data-selected="{{ old('area_id', $mosque->area_id ?? ($lockedValues['area_id'] ?? '')) }}" data-locked="{{ $lockedValues['area_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('area_id', $lockedFields)) disabled @endif>
         @if(!empty($lockedLabels['area_id']))
           <option value="{{ $lockedValues['area_id'] }}">{{ $lockedLabels['area_id'] }}</option>
         @endif
@@ -66,7 +66,7 @@
   <div class="form-row">
     <label class="form-label">Witel</label>
     <div class="field">
-  <select name="witel_id" class="form-input" data-selected="{{ old('witel_id', $mosque->witel_id ?? ($lockedValues['witel_id'] ?? '')) }}" data-locked="{{ $lockedValues['witel_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('witel_id', $lockedFields)) disabled @endif>
+  <select name="witel_id" class="form-control" data-selected="{{ old('witel_id', $mosque->witel_id ?? ($lockedValues['witel_id'] ?? '')) }}" data-locked="{{ $lockedValues['witel_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('witel_id', $lockedFields)) disabled @endif>
         @if(!empty($lockedLabels['witel_id']))
           <option value="{{ $lockedValues['witel_id'] }}">{{ $lockedLabels['witel_id'] }}</option>
         @endif
@@ -84,7 +84,7 @@
   <div class="form-row">
     <label class="form-label">Datel</label>
     <div class="field">
-  <select name="sto_id" class="form-input" data-selected="{{ old('sto_id', $mosque->sto_id ?? ($lockedValues['sto_id'] ?? '')) }}" data-locked="{{ $lockedValues['sto_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('sto_id', $lockedFields)) disabled @endif>
+  <select name="sto_id" class="form-control" data-selected="{{ old('sto_id', $mosque->sto_id ?? ($lockedValues['sto_id'] ?? '')) }}" data-locked="{{ $lockedValues['sto_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('sto_id', $lockedFields)) disabled @endif>
         @if(!empty($lockedLabels['sto_id']))
           <option value="{{ $lockedValues['sto_id'] }}">{{ $lockedLabels['sto_id'] }}</option>
         @endif
@@ -101,27 +101,27 @@
 
   <div class="form-row">
     <label class="form-label">Address</label>
-    <div class="field"><input type="text" name="address" class="form-input" value="{{ old('address', $mosque->address ?? '') }}" /></div>
+    <div class="field"><input type="text" name="address" class="form-control" value="{{ old('address', $mosque->address ?? '') }}" /></div>
   </div>
 
   <div class="form-row">
     <label class="form-label">Tahun Didirikan</label>
-    <div class="field"><input type="number" name="tahun_didirikan" class="form-input" value="{{ old('tahun_didirikan', $mosque->tahun_didirikan ?? '') }}" /></div>
+    <div class="field"><input type="number" name="tahun_didirikan" class="form-control" value="{{ old('tahun_didirikan', $mosque->tahun_didirikan ?? '') }}" /></div>
   </div>
 
   <div class="form-row">
     <label class="form-label">Jumlah BKM (pengurus)</label>
-    <div class="field"><input type="number" name="jml_bkm" class="form-input" value="{{ old('jml_bkm', $mosque->jml_bkm ?? 0) }}" /></div>
+    <div class="field"><input type="number" name="jml_bkm" class="form-control" value="{{ old('jml_bkm', $mosque->jml_bkm ?? 0) }}" /></div>
   </div>
 
   <div class="form-row">
     <label class="form-label">Luas Tanah (m2)</label>
-    <div class="field"><input type="number" step="0.01" name="luas_tanah" class="form-input" value="{{ old('luas_tanah', $mosque->luas_tanah ?? '') }}" /></div>
+    <div class="field"><input type="number" step="0.01" name="luas_tanah" class="form-control" value="{{ old('luas_tanah', $mosque->luas_tanah ?? '') }}" /></div>
   </div>
 
   <div class="form-row">
     <label class="form-label">Daya Tampung</label>
-    <div class="field"><input type="number" name="daya_tampung" class="form-input" value="{{ old('daya_tampung', $mosque->daya_tampung ?? '') }}" /></div>
+    <div class="field"><input type="number" name="daya_tampung" class="form-control" value="{{ old('daya_tampung', $mosque->daya_tampung ?? '') }}" /></div>
   </div>
 
   <div class="form-row">
@@ -146,7 +146,7 @@
                 </div>
                 <div style="margin-top:6px;font-size:12px;color:#374151">
                   <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" name="delete_photos[]" value="{{ $photo->id }}"> Delete</label>
-                  <input type="text" name="existing_captions[{{ $photo->id }}]" class="form-input" value="{{ old('existing_captions.'.$photo->id, $photo->caption ?? '') }}" placeholder="Caption (optional)" style="margin-top:6px;font-size:12px;width:100%" />
+                  <input type="text" name="existing_captions[{{ $photo->id }}]" class="form-control" value="{{ old('existing_captions.'.$photo->id, $photo->caption ?? '') }}" placeholder="Caption (optional)" style="margin-top:6px;font-size:12px;width:100%" />
                 </div>
               </div>
             @endforeach
@@ -505,7 +505,7 @@
           var wrap = document.createElement('div'); wrap.className = 'photo-preview'; wrap.style = 'width:180px';
           var img = document.createElement('img'); img.style = 'width:180px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6';
         var info = document.createElement('div'); info.style = 'margin-top:6px;font-size:12px;color:#374151';
-        var caption = document.createElement('input'); caption.type='text'; caption.name='photo_captions[]'; caption.placeholder='Caption (optional)'; caption.className='form-input'; caption.style='width:100%;margin-top:6px;font-size:12px';
+        var caption = document.createElement('input'); caption.type='text'; caption.name='photo_captions[]'; caption.placeholder='Caption (optional)'; caption.className='form-control'; caption.style='width:100%;margin-top:6px;font-size:12px';
         var remove = document.createElement('button'); remove.type='button'; remove.className='btn btn-sm btn-outline-danger'; remove.style='margin-top:6px'; remove.innerText='Remove';
 
         // file meta

@@ -8,6 +8,7 @@
               data-accordion="false"
               id="navigation"
             >
+            <li class="nav-header">ADMINISTRATOR</li>
             <li class="nav-item">
                 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-speedometer2"></i>
@@ -43,6 +44,12 @@
                   </li>
                 </ul>
               </li>
+               <li class="nav-item">
+                    <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+                      <i class="nav-icon bi bi-people"></i>
+                      <p>User BKM</p>
+                    </a>
+                  </li>
               <li class="nav-item">
                 <a href="{{ route('admin.articles.index') }}" class="nav-link {{ request()->routeIs('admin.articles.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-journal-text"></i>
@@ -93,7 +100,9 @@
                   <p>Kotak Masuk <span id="inbox-badge-sidebar">@if($unreadMessagesCount) <span class="badge bg-danger ms-2">{{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}</span> @endif</span></p>
                 </a>
               </li>
-              <li class="nav-header">WEB MASTER</li>
+             
+              @if(auth()->user() && auth()->user()->isWebmaster())
+               <li class="nav-header">WEB MASTER</li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
                   <i class="nav-icon bi bi-gear"></i>
@@ -127,14 +136,10 @@
                       <p>Sub Diaries</p>
                     </a>
                   </li>
-                  <li class="nav-item">
-                    <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
-                      <i class="nav-icon bi bi-people"></i>
-                      <p>User BKM</p>
-                    </a>
-                  </li>
+                 
                 </ul>
-              </li>     
+              </li>
+              @endif
             </ul>
             <!--end::Sidebar Menu-->
             </nav>

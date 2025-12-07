@@ -37,6 +37,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 	// user region role assignments
 	Route::post('/users/{id}/roles', [\App\Http\Controllers\Admin\UserRegionRoleController::class, 'store'])->name('admin.users.roles.store');
 	Route::delete('/users/roles/{id}', [\App\Http\Controllers\Admin\UserRegionRoleController::class, 'destroy'])->name('admin.users.roles.destroy');
+
+		// Change user password (admin/webmaster)
+		Route::get('/users/{id}/password', [\App\Http\Controllers\Admin\UserPasswordController::class, 'edit'])->name('admin.users.password.edit');
+		Route::post('/users/{id}/password', [\App\Http\Controllers\Admin\UserPasswordController::class, 'update'])->name('admin.users.password.update');
     // AJAX endpoint to fetch allowed regions for a target role based on current user's scope
     Route::get('/allowed-regions', [\App\Http\Controllers\Admin\UserManagementController::class, 'allowedRegions'])->name('admin.allowed_regions');
     // Master regions CRUD

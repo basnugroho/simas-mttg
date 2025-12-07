@@ -166,8 +166,28 @@
             </td>
             {{-- Created At and Last Login moved to Detail panel; main table keeps fewer columns per request --}}
             <td>
-              <button type="button" class="btn btn-sm btn-primary btn-priv" data-user-id="{{ $u->id }}">Privilage</button>
-              <button type="button" class="btn btn-sm btn-info btn-detail" data-user-id="{{ $u->id }}" style="margin-left:6px">Detail</button>
+                <button type="button" class="btn btn-sm btn-primary btn-priv" data-user-id="{{ $u->id }}">Privilage</button>
+                @php
+                $canChangePassword = false;
+                $me = auth()->user();
+                if ($me) {
+                  if ($me->isWebmaster()) {
+                    $canChangePassword = true;
+                  } elseif ($me->isAdmin()) {
+                    try {
+                      $eff = $me->getEffectiveRegionIds();
+                      if (!empty($eff)) {
+                        $has = \App\Models\UserRegionRole::where('user_id', $u->id)->whereIn('region_id', $eff)->exists();
+                        if ($has) $canChangePassword = true;
+                      }
+                    } catch (\Throwable $e) { $canChangePassword = false; }
+                  }
+                }
+                @endphp
+                @if($canChangePassword)
+                <a href="{{ route('admin.users.password.edit', $u->id) }}" class="btn btn-sm btn-warning" style="margin-left:6px">Change Password</a>
+                @endif
+                <button type="button" class="btn btn-sm btn-info btn-detail" data-user-id="{{ $u->id }}" style="margin-left:6px">Detail</button>
               @php
                 $assignedByRole = $u->regionsRoles->groupBy('role_key')->map(function($g){
                     return $g->pluck('region_id')->map(fn($v)=>(int)$v)->values()->toArray();

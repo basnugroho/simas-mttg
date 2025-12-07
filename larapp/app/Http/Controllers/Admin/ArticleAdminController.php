@@ -13,9 +13,30 @@ class ArticleAdminController extends Controller
     public function index(Request $request)
     {
         $q = Article::with('category','creator','mosque');
-        if ($request->filled('status')) $q->where('status', $request->input('status'));
+
+        if ($request->filled('status')) {
+            $q->where('status', $request->input('status'));
+        }
+        if ($request->filled('category_id')) {
+            $q->where('category_id', $request->input('category_id'));
+        }
+        if ($request->filled('mosque_id')) {
+            $q->where('mosque_id', $request->input('mosque_id'));
+        }
+        if ($request->filled('date_from')) {
+            $q->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $q->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+
         $items = $q->orderBy('created_at','desc')->paginate(20)->appends($request->query());
-        return view('admin.articles.index', ['items' => $items]);
+
+        // pass filter lists to view
+        $categories = Category::orderBy('name')->get();
+        $mosques = Mosque::orderBy('name')->get();
+
+        return view('admin.articles.index', ['items' => $items, 'categories' => $categories, 'mosques' => $mosques]);
     }
 
     public function create()

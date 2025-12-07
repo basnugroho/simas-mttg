@@ -2,13 +2,24 @@
   @slot('title') Create User @endslot
 
   @section('header')
+    <div class="col-sm-6"><h3 class="mb-0">Create User</h3></div>
+    <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-end">
+          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">Users</a></li>
+          <li class="breadcrumb-item active">Create User</a></li>
+        </ol>
+    </div>
+    @show
+
+  @section('header')
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
         <a href="{{ url()->previous() ?? route('admin.users') }}" class="btn btn-sm btn-outline-secondary" style="margin-right:8px">← Back</a>
         <strong>Create User</strong>
       </div>
       <div style="font-size:0.9em;color:#666;text-align:right">
-        <div>Logged in as: <strong>{{ auth()->user()->username ?? auth()->user()->email ?? '—' }}</strong></div>
+        
         <div style="margin-top:4px">
           <span style="text-transform:capitalize; font-weight:600">{{ $myRole ?? auth()->user()->role ?? '—' }}</span>
           @if(!empty($myAssignments))

@@ -1,14 +1,19 @@
-<x-admin.layout title="Mosques">
-  <div class="p-4">
-    <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-3">
-          <div>
-            <h3 class="m-0">Mosques</h3>
-            <div style="font-size:12px;color:#6b7280;margin-top:4px">Master · <a href="{{ route('dashboard') }}">Dashboard</a> / <strong>Mosques</strong></div>
-          </div>
-        </div>
-    </div>
+@component('components.administrator.layout')
+  @slot('title') Kelola Masjid @endslot
 
+   @section('header')
+        <div class="col-sm-6"><h3 class="mb-0">Kelola Masjid</h3></div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+              <li class="breadcrumb-item active">Kelola Masjid</li>
+            </ol>
+        </div>
+        @show
+
+  @section('content')
+
+    
   {{-- Create button (right) and user info below it; then filters/sort/pagination controls --}}
     @php
       $me = auth()->user();
@@ -28,29 +33,33 @@
         if(count($meRoles) > 1) $primaryRoleLabel .= ' +' . (count($meRoles)-1) . ' more';
       }
     @endphp
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px">
-      <div style="color:#6b7280;font-size:13px">Scope: shows all mosques; detail/peta available for all, edit/delete locked for out-of-scope</div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-        <div>
-          @can('create', \App\Models\Mosque::class)
-            <a href="{{ route('admin.mosques.create') }}" class="btn btn-primary">Create Mosque</a>
-          @endcan
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px;padding:10px 14px">
+        
+        {{-- Compact search + type filter --}}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin:0;flex:1">
+            <input type="search" name="q" value="{{ request('q', $q ?? '') }}" placeholder="Search..." class="form-control" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;min-width:220px;flex:1" />
+            <select name="type" class="form-select" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;height:34px;min-width:120px;max-width:180px">
+              <option value="">All types</option>
+              <option value="MASJID" {{ (isset($filterType) && $filterType==='MASJID') ? 'selected' : '' }}>Masjid</option>
+              <option value="MUSHOLLA" {{ (isset($filterType) && $filterType==='MUSHOLLA') ? 'selected' : '' }}>Musholla</option>
+            </select>
+            <button class="btn btn-sm btn-primary">Go</button>
+            <a href="{{ route('admin.mosques.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+          </form>
+
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="color:#6b7280;font-size:13px">Role: {{ $primaryRoleLabel }}</div>
+            <div>
+              @can('create', \App\Models\Mosque::class)
+                <a href="{{ route('admin.mosques.create') }}" class="btn btn-success">Create Mosque</a>
+              @endcan
+            </div>
+          </div>
         </div>
-        <div style="font-size:13px;color:#374151">Logged in as: <span style="font-weight:700">{{ $me?->name ?? (Auth::user()?->username ?? 'Guest') }}</span>, <span style="color:#0ea5a4;font-weight:700">Role: {{ $primaryRoleLabel }}</span></div>
       </div>
     </div>
-
-    {{-- Compact search + type filter --}}
-    <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-  <input type="search" name="q" value="{{ request('q', $q ?? '') }}" placeholder="Search..." class="form-input" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;min-width:160px" />
-  <select name="type" class="form-select" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;height:34px;min-width:160px">
-        <option value="">All types</option>
-        <option value="MASJID" {{ (isset($filterType) && $filterType==='MASJID') ? 'selected' : '' }}>Masjid</option>
-        <option value="MUSHOLLA" {{ (isset($filterType) && $filterType==='MUSHOLLA') ? 'selected' : '' }}>Musholla</option>
-      </select>
-      <button class="btn btn-sm btn-primary">Go</button>
-      <a href="{{ route('admin.mosques.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-    </form>
 
     <table class="table">
       <thead>
@@ -76,7 +85,7 @@
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'completion_percentage', 'dir' => (isset($sort) && $sort==='completion_percentage' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Kelengkapan Fasilitas @if(isset($sort) && $sort==='completion_percentage'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th>
-            <a href="{{ request()->fullUrlWithQuery(['sort' => 'daya_tampung', 'dir' => (isset($sort) && $sort==='daya_tampung' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Daya Tampung @if(isset($sort) && $sort==='daya_tampung'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
+            <a href="{{ request()->fullUrlWithQuery(['sort' => 'daya_tampung', 'dir' => (isset($sort) && $sort==='daya_tampung' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Kapasitas @if(isset($sort) && $sort==='daya_tampung'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
           </th>
           <th style="width:180px">
             <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'dir' => (isset($sort) && $sort==='created_at' && isset($dir) && $dir==='asc') ? 'desc' : 'asc']) }}">Actions @if(isset($sort) && $sort==='created_at'){!! ' ' . ($dir==='asc' ? '▲' : '▼') !!}@endif</a>
@@ -138,7 +147,7 @@
               <a href="{{ url('/admin/mosque-activities') . '?mosque_ids[]=' . $m->id }}" class="btn btn-sm btn-outline-success" style="margin-left:6px" title="Tambah Aktivitas">Aktivitas</a>
 
               {{-- Facilities available for all users (opens modal) --}}
-              <button type="button" class="btn btn-sm btn-info btn-manage-facilities" data-id="{{ $m->id }}" style="margin-left:6px">Facilities</button>
+              <button type="button" class="btn btn-sm btn-secondary btn-manage-facilities" data-id="{{ $m->id }}" style="margin-left:6px">Facilities</button>
 
               {{-- Edit: only enabled when inScope and policy allows; otherwise show lock icon --}}
               @if($inScope)
@@ -292,7 +301,7 @@
         </div>
       </div>
     </div>
-  </div>
+
 
   <div id="mosques-data" data-mosques="{{ base64_encode(json_encode($mosques->items())) }}" style="display:none"></div>
 
@@ -389,7 +398,7 @@
               function createExistingPreview(p){
                 const el = document.createElement('div'); el.style.width='160px'; el.style.display='flex'; el.style.flexDirection='column'; el.style.gap='6px';
                 const img = document.createElement('img'); img.src = p.path; img.style.width='160px'; img.style.height='110px'; img.style.objectFit='cover'; img.style.borderRadius='6px'; img.style.border='1px solid #e6e6e6';
-                const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.className='form-input'; caption.style.fontSize='12px'; caption.value = p.caption || '';
+                const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.className=''; caption.style.fontSize='12px'; caption.value = p.caption || '';
                 const remove = document.createElement('button'); remove.type='button'; remove.className='btn btn-sm btn-outline-danger'; remove.innerText='Delete';
                 el.appendChild(img); el.appendChild(caption); el.appendChild(remove);
                 // on caption change (blur), PATCH caption
@@ -405,7 +414,7 @@
               function createPreview(file){
                 const el = document.createElement('div'); el.style.width='160px'; el.style.display='flex'; el.style.flexDirection='column'; el.style.gap='6px';
                 const img = document.createElement('img'); img.style.width='160px'; img.style.height='110px'; img.style.objectFit='cover'; img.style.borderRadius='6px'; img.style.border='1px solid #e6e6e6';
-                const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.className='form-input'; caption.style.fontSize='12px';
+                const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.className=''; caption.style.fontSize='12px';
                 const remove = document.createElement('button'); remove.type='button'; remove.className='btn btn-sm btn-outline-danger'; remove.innerText='Remove';
                 el.appendChild(img); el.appendChild(caption); el.appendChild(remove);
                 const reader = new FileReader(); reader.onload = function(ev){ img.src = ev.target.result; }; reader.readAsDataURL(file);
@@ -595,4 +604,5 @@
       })();
     </script>
   @endpush
-</x-admin.layout>
+  @endsection
+@endcomponent
