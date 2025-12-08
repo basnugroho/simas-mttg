@@ -19,10 +19,10 @@
           <h3 class="card-title">Articles</h3>
         </div>
         <div class="card-body">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="flex:1;min-width:0">
-              <form method="GET" action="" class="d-flex gap-2">
-                <select name="category_id" class="form-select" style="max-width:220px">
+              <form method="GET" action="" class="d-flex gap-2 flex-wrap" style="min-width:0">
+                <select name="category_id" class="form-select" style="max-width:220px;min-width:120px">
                   <option value="">All categories</option>
                   @foreach(($categories ?? []) as $c)
                     <option value="{{ $c->id }}" @if(request('category_id') == $c->id) selected @endif>{{ $c->name }}</option>
@@ -40,7 +40,7 @@
                   <option value="PUBLISHED" @if(request('status')==='PUBLISHED') selected @endif>Published</option>
                 </select>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control" style="max-width:160px">
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="max-width:160px">
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="max-width:160px;min-width:120px">
                 <button class="btn btn-outline-secondary" type="submit">Filter</button>
                 <a href="{{ route('admin.articles.index') }}" class="btn btn-outline-secondary">Reset</a>
               </form>
@@ -50,7 +50,8 @@
         </div>
        
         <div class="card-body p-0 border-top" style="padding-top:8px;">
-          <table class="table table-sm table-striped" role="table" style="width:100%">
+          <div class="table-responsive" style="overflow:auto">
+            <table class="table table-sm table-striped" role="table" style="width:100%">
             <thead><tr><th>Title</th><th>Category</th><th>Mosque</th><th>Status</th><th>Creator</th><th>Created</th><th style="width:200px">Aksi</th></tr></thead>
             <tbody>
               @foreach($items as $it)
@@ -72,9 +73,19 @@
                 </tr>
               @endforeach
             </tbody>
-          </table>
+            </table>
+          </div>
           <div class="p-3">{{ $items->links() }}</div>
         </div>
+        @push('head')
+          <style>
+            @media (max-width:900px){
+              form.d-flex { flex-direction:column !important; gap:8px; align-items:stretch !important }
+              form.d-flex select.form-select, form.d-flex input.form-control, form.d-flex .btn { width:100% !important; box-sizing:border-box }
+              .table-responsive table td .btn { display:block; margin-bottom:6px }
+            }
+          </style>
+        @endpush
       </div>
     @show
     @push('scripts')

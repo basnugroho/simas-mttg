@@ -66,10 +66,28 @@
     <link rel="stylesheet" href="{{ asset('admin/css/adminlte.css') }}" />
     <!--end::Required Plugin(AdminLTE)-->
     @stack('head')
+    <style>
+      /* Ensure admin sidebar becomes overlay on small screens for better mobile UX */
+      @media (max-width: 900px) {
+        body.layout-fixed .app-sidebar,
+        .app-sidebar {
+          position: fixed !important;
+          left: 0; top: 0; bottom: 0; height: 100vh; z-index: 1050;
+          transform: translateX(-100%); transition: transform .22s ease;
+        }
+        body.sidebar-open .app-sidebar { transform: translateX(0); }
+        /* dim the content when sidebar is open */
+        #admin-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1040; }
+        body.sidebar-open #admin-mobile-overlay { display:block; }
+        /* make sure main content is scrollable but not behind overlay when open */
+        body.sidebar-open { overflow: hidden; }
+        .app-header .bi-list { font-size:18px; }
+      }
+    </style>
   </head>
   <!--end::Head-->
   <!--begin::Body-->
-  <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse bg-body-tertiary">
+  <body class="sidebar-expand-lg sidebar-open bg-body-tertiary app-loaded">
     <!--begin::App Wrapper-->
     <div class="app-wrapper">
       <!--begin::Header-->
@@ -137,6 +155,17 @@
       </main>
       <!--end::App Main-->
       <!--begin::Footer-->
+      <footer class="app-footer">
+        <!--begin::To the end-->
+        <div class="float-end d-none d-sm-inline">SIMAS MTTG</div>
+        <!--end::To the end-->
+        <!--begin::Copyright-->
+        <strong>
+          Copyright © 2025&nbsp;
+        </strong>
+        All rights reserved.
+        <!--end::Copyright-->
+      </footer>
       <!--end::Footer-->
     </div>
     <!--end::App Wrapper-->

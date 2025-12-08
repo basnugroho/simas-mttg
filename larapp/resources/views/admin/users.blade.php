@@ -23,16 +23,16 @@
         @endif
 
         <div class="d-flex flex-wrap align-items-center" style="gap:12px;">
-          <form id="search-form" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items-center" style="gap:6px">
-            <input type="search" name="q" placeholder="Search name, username, email" value="{{ request('q') }}" class="form-control form-control-sm" style="min-width:260px" />
+          <form id="search-form" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items-center flex-wrap" style="gap:6px;min-width:0;">
+            <input type="search" name="q" placeholder="Search name, username, email" value="{{ request('q') }}" class="form-control form-control-sm" style="min-width:180px;flex:1;min-width:0" />
             <button class="btn btn-sm btn-primary" type="submit">Search</button>
             <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-secondary ms-2">Reset</a>
           </form>
 
-          <form id="filter-form" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items-center" style="gap:8px">
-            <div class="d-flex align-items-center" style="gap:6px">
+          <form id="filter-form" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items-center flex-wrap" style="gap:8px;min-width:0">
+            <div class="d-flex align-items-center" style="gap:6px;min-width:0">
               <label class="small mb-0">Role</label>
-              <select name="filter_role" id="filter-role-select" class="form-select form-select-sm">
+              <select name="filter_role" id="filter-role-select" class="form-select form-select-sm" style="min-width:120px">
                 <option value="">All</option>
                 @php $roleOptions = ['admin_regional' => 'Admin Regional', 'admin_area' => 'Admin Area', 'admin_witel' => 'Admin Witel', 'admin_sto' => 'Admin STO']; @endphp
                 @foreach($roleOptions as $rk => $rl)
@@ -40,9 +40,9 @@
                 @endforeach
               </select>
             </div>
-            <div class="d-flex align-items-center" style="gap:6px">
+            <div class="d-flex align-items-center" style="gap:6px;min-width:0">
               <label class="small mb-0">Scope</label>
-              <select name="filter_region" id="filter-region-select" class="form-select form-select-sm">
+              <select name="filter_region" id="filter-region-select" class="form-select form-select-sm" style="min-width:120px">
                 <option value="">All</option>
               </select>
             </div>
@@ -50,15 +50,16 @@
             <div class="d-flex align-items-center" style="gap:6px">
               <button type="submit" class="btn btn-sm btn-primary">Filter</button>
             </div>
-             <div class="d-flex" style="text-align:right;">
-              <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary ms-auto">Create User</a>
+             <div class="d-flex" style="text-align:right;margin-left:auto;">
+              <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary ms-2">Create User</a>
             </div>
           </form>
         </div>
       </div>
 
       <div class="card-body p-0 border-top" style="padding-top:8px;">
-        <table class="table table-sm">
+        <div class="table-responsive" style="overflow:auto">
+          <table class="table table-sm">
           <thead>
             <tr>
               @php
@@ -397,7 +398,21 @@
           </tr>
         @endforeach
       </tbody>
-    </table>
+          </table>
+          @push('head')
+            <style>
+              @media (max-width:900px){
+                /* make search/filter forms stack and inputs full width */
+                #search-form, #filter-form { flex-direction:column !important; align-items:stretch !important; gap:8px; }
+                #search-form input[type="search"], #search-form .btn, #search-form .btn-outline-secondary,
+                #filter-form select.form-select, #filter-form .btn { width:100% !important; box-sizing:border-box }
+                /* make action buttons stack in table rows */
+                table.table td[style*="display:inline-block"], table.table td { white-space:normal; }
+                table.table td .btn { display:block; margin-bottom:6px }
+              }
+            </style>
+          @endpush
+        </div>
 
     {{ $users->links() }}
   </div>

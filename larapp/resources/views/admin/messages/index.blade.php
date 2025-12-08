@@ -64,11 +64,11 @@
           <h5 style="margin:0">List Kotak Masuk</h5>
         </div>
         <form method="GET" class="mb-3" id="filter-form">
-          <div style="display:flex;gap:8px;align-items:flex-end">
-            <div><input type="text" name="search" value="{{ request('search') }}" placeholder="Cari subject / pengirim" class="form-control"></div>
-            <div><select name="mosque_id" class="form-select"><option value="">-- Semua Masjid --</option>@foreach($mosques as $m)<option value="{{ $m->id }}" @if(request('mosque_id') == $m->id) selected @endif>{{ $m->name }}</option>@endforeach</select></div>
-            <div style="display:flex;gap:8px"><input type="date" name="from" value="{{ request('from') }}" class="form-control"><input type="date" name="to" value="{{ request('to') }}" class="form-control"></div>
-            <div><button class="btn btn-sm btn-primary">Filter</button> <a href="{{ route('admin.messages.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+            <div style="flex:1;min-width:0"><input type="text" name="search" value="{{ request('search') }}" placeholder="Cari subject / pengirim" class="form-control" style="min-width:160px" /></div>
+            <div style="min-width:140px"><select name="mosque_id" class="form-select"><option value="">-- Semua Masjid --</option>@foreach($mosques as $m)<option value="{{ $m->id }}" @if(request('mosque_id') == $m->id) selected @endif>{{ $m->name }}</option>@endforeach</select></div>
+            <div style="display:flex;gap:8px;min-width:180px"><input type="date" name="from" value="{{ request('from') }}" class="form-control"><input type="date" name="to" value="{{ request('to') }}" class="form-control"></div>
+            <div style="min-width:120px"><button class="btn btn-sm btn-primary">Filter</button> <a href="{{ route('admin.messages.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a></div>
           </div>
         </form>
 
@@ -81,7 +81,8 @@
         </div>
 
         <div style="overflow:auto;max-height:420px">
-          <table class="table table-sm">
+          <div class="table-responsive" style="overflow:auto">
+            <table class="table table-sm">
             <thead>
               <tr>
                 <th style="width:40px"><input type="checkbox" id="select-all"></th>
@@ -106,7 +107,8 @@
                 </tr>
               @endforeach
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <div class="mt-2">{{ $items->links() }}</div>
@@ -116,6 +118,16 @@
     </div>
 
   <span id="inbox-flag" data-has-status="{{ \Illuminate\Support\Facades\Schema::hasColumn('messages','is_read') ? 'true' : 'false' }}" style="display:none"></span>
+  @push('head')
+    <style>
+      @media (max-width:900px){
+        #filter-form > div { flex-direction:column !important; gap:8px }
+        #filter-form input.form-control, #filter-form select.form-select, #filter-form .btn { width:100% !important; box-sizing:border-box }
+        .table-responsive table td .btn { display:block; margin-bottom:6px }
+      }
+    </style>
+  @endpush
+
   @push('scripts')
     <script>
       (function(){
