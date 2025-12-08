@@ -1,9 +1,9 @@
 <div class="row mt-1 g-3">
   <div class="col-lg-8">
     <div class="card p-3 shadow-sm text-center">
-      <h6 class="mb-3 fw-bold">Persentase Kelengkapan Fasilitas per Area</h6>
+      <h6 class="mb-3 fw-bold">Jumlah Masjid Lengkap 100% vs Tidak Lengkap per Area</h6>
       <div style="height:400px;position:relative;">
-        <canvas id="stackFacilitiesChart" style="max-height:100%;width:100%;"></canvas>
+        <canvas id="masjidCompleteChart" style="max-height:100%;width:100%;"></canvas>
       </div>
     </div>
   </div>

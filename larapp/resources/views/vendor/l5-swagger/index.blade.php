@@ -2,17 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-        <?php
-            $baseTitlePrefix = 'Simas MTTG - ';
-            $rawTitle = $documentationTitle ?? 'API Docs';
-            $fullTitle = \Illuminate\Support\Str::startsWith($rawTitle, $baseTitlePrefix) ? $rawTitle : $baseTitlePrefix . $rawTitle;
-        ?>
-        <title>{{ $fullTitle }}</title>
+    <title>{{ $documentationTitle }}</title>
     <link rel="stylesheet" type="text/css" href="{{ l5_swagger_asset($documentation, 'swagger-ui.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/icon-mttg.ico') }}">
-    <link rel="shortcut icon" href="{{ asset('images/icon-mttg.ico') }}" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/icon-mttg-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/icon-mttg-16x16.png') }}">
+    <link rel="icon" type="image/png" href="{{ l5_swagger_asset($documentation, 'favicon-32x32.png') }}" sizes="32x32"/>
+    <link rel="icon" type="image/png" href="{{ l5_swagger_asset($documentation, 'favicon-16x16.png') }}" sizes="16x16"/>
     <style>
     html
     {
