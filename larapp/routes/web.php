@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserApprovalController;
 
-
 // Dashboard: hanya butuh autentikasi (auth). Verified biasanya memeriksa email/akun terverifikasi.
 // Provide explicit GET view route for login so front 'Login' link always loads the login form.
 // Fortify handles the POST /login authentication; this GET route maps to the Blade view.

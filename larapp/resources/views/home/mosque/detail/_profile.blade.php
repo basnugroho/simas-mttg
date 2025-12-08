@@ -269,35 +269,7 @@
 			<div class="small text-muted">{{ $percentage }}%</div>
 		</div>
 
-		<div class="gallery-thumbs d-flex gap-2 mb-3">
-			@php
-			$thumbs = [];
-			// prefer photos from mosqueFacility photos if available
-			if(isset($mosque->mosqueFacility) && $mosque->mosqueFacility->count()){
-				foreach($mosque->mosqueFacility as $mf){
-							if($mf->photos && $mf->photos->count()){
-						foreach($mf->photos as $p){
-							if(!empty($p->url)){
-								$thumbs[] = $p->url;
-							} elseif(!empty($p->path)) {
-								try {
-									$thumbs[] = \Illuminate\Support\Facades\Storage::disk('public')->url($p->path);
-								} catch (Exception $e) {
-									$thumbs[] = null;
-								}
-							} else {
-								$thumbs[] = null;
-							}
-						}
-					}
-				}
-			}
-			// fallback to generic images
-			foreach(array_slice($thumbs,0,4) as $t){
-				echo '<div class="thumb"><img src="'.e($t).'" data-src="'.e($t).'" loading="lazy" class="img-fluid rounded" /></div>';
-			}
-			@endphp
-		</div>
+		
 
 		@php
 			// map mosqueFacility by facility name for quick lookup
@@ -371,10 +343,9 @@
 
 </div>
 <style>
-/* facility thumbs sizing */
-.gallery-thumbs .thumb img { width: 100%; height: 96px; object-fit: cover; display:block; }
-.gallery-thumbs .thumb { width: calc(25% - 12px); }
-@media (max-width: 768px) { .gallery-thumbs .thumb { width: calc(50% - 8px); } }
+/* facility thumbs sizing - responsive grid using Bootstrap ratios */
+.gallery-thumbs .thumb img { width: 100%; height: 100%; display:block; }
+.object-cover { object-fit: cover; }
 /* hero caption and thumbnail */
 .carousel-caption { bottom: 12px; left: 12px; right: auto; }
 .hero-thumb { cursor: pointer; }
