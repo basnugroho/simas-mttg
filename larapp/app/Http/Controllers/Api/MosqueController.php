@@ -459,4 +459,47 @@ class MosqueController extends Controller
 
         return $this->success(null, 'Fasilitas berhasil diperbarui');
     }
+
+    /**
+     * Return mosques (with lat/lng) whose facilities are incomplete.
+     * Criteria: completion_percentage < 100 OR missing any required facility.
+     */
+    public function incomplete(Request $request)
+    {
+        $threshold = (int) $request->query('threshold', 100);
+
+        $query = Mosque::query()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->with(['province', 'city']);
+
+        // mosques with explicit completion_percentage below threshold
+        $query->where(function ($q) use ($threshold) {
+            $q->where('completion_percentage', '<', $threshold)
+              ->orWhereNull('completion_percentage');
+        });
+
+        // Additionally allow filtering by type
+        if ($type = $request->query('type')) {
+            $query->where('type', $type);
+        }
+
+        // Limit results for map performance
+        $limit = (int) $request->query('limit', 1000);
+
+        $mosques = $query->limit($limit)->get()->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'type' => $m->type,
+                'latitude' => (float) $m->latitude,
+                'longitude' => (float) $m->longitude,
+                'completion_percentage' => $m->completion_percentage,
+                'province' => $m->province?->name,
+                'city' => $m->city?->name,
+            ];
+        });
+
+        return $this->success($mosques, 'Daftar masjid/musholla dengan fasilitas tidak lengkap');
+    }
 }

@@ -504,8 +504,9 @@
       })();
 
       // stacked/grouped bar chart (Masjid & Mushalla per region)
-      const ctx = document.getElementById('stackedBar').getContext('2d');
-      const stackedBar = new Chart(ctx, {
+      const stackedBarEl = document.getElementById('stackedBar');
+      const ctx = stackedBarEl && ((stackedBarEl.getContext && stackedBarEl.getContext('2d')) || (stackedBarEl.getContext ? stackedBarEl.getContext('2d') : null));
+      const stackedBar = ctx ? new Chart(ctx, {
         type: 'bar',
         data: {
           // x-axis: regions

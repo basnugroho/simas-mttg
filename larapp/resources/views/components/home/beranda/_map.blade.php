@@ -265,29 +265,40 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	window.addEventListener('mapFilterChange', async function(ev){
-		const d = ev.detail || {};
-		try{
-			// Build query ensuring area_id is preferred if present
-			const query = {};
-			if(d.type) query.type = d.type; // MASJID/MUSHOLLA
-			if(d.datel_id) query.datel_id = d.datel_id; // optional if supported
-			if(d.witel_id) query.witel_id = d.witel_id; // optional if supported
-			if(d.area_id) query.area_id = d.area_id; // primary filter requested
-			if(!query.area_id && d.regional_id) query.regional_id = d.regional_id;
+			const d = ev.detail || {};
+			try{
+				// If caller provided rows directly (client-side filtering), use them
+				if (Array.isArray(d.rows)){
+					// normalize objects to expected shape
+					const features = d.rows.map(r => ({ latitude: r.lat ?? r.latitude, longitude: r.lng ?? r.longitude, name: r.name, address: (r.city||'') + ' ' + (r.province||''), completion_percentage: r.completion_percentage ?? r.completionPercentage }));
+					// Clear existing markers before render
+					if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+					window.dispatchEvent(new CustomEvent('mapClearMarkers'));
+					renderMosqueMarkers(features);
+					return;
+				}
 
-			// Clear existing markers before render
-			if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
-			window.dispatchEvent(new CustomEvent('mapClearMarkers'));
+				// Build query ensuring area_id is preferred if present
+				const query = {};
+				if(d.type) query.type = d.type; // MASJID/MUSHOLLA
+				if(d.datel_id) query.datel_id = d.datel_id; // optional if supported
+				if(d.witel_id) query.witel_id = d.witel_id; // optional if supported
+				if(d.area_id) query.area_id = d.area_id; // primary filter requested
+				if(!query.area_id && d.regional_id) query.regional_id = d.regional_id;
 
-			const mosquesResp = await fetchMosques(query);
-			// Normalize to array of items (supports paginated response shape)
-			const mosques = Array.isArray(mosquesResp.items) ? mosquesResp.items : mosquesResp;
-			renderMosqueMarkers(mosques);
-		}catch(err){
-			console.error(err);
-			const statusEl = document.getElementById('mapStatus');
-			if(statusEl){ statusEl.textContent = 'Gagal memuat data masjid'; statusEl.style.display='block'; }
-		}
-	});
+				// Clear existing markers before render
+				if(window.clearMapMarkers) try{ window.clearMapMarkers(); }catch(e){}
+				window.dispatchEvent(new CustomEvent('mapClearMarkers'));
+
+				const mosquesResp = await fetchMosques(query);
+				// Normalize to array of items (supports paginated response shape)
+				const mosques = Array.isArray(mosquesResp.items) ? mosquesResp.items : mosquesResp;
+				renderMosqueMarkers(mosques);
+			}catch(err){
+				console.error(err);
+				const statusEl = document.getElementById('mapStatus');
+				if(statusEl){ statusEl.textContent = 'Gagal memuat data masjid'; statusEl.style.display='block'; }
+			}
+		});
 });
 </script>

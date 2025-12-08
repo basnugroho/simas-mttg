@@ -104,5 +104,4 @@
         })();
       </script>
     @endpush
-@endcomponent
-                    </form>
+    @endcomponent

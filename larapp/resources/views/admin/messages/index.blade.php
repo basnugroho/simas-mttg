@@ -150,7 +150,12 @@
           }
 
           fetch("{{ url('admin/messages') }}" + '/' + id + '/open', { method: 'POST', headers: {'X-CSRF-TOKEN': token, 'Accept': 'application/json'}, body: null })
-            .then(r => r.json())
+            .then(r => {
+              if (!r.ok) throw new Error('Network response was not OK: ' + r.status);
+              const ct = r.headers.get('content-type') || '';
+              if (!ct.includes('application/json')) throw new Error('Expected JSON response but got: ' + ct);
+              return r.json();
+            })
             .then(data => {
               // remove any existing detail rows
               document.querySelectorAll('tr.detail-row').forEach(el=>el.remove());
@@ -167,7 +172,12 @@
                 row.classList.remove('unread');
                 const badge = row.querySelector('.badge.bg-danger'); if(badge) badge.remove();
               }
-            }).catch(err => console.error(err));
+            }).catch(err => {
+              console.error('Failed to open message', err);
+              if (confirm('Terjadi kesalahan saat membuka pesan (mungkin sesi habis). Buka halaman pesan secara penuh?')) {
+                window.location = "{{ url('admin/messages') }}" + '/' + id;
+              }
+            });
         }
 
         // attach handlers
@@ -212,7 +222,12 @@
             if(!ids.length) return;
             if(!confirm('Mark '+ids.length+' pesan sebagai UNREAD?')) return;
             fetch("{{ url('admin/messages/mark-unread') }}", { method: 'POST', headers: {'X-CSRF-TOKEN': token, 'Accept': 'application/json','Content-Type':'application/json'}, body: JSON.stringify({ ids: ids }) })
-              .then(r => r.json())
+              .then(r => {
+                if (!r.ok) throw new Error('Network response was not OK: ' + r.status);
+                const ct = r.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) throw new Error('Expected JSON response but got: ' + ct);
+                return r.json();
+              })
               .then(data => {
                 if(data && data.unread !== undefined) {
                   updateSidebarUnread(data.unread);

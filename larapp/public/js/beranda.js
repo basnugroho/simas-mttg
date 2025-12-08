@@ -1,59 +1,60 @@
 (function(){
 	const input = document.getElementById('searchInput');
 	const box = document.getElementById('autocomplete');
-	// Guard: if the autocomplete elements are not present on this page, skip wiring
-	if(!input || !box) return;
 	let controller; let lastQuery=''; let hideTimeout;
 	let lastSuggestions = [];
 	let selectedId = null;
-	function fetchSuggestions(q){
-		if(!q || q.length < 2){ box.classList.add('d-none'); box.innerHTML=''; return; }
-		if(controller){ controller.abort(); }
-		controller = new AbortController();
-		fetch(`search/suggestions?q=${encodeURIComponent(q)}`, {signal:controller.signal})
-			.then(r=>r.json())
-			.then(data=>{
-				if(input.value !== q) return; // stale
-				if(!data.length){ box.innerHTML = `<div class='autocomplete-empty'>Tidak ada saran</div>`; box.classList.remove('d-none'); return; }
-				lastSuggestions = data || [];
-				box.innerHTML = data.map(item=>{
-					const rawWitel = item.witel || item.city || '';
-					const witel = rawWitel ? String(rawWitel).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
-					const name = item.name ? String(item.name).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
-					let type = item.type ? String(item.type).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
-					if(type) type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-					const display = `${name}`;
-					return `<div class='autocomplete-item' data-id="${item.id}" data-name="${name}"><span>${display}</span><small>${witel} | ${type}</small></div>`;
-				}).join('');
-				box.classList.remove('d-none');
-			})
-			.catch(()=>{ box.innerHTML = `<div class='autocomplete-empty'>Tidak ada saran</div>`; box.classList.remove('d-none'); });
-	}
-	input.addEventListener('input', e=>{
-		const q = e.target.value.trim();
-		// user typed after selecting suggestion -> clear selectedId
-		if(selectedId) selectedId = null;
-		if(q===lastQuery) return; lastQuery=q; fetchSuggestions(q);
-	});
-	input.addEventListener('focus', ()=>{ if(input.value.trim().length>=2) fetchSuggestions(input.value.trim()); });
-	box.addEventListener('click', e=>{
-		const item = e.target.closest('.autocomplete-item');
-		if(!item) return;
-		const id = item.getAttribute('data-id');
-		const name = item.getAttribute('data-name');
-		// Fill input and remember selected id; do NOT redirect yet.
-		input.value = name || '';
-		selectedId = (id || id === '0') ? id : null;
-		box.classList.add('d-none'); box.innerHTML='';
-	});
+	// Autocomplete wiring is optional — only attach when elements exist on the page
+	if (input && box) {
+		function fetchSuggestions(q){
+			if(!q || q.length < 2){ box.classList.add('d-none'); box.innerHTML=''; return; }
+			if(controller){ controller.abort(); }
+			controller = new AbortController();
+			fetch(`search/suggestions?q=${encodeURIComponent(q)}`, {signal:controller.signal})
+				.then(r=>r.json())
+				.then(data=>{
+					if(input.value !== q) return; // stale
+					if(!data.length){ box.innerHTML = `<div class='autocomplete-empty'>Tidak ada saran</div>`; box.classList.remove('d-none'); return; }
+					lastSuggestions = data || [];
+					box.innerHTML = data.map(item=>{
+						const rawWitel = item.witel || item.city || '';
+						const witel = rawWitel ? String(rawWitel).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+						const name = item.name ? String(item.name).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+						let type = item.type ? String(item.type).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+						if(type) type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+						const display = `${name}`;
+						return `<div class='autocomplete-item' data-id="${item.id}" data-name="${name}"><span>${display}</span><small>${witel} | ${type}</small></div>`;
+					}).join('');
+					box.classList.remove('d-none');
+				})
+				.catch(()=>{ box.innerHTML = `<div class='autocomplete-empty'>Tidak ada saran</div>`; box.classList.remove('d-none'); });
+		}
+		input.addEventListener('input', e=>{
+			const q = e.target.value.trim();
+			// user typed after selecting suggestion -> clear selectedId
+			if(selectedId) selectedId = null;
+			if(q===lastQuery) return; lastQuery=q; fetchSuggestions(q);
+		});
+		input.addEventListener('focus', ()=>{ if(input.value.trim().length>=2) fetchSuggestions(input.value.trim()); });
+		box.addEventListener('click', e=>{
+			const item = e.target.closest('.autocomplete-item');
+			if(!item) return;
+			const id = item.getAttribute('data-id');
+			const name = item.getAttribute('data-name');
+			// Fill input and remember selected id; do NOT redirect yet.
+			input.value = name || '';
+			selectedId = (id || id === '0') ? id : null;
+			box.classList.add('d-none'); box.innerHTML='';
+		});
 
-	const searchForm = document.getElementById('searchForm');
-	if(searchForm){
-		searchForm.addEventListener('submit', function(ev){ ev.preventDefault(); if(input.value.trim()===''){ return; } submitDynamic(); });
+		const searchForm = document.getElementById('searchForm');
+		if(searchForm){
+			searchForm.addEventListener('submit', function(ev){ ev.preventDefault(); if(input.value.trim()===''){ return; } submitDynamic(); });
+		}
+		document.addEventListener('click', e=>{
+			if(e.target===input || box.contains(e.target)) return; box.classList.add('d-none');
+		});
 	}
-	document.addEventListener('click', e=>{
-		if(e.target===input || box.contains(e.target)) return; box.classList.add('d-none');
-	});
 	// --- Dynamic Prayer Times ---
 	function formatTime(v){
 		if(!v) return '-';
@@ -534,24 +535,12 @@
 		if(!markersLayer) markersLayer = L.featureGroup().addTo(map);
 		markersLayer.clearLayers();
 
-		// prepare icons (cached)
-		if(!window.__simas_icons){
-			const base = window.location && window.location.origin ? window.location.origin : '';
-			window.__simas_icons = {
-				masjid: L.icon({ iconUrl: base + '/images/mosque-map-icon.png', iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -30] }),
-				musholla: L.icon({ iconUrl: base + '/images/mushalla-map-icon.png', iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -30] }),
-				default: L.icon({ iconUrl: base + '/images/mosque.png', iconSize: [34,34], iconAnchor: [17,34], popupAnchor: [0,-30] })
-			};
-		}
-
 		items.forEach(m=>{
 			if(!m.latitude || !m.longitude) return;
 			const lat = parseFloat(m.latitude);
 			const lng = parseFloat(m.longitude);
 			if(Number.isNaN(lat) || Number.isNaN(lng)) return;
-			const t = (m.type||'').toUpperCase();
-			const icon = t === 'MUSHOLLA' ? window.__simas_icons.musholla : (t === 'MASJID' ? window.__simas_icons.masjid : window.__simas_icons.default);
-			const marker = L.marker([lat, lng], { icon });
+			const marker = L.marker([lat, lng]);
 			marker.bindPopup(`<strong>${m.name}</strong><br><small>${m.address||''}</small>`);
 			markersLayer.addLayer(marker);
 		});

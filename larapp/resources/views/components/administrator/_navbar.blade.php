@@ -12,12 +12,7 @@
           </ul>
           <ul class="navbar-nav ms-auto">           
         
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-lte-toggle="fullscreen">
-                <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
-                <i data-lte-icon="minimize" class="bi bi-fullscreen-exit" style="display: none"></i>
-              </a>
-            </li>
+           
             <!--end::Fullscreen Toggle-->
             <!--begin::User Menu Dropdown-->
             <li class="nav-item dropdown user-menu">
@@ -41,19 +36,55 @@
                   <p>
                    {{ $user?->name ?? 'User' }}
                     <br>
-                    <small>{{ $user?->role ?? 'user' }}</small>
+                    @php
+                      
+                      $assignedMap = [];
+                      $roleLabels = [
+                        'admin_regional' => 'Admin Regional',
+                        'admin_area' => 'Admin Area',
+                        'admin_witel' => 'Admin Witel',
+                        'admin_sto' => 'Admin STO',
+                      ];
+                      try {
+                        if ($user) {
+                          foreach ($user->regionsRoles as $rr) {
+                            $rk = $rr->role_key ?? null;
+                            if (! $rk) continue;
+                            $label = $roleLabels[$rk] ?? $rk;
+                            $regionName = null;
+                            try { $regionName = $rr->region->name ?? null; } catch (\Throwable $e) { $regionName = null; }
+                            if (! $regionName) $regionName = $rr->region_id ?? null;
+                            if ($regionName) {
+                              $assignedMap[$label][] = $regionName;
+                            }
+                          }
+                        }
+                      } catch (\Throwable $e) { $assignedMap = []; }
+                    @endphp
+                    <small>@if(count($assignedMap)) @foreach($assignedMap as $label => $names){{ $label }}: {{ implode(', ', array_values(array_unique($names))) }}@if(! $loop->last); @endif @endforeach @endif</small>
                   </p>
                 </li>
                 <!--end::User Image-->
                 <!--begin::Menu Body-->
-               
+                <li class="user-body">
+                  <div class="row">
+                    <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <a href="{{ route('admin.users.password.edit', $user->id) }}" class="btn btn-sm btn-outline-secondary">Manage Password</a>
+                    </div>
+                    <div>
+                      <form method="POST" action="{{ route('logout') }}" class="m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-danger">Sign out</button>
+                      </form>
+                    </div>
+                  </div>
+                  </div>
+                </li>
                 <!--end::Menu Body-->
                 <!--begin::Menu Footer-->
                 <li class="user-footer px-3 py-2">
-                  <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-default btn-flat float-end">Sign out</button>
-                  </form>
+                  
                 </li>
                 <!--end::Menu Footer-->
               </ul>

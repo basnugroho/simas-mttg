@@ -59,9 +59,13 @@
       crossorigin="anonymous"
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
+    <!--begin::Third Party Plugin(FontAwesome)--> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+    <!--end::Third Party Plugin(FontAwesome)--> 
     <!--begin::Required Plugin(AdminLTE)-->
     <link rel="stylesheet" href="{{ asset('admin/css/adminlte.css') }}" />
     <!--end::Required Plugin(AdminLTE)-->
+    @stack('head')
   </head>
   <!--end::Head-->
   <!--begin::Body-->
@@ -79,13 +83,13 @@
           <a href="/" class="brand-link">
             <!--begin::Brand Image-->
             <img
-              src="{{ asset('images/logo.png') }}"
+              src="{{ asset('images/logo-mttg-white.png') }}"
               alt="MTTG Logo"
-              class="brand-image opacity-75 shadow"
+              class="brand-image"
             />
             <!--end::Brand Image-->
             <!--begin::Brand Text-->
-            <span class="brand-text fw-light">MTTG Admin</span>
+            <span class="brand-text fw-light"></span>
             <!--end::Brand Text-->
           </a>
           <!--end::Brand Link-->
@@ -176,6 +180,8 @@
       });
     </script>
     <!--end::OverlayScrollbars Configure-->
+    <!-- Render page-specific scripts pushed by child views -->
+    @stack('scripts')
     <!--end::Script-->
   </body>
   <!--end::Body-->
