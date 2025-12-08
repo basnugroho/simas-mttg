@@ -7,13 +7,27 @@
               <small class="text-muted">Filter cepat untuk menampilkan data pada tabel dan peta</small>
             </div>
             <div>
-              <form id="facFiltersForm" method="GET" action="" class="d-flex gap-2 align-items-center">
-                <select id="facRegional" name="regional_id" class="form-select form-select-sm" style="min-width:140px;"><option value="">Semua Regional</option></select>
-                <select id="facArea" name="area_id" class="form-select form-select-sm" style="min-width:140px;" disabled><option value="">Semua Area</option></select>
-                <select id="facWitel" name="witel_id" class="form-select form-select-sm" style="min-width:140px;" disabled><option value="">Semua Witel</option></select>
-                <select id="facSto" name="sto_id" class="form-select form-select-sm" style="min-width:140px;" disabled><option value="">Semua STO</option></select>
-                <select id="facType" name="type" class="form-select form-select-sm" style="min-width:120px;"><option value="">Jenis (Semua)</option><option value="masjid">Masjid</option><option value="mushalla">Mushalla</option></select>
-                <button id="facReset" type="button" class="btn btn-sm btn-outline-secondary">Reset</button>
+              <form id="facFiltersForm" method="GET" action="" class="w-100">
+                <div class="row g-2 align-items-center">
+                  <div class="col-12 col-sm-auto">
+                    <select id="facRegional" name="regional_id" class="form-select form-select-sm"><option value="">Semua Regional</option></select>
+                  </div>
+                  <div class="col-12 col-sm-auto">
+                    <select id="facArea" name="area_id" class="form-select form-select-sm" disabled><option value="">Semua Area</option></select>
+                  </div>
+                  <div class="col-12 col-sm-auto">
+                    <select id="facWitel" name="witel_id" class="form-select form-select-sm" disabled><option value="">Semua Witel</option></select>
+                  </div>
+                  <div class="col-12 col-sm-auto">
+                    <select id="facSto" name="sto_id" class="form-select form-select-sm" disabled><option value="">Semua STO</option></select>
+                  </div>
+                  <div class="col-12 col-sm-auto">
+                    <select id="facType" name="type" class="form-select form-select-sm"><option value="">Jenis (Semua)</option><option value="masjid">Masjid</option><option value="mushalla">Mushalla</option></select>
+                  </div>
+                  <div class="col-12 col-sm-auto">
+                    <button id="facReset" type="button" class="btn btn-sm btn-outline-secondary w-100 w-sm-auto">Reset</button>
+                  </div>
+                </div>
               </form>
             </div>
           </div>
