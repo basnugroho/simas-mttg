@@ -41,7 +41,7 @@
     @endphp
 
     <!-- Left sidebar -->
-  <aside id="sidebar" style="width:300px; background:#0b1220; color:#fff; padding:20px; display:flex; flex-direction:column; position:relative; transform:translateX(0); transition: transform .22s ease;">
+  <aside id="sidebar" class="admin-sidebar" style="width:300px; background:#0b1220; color:#fff; padding:20px; display:flex; flex-direction:column; position:relative; transform:translateX(0); transition: transform .22s ease;">
   <!-- sidebar hide toggle removed to keep sidebar always open -->
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px">
           <img src="https://svgshare.com/i/14jG.svg" alt="logo" style="width:44px;height:44px;border-radius:8px;background:#fff;padding:6px;" onerror="this.style.display='none'">
@@ -108,7 +108,10 @@
             <!-- header toggle hidden because we now have an X button inside the sidebar -->
             <button id="toggleSidebarBtn" style="display:none;padding:6px 10px">Toggle Nav</button>
             <!-- hamburger appears when sidebar is hidden so user can restore it -->
-            <button id="sidebarHamburgerBtn" aria-label="Open Nav" title="Open Nav" style="display:none; position:fixed; left:12px; top:12px; z-index:1200; width:44px; height:44px; border-radius:8px; background:#ef4444; color:#fff; border:0; cursor:pointer; font-size:18px; line-height:1">☰</button>
+                <button id="sidebarHamburgerBtn" aria-label="Open Nav" title="Open Nav" style="display:none; position:fixed; left:12px; top:12px; z-index:1200; width:44px; height:44px; border-radius:8px; background:#ef4444; color:#fff; border:0; cursor:pointer; font-size:18px; line-height:1">☰</button>
+          
+            <!-- mobile overlay (hidden by default) -->
+            <div id="sidebarOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1100;" aria-hidden="true"></div>
           </div>
 
           <div style="display:flex; align-items:center; gap:12px">
@@ -233,6 +236,15 @@
           .menu-link.active { background: linear-gradient(90deg,#ef4444 0,#f97316 100%); color: #fff !important; font-weight:600; box-shadow:0 6px 18px rgba(239,68,68,.12); }
           /* hide sidebar by sliding it left; width/padding will be handled by JS to restore exact original values */
           aside.sidebar-hidden { transform: translateX(-340px) !important; pointer-events: none; }
+            /* Responsive: collapse sidebar on small screens and show hamburger */
+            @media (max-width: 900px) {
+              .admin-sidebar { position:fixed; left:0; top:0; bottom:0; height:100vh; z-index:1150; box-shadow: 0 18px 60px rgba(2,6,23,.4); transform: translateX(-100%); transition: transform .22s ease, width .12s ease; }
+              .admin-sidebar.open { transform: translateX(0); }
+              #sidebarHamburgerBtn { display:block !important; }
+              .main-content { padding-left: 18px !important; }
+              /* make menu links easier to tap */
+              #sidebar-menu a.menu-link { padding:14px 12px !important; font-size:15px; }
+            }
           /* when nav is hidden and hamburger is visible, nudge the page content right so hamburger doesn't cover it */
           /* tune padding to match 300px sidebar and hamburger width so content returns to normal when restored */
           .nav-hidden .main-content { padding-left: 88px; }
@@ -313,7 +325,7 @@
         m.style.display = m.style.display === 'block' ? 'none' : 'block';
       });
 
-      // sidebar toggle (persisted)
+        // sidebar toggle (persisted + responsive overlay)
       (function(){
         // toggle sidebar visibility using the X button inside the sidebar
         const innerBtn = document.getElementById('sidebarToggleX');
@@ -338,6 +350,9 @@
           // show hamburger when hidden, hide inner X; reverse when visible
           if(hamburgerBtn) hamburgerBtn.style.display = hidden ? 'block' : 'none';
           if(innerBtn) innerBtn.style.display = hidden ? 'none' : 'block';
+          // overlay control for mobile
+          const overlay = document.getElementById('sidebarOverlay');
+          if(overlay) overlay.style.display = (!hidden && window.matchMedia && window.matchMedia('(max-width:900px)').matches) ? 'block' : 'none';
           // add/remove a body class so CSS can nudge the title when hamburger is visible
           try{ if(hidden) document.documentElement.classList.add('nav-hidden'); else document.documentElement.classList.remove('nav-hidden'); }catch(e){}
         }
@@ -350,21 +365,29 @@
           }catch(e){}
 
           if(hidden){
-            // collapse visually by setting inline width/padding to 0 and add class for transform/pointer-events
+            // Desktop behaviour: keep using sidebar-hidden class to slide left
             try{ sidebar.style.width = '0px'; sidebar.style.padding = '0px'; }catch(e){}
             sidebar.classList.add('sidebar-hidden');
+            // For small screens, also remove 'open' class to ensure it is hidden
+            try{ sidebar.classList.remove('open'); }catch(e){}
             // nudge main content to compensate (also recorded earlier)
             try{ const main = document.querySelector('.main-content'); if(main) main.style.paddingLeft = '88px'; }catch(e){}
           } else {
-            // remove class then restore inline width/padding from stored originals
-            sidebar.classList.remove('sidebar-hidden');
-            try{
-              // restore inline width/padding exactly as recorded at init
-              sidebar.style.width = (sidebar.dataset.origWidth || '300px');
-              sidebar.style.padding = (sidebar.dataset.origPadding || '20px');
-              // clear any inline transform that might interfere
-              sidebar.style.transform = '';
-            }catch(e){}
+            // If on mobile narrow screens, open overlay-style sidebar
+            const isMobile = window.matchMedia && window.matchMedia('(max-width:900px)').matches;
+            if(isMobile){
+              try{ sidebar.classList.add('open'); sidebar.style.width = (sidebar.dataset.origWidth || '300px'); sidebar.style.padding = (sidebar.dataset.origPadding || '20px'); }catch(e){}
+            } else {
+              // remove class then restore inline width/padding from stored originals
+              sidebar.classList.remove('sidebar-hidden');
+              try{
+                // restore inline width/padding exactly as recorded at init
+                sidebar.style.width = (sidebar.dataset.origWidth || '300px');
+                sidebar.style.padding = (sidebar.dataset.origPadding || '20px');
+                // clear any inline transform that might interfere
+                sidebar.style.transform = '';
+              }catch(e){}
+            }
             // also remove any nav-hidden adjustments on the document so main content returns to normal
             try{ document.documentElement.classList.remove('nav-hidden'); }catch(e){}
             // restore main-content padding to original value so layout exactly returns to previous state
@@ -413,6 +436,23 @@
           e.stopPropagation();
           setHidden(false);
         });
+
+        // overlay click should close mobile sidebar
+        const overlay = document.getElementById('sidebarOverlay');
+        if(overlay) overlay.addEventListener('click', function(){ setHidden(true); });
+
+        // when mobile and sidebar open, prevent body scrolling
+        function syncBodyScroll(){
+          const isOpenMobile = sidebar.classList.contains('open') && (window.matchMedia && window.matchMedia('(max-width:900px)').matches);
+          try{ document.body.style.overflow = isOpenMobile ? 'hidden' : ''; }catch(e){}
+        }
+
+        // observe class changes to sidebar to sync overlay/scroll
+        const obs = new MutationObserver(function(){ updateControls(); syncBodyScroll(); });
+        try{ obs.observe(sidebar, { attributes: true, attributeFilter: ['class', 'style'] }); }catch(e){}
+
+        // also update on resize so overlay appears/disappears appropriately
+        window.addEventListener('resize', function(){ updateControls(); syncBodyScroll(); });
 
         // also allow header button (hidden) to toggle for compatibility
         if(headerBtn) headerBtn.addEventListener('click', function(){

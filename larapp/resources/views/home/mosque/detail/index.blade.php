@@ -73,4 +73,5 @@
 			</script>
 		</div>
 	</div>
+<x-home._footer />
 </x-home.layout>

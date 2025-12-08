@@ -35,12 +35,11 @@
     @endphp
     <div class="card" style="margin-bottom:12px">
       <div class="card-body" style="display:flex;flex-direction:column;gap:8px;padding:10px 14px">
-        
         {{-- Compact search + type filter --}}
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin:0;flex:1">
-            <input type="search" name="q" value="{{ request('q', $q ?? '') }}" placeholder="Search..." class="form-control" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;min-width:220px;flex:1" />
-            <select name="type" class="form-select" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;height:34px;min-width:120px;max-width:180px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin:0;flex:1;min-width:0;flex-wrap:wrap">
+            <input type="search" name="q" value="{{ request('q', $q ?? '') }}" placeholder="Search..." class="form-control" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;min-width:140px;flex:1;min-width:0" />
+            <select name="type" class="form-select" style="padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;height:34px;min-width:100px;max-width:180px">
               <option value="">All types</option>
               <option value="MASJID" {{ (isset($filterType) && $filterType==='MASJID') ? 'selected' : '' }}>Masjid</option>
               <option value="MUSHOLLA" {{ (isset($filterType) && $filterType==='MUSHOLLA') ? 'selected' : '' }}>Musholla</option>
@@ -49,8 +48,7 @@
             <a href="{{ route('admin.mosques.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
           </form>
 
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="color:#6b7280;font-size:13px">Role: {{ $primaryRoleLabel }}</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
             <div>
               @can('create', \App\Models\Mosque::class)
                 <a href="{{ route('admin.mosques.create') }}" class="btn btn-success">Create Mosque</a>
@@ -61,7 +59,8 @@
       </div>
     </div>
 
-    <table class="table">
+    <div class="table-responsive" style="overflow:auto">
+      <table class="table table-responsive">
       <thead>
         <tr>
           <th>#</th>
@@ -244,7 +243,8 @@
           </tr>
         @endforeach
       </tbody>
-    </table>
+      </table>
+    </div>
 
     {{ $mosques->links() }}
   </div>
@@ -322,6 +322,28 @@
       .completion-fill.low{ background:#ef4444; } /* red */
       .completion-fill.mid{ background:#f59e0b; } /* amber */
       .completion-fill.high{ background:#10b981; } /* green */
+      /* Table responsive tweaks */
+      @media (max-width:900px){
+        table.table { font-size:13px; }
+        table.table td, table.table th { white-space:nowrap; }
+        .table-responsive { overflow-x:auto; }
+        /* make action buttons wrap into column */
+        table.table td[style*="display:flex"] { display:block !important; }
+        table.table td[style*="display:block"] { display:block !important; }
+        table.table td > .btn, table.table td a { margin:6px 6px 0 0; display:inline-block; }
+        .detail-columns{ gap:12px }
+        .detail-columns > div{ width:100% !important }
+        .detail-photos img{ max-width:100%; height:auto }
+      }
+      /* Filter form mobile tweaks */
+      @media (max-width:900px){
+        .card .card-body form[method="GET"] { width:100%; display:flex; flex-direction:column; gap:8px; }
+        .card .card-body form[method="GET"] input[type="search"],
+        .card .card-body form[method="GET"] select.form-select,
+        .card .card-body form[method="GET"] .btn{ width:100% !important; box-sizing:border-box }
+        .card .card-body .btn-sm { padding:10px 12px; font-size:14px }
+        .card .card-body .btn-outline-secondary { margin-top:6px }
+      }
     </style>
   @endpush
 

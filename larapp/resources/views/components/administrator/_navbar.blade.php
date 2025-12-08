@@ -95,3 +95,16 @@
         </div>
         <!--end::Container-->
       </nav>
+      <!-- mobile overlay element (toggled via small script) -->
+      <div id="admin-mobile-overlay" aria-hidden="true" onclick="document.body.classList.remove('sidebar-open')"></div>
+      <script>
+        (function(){
+          // lightweight toggle for mobile when AdminLTE isn't initializing overlay
+          document.addEventListener('click', function(e){
+            const toggle = e.target.closest('[data-lte-toggle="sidebar"]');
+            if(!toggle) return;
+            e.preventDefault();
+            document.body.classList.toggle('sidebar-open');
+          });
+        })();
+      </script>

@@ -32,14 +32,14 @@
         </div>
         <div class="card-body">
 
-        <form method="GET" class="mb-3 d-flex align-items-center gap-2">
-          <input type="text" name="filter_mosque" value="{{ request('filter_mosque') }}" placeholder="Cari nama masjid" class="form-control" style="max-width:320px">
-          <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control" style="max-width:180px">
-          <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="max-width:180px">
+        <form method="GET" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" name="filter_mosque" value="{{ request('filter_mosque') }}" placeholder="Cari nama masjid" class="form-control" style="min-width:160px;flex:1;min-width:0;">
+          <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control" style="min-width:140px">
+          <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="min-width:140px">
           <button type="submit" class="btn btn-outline-secondary">Filter</button>
 
           @php $createUrl = route('admin.mosque_activities.create'); if(isset($selected_mosque) && $selected_mosque){ $createUrl .= '?mosque=' . $selected_mosque->id; } @endphp
-          <a href="{{ $createUrl }}" class="btn btn-success me-2">Buat Aktivitas</a>
+          <a href="{{ $createUrl }}" class="btn btn-success me-2" style="margin-left:auto;">Buat Aktivitas</a>
         </form>
 
         <div class="table-responsive">
@@ -124,6 +124,17 @@
         <div class="mt-3">
           {{ $assignments->links() }}
         </div>
+        </div>
+        @push('head')
+          <style>
+            @media (max-width:900px){
+              form[method="GET"] { flex-direction:column !important; gap:8px; align-items:stretch }
+              form[method="GET"] .form-control, form[method="GET"] .btn, form[method="GET"] a.btn { width:100% !important; box-sizing:border-box }
+              .table-responsive table td .btn { display:block; width:100%; margin-bottom:6px }
+              .table-responsive table td img { width:100%; height:auto; max-width:160px; object-fit:cover }
+            }
+          </style>
+        @endpush
         </div>
       </div>
     </div>

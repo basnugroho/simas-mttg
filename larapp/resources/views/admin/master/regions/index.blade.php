@@ -25,16 +25,16 @@
           <h3 class="card-title">List Regional</h3>
         </div>
         <div class="card-body">
-          <form method="GET" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
+          <form method="GET" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
 
-      <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Search name" class="form-control" style="width:260px;display:inline-block" />
-      <select name="pov" class="form-control" style="width:220px">
+      <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Search name" class="form-control" style="min-width:160px;flex:1;min-width:0;" />
+      <select name="pov" class="form-control" style="min-width:140px;max-width:220px">
         <option value="">-- POV / Ordering --</option>
         @foreach(\App\Models\Regions::POVS as $povKey => $povLabel)
           <option value="{{ $povKey }}" {{ (isset($pov) && $pov === $povKey) ? 'selected' : '' }}>{{ $povLabel }}</option>
         @endforeach
       </select>
-      <select name="level" class="form-control" style="width:160px">
+      <select name="level" class="form-control" style="min-width:120px;max-width:160px">
         <option value="">-- Level --</option>
         <option value="ALL" {{ (isset($level) && $level === 'ALL') ? 'selected' : '' }}>All</option>
         @foreach(\App\Models\Regions::LEVELS as $lvl)
@@ -56,6 +56,7 @@
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 
     <div class="card-body p-0 border-top" style="padding-top:8px;">
+    <div class="table-responsive" style="overflow:auto">
     <table class="table table-sm table-striped" role="table">
       <thead>
         <tr>
@@ -156,10 +157,21 @@
         @endif
       </tbody>
     </table>
+    </div>
 
     {{ $regions->withQueryString()->links() }}
   </div>
 </div>
+
+@push('head')
+  <style>
+    @media (max-width:900px){
+      form[method="GET"] { flex-direction:column !important; gap:8px; align-items:stretch }
+      form[method="GET"] .form-control, form[method="GET"] .btn { width:100% !important; box-sizing:border-box }
+      .table-responsive table td .btn { display:block; margin-bottom:6px }
+    }
+  </style>
+@endpush
 
   @push('scripts')
     <script>
