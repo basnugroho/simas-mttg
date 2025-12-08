@@ -5,8 +5,7 @@
 
           <div id="map" style="height:420px; width:100%;"></div>
 
-          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+          <!-- Leaflet assets are loaded by the parent dashboard view to avoid duplicate includes -->
 
           <script>
             document.addEventListener('DOMContentLoaded', function(){

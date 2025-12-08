@@ -22,6 +22,7 @@ class DashboardController extends Controller
         $labels = [];
         $masjidTotals = [];
         $masjidComplete = [];
+        $masjidComplete100 = [];
         $mushollaTotals = [];
         $mushollaComplete = [];
 
@@ -39,8 +40,11 @@ class DashboardController extends Controller
             $masjidTotals[] = $masjidCount;
             $mushollaTotals[] = $mushallaCount;
 
-            // 'Lengkap' defined as completion_percentage >= 90
+            // 'Lengkap' (existing metric) kept for other charts; additionally compute 100% complete counts
+            // 'Lengkap' defined as completion_percentage >= 90 (kept for backward compatibility)
             $masjidComplete[] = (clone $provinceMosques)->whereRaw("LOWER(COALESCE(type,'masjid')) != 'mushalla'")->where('completion_percentage', '>=', 90)->count();
+            // 'Lengkap100' defined as completion_percentage == 100
+            $masjidComplete100[] = (clone $provinceMosques)->whereRaw("LOWER(COALESCE(type,'masjid')) != 'mushalla'")->where('completion_percentage', 100)->count();
             $mushollaComplete[] = (clone $provinceMosques)->whereRaw("LOWER(COALESCE(type,'masjid')) = 'mushalla'")->where('completion_percentage', '>=', 90)->count();
 
             $summary[$key] = [
@@ -57,6 +61,7 @@ class DashboardController extends Controller
         $masjidTotals[] = $summary['total']['masjid'];
         $mushollaTotals[] = $summary['total']['mushalla'];
         $masjidComplete[] = Mosque::whereRaw("LOWER(COALESCE(type,'masjid')) != 'mushalla'")->where('completion_percentage', '>=', 90)->count();
+        $masjidComplete100[] = Mosque::whereRaw("LOWER(COALESCE(type,'masjid')) != 'mushalla'")->where('completion_percentage', 100)->count();
         $mushollaComplete[] = Mosque::whereRaw("LOWER(COALESCE(type,'masjid')) = 'mushalla'")->where('completion_percentage', '>=', 90)->count();
 
         // Build Chart.js datasets
@@ -64,11 +69,13 @@ class DashboardController extends Controller
             'labels' => $labels,
             'datasets' => [
                 [ 'label' => 'Masjid (Total)', 'backgroundColor' => '#1f77b4', 'data' => $masjidTotals ],
-                [ 'label' => 'Masjid (Lengkap)', 'backgroundColor' => '#17a2b8', 'data' => $masjidComplete ],
+                [ 'label' => 'Masjid (Lengkap >=90%)', 'backgroundColor' => '#17a2b8', 'data' => $masjidComplete ],
                 [ 'label' => 'Musholla (Total)', 'backgroundColor' => '#6c757d', 'data' => $mushollaTotals ],
-                [ 'label' => 'Musholla (Lengkap)', 'backgroundColor' => '#dc3545', 'data' => $mushollaComplete ],
+                [ 'label' => 'Musholla (Lengkap >=90%)', 'backgroundColor' => '#dc3545', 'data' => $mushollaComplete ],
             ],
         ];
+
+        // masjidCompleteChart will be computed later grouped by area (after areaRows is available)
 
         // Stacked percentage chart for facility completeness per area
         $requiredCount = \App\Models\Facility::where('is_required', true)->count();
@@ -128,7 +135,8 @@ class DashboardController extends Controller
             ->leftJoin('regions as b', 'b.id', '=', 'a.area_id')
             ->select('b.name',
                 DB::raw("COUNT(case when LOWER(COALESCE(a.type,'masjid')) != 'musholla' then 1 end) as total_masjid"),
-                DB::raw("COUNT(case when LOWER(COALESCE(a.type,'masjid')) = 'musholla' then 1 end) as total_musholla")
+                DB::raw("COUNT(case when LOWER(COALESCE(a.type,'masjid')) = 'musholla' then 1 end) as total_musholla"),
+                DB::raw("COUNT(case when LOWER(COALESCE(a.type,'masjid')) != 'musholla' and a.completion_percentage = 100 then 1 end) as complete100_masjid")
             )
             ->groupBy('b.name')
             ->get();
@@ -136,6 +144,29 @@ class DashboardController extends Controller
         $areaLabels = $areaRows->pluck('name')->map(function($v){ return $v ?? 'Unknown'; })->toArray();
         $areaMasjid = $areaRows->pluck('total_masjid')->map(function($v){ return (int)$v; })->toArray();
         $areaMusholla = $areaRows->pluck('total_musholla')->map(function($v){ return (int)$v; })->toArray();
+
+        // Build masjid complete (100%) vs not-100% counts grouped by area
+        $areaMasjidComplete100 = $areaRows->pluck('complete100_masjid')->map(function($v){ return (int)$v; })->toArray();
+        $areaMasjidIncomplete = [];
+        foreach ($areaMasjid as $i => $t) {
+            $c = isset($areaMasjidComplete100[$i]) ? (int)$areaMasjidComplete100[$i] : 0;
+            $areaMasjidIncomplete[] = max(0, ((int)$t - $c));
+        }
+
+        // append overall totals as final label
+        $overallTotalMasjid = array_sum($areaMasjid);
+        $overallComplete100 = array_sum($areaMasjidComplete100);
+        $areaLabels[] = 'Keseluruhan';
+        $areaMasjidComplete100[] = $overallComplete100;
+        $areaMasjidIncomplete[] = max(0, $overallTotalMasjid - $overallComplete100);
+
+        $masjidCompleteChart = [
+            'labels' => $areaLabels,
+            'datasets' => [
+                [ 'label' => 'Lengkap (100%)', 'backgroundColor' => '#10b981', 'data' => $areaMasjidComplete100 ],
+                [ 'label' => 'Belum Lengkap', 'backgroundColor' => '#ef4444', 'data' => $areaMasjidIncomplete ],
+            ],
+        ];
 
         $areaPieData = [
             'labels' => $areaLabels,
@@ -156,9 +187,19 @@ class DashboardController extends Controller
         ];
 
         // Incomplete list: lowest completion_percentage, limit 12 (eager-load area to avoid N+1)
+        // Also include some mosques that are 100% complete so the table can show which entries
+        // have full completeness. We'll merge both sets and take the first 12 sorted by percentage.
         $incompleteList = Mosque::with(['area'])->where(function($q){
                 $q->whereNull('completion_percentage')->orWhere('completion_percentage', '<', 100);
-            })->orderBy('completion_percentage', 'asc')->limit(12)->get();
+            })->orderBy('completion_percentage', 'asc')->get();
+
+        $complete100List = Mosque::with(['area'])->where('completion_percentage', 100)->orderBy('name','asc')->get();
+
+        // Merge and sort by completion percentage (null treated as 0), then limit to 12 rows
+        $incompleteList = $incompleteList->merge($complete100List)
+            ->sortBy(function($m){ return (int)($m->completion_percentage ?? 0); })
+            ->values()
+            ->take(12);
 
         // Map points: mosques with lat/lng
         $mapPoints = Mosque::whereNotNull('latitude')->whereNotNull('longitude')
@@ -174,7 +215,7 @@ class DashboardController extends Controller
             })->toArray();
 
         return view('administrator.dashboard.main', compact(
-            'summary','barData','donutMasjid','donutMusholla','incompleteList','mapPoints','stackFacilitiesData','areaPieData','provinces'
+            'summary','barData','donutMasjid','donutMusholla','incompleteList','mapPoints','stackFacilitiesData','areaPieData','provinces','masjidCompleteChart'
         ));
     }
 }

@@ -304,17 +304,7 @@
       </div>
     </div>
 
-    <!-- scripts for charts and map -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script>
-      // register datalabels plugin
-      if(window && window.Chart && window.ChartDataLabels){
-        Chart.register(window.ChartDataLabels);
-      }
-    </script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- scripts for charts and map are loaded in the administrator layout to avoid duplicate inclusions -->
 
     <script>
       // user menu toggle
@@ -506,21 +496,12 @@
       // stacked/grouped bar chart (Masjid & Mushalla per region)
       const stackedBarEl = document.getElementById('stackedBar');
       const ctx = stackedBarEl && ((stackedBarEl.getContext && stackedBarEl.getContext('2d')) || (stackedBarEl.getContext ? stackedBarEl.getContext('2d') : null));
-      const stackedBar = ctx ? new Chart(ctx, {
-        type: 'bar',
-        data: {
-          // x-axis: regions
-          labels: ['Jawa Timur','Bali','Nusa Tenggara'],
-          datasets: [
-            // Masjid stack (shows Lengkap then Belum Lengkap stacked)
-            { label: 'Masjid (Lengkap)', data: [5,2,3], backgroundColor: '#ef4444', stack: 'masjid' },
-            { label: 'Masjid (Belum Lengkap)', data: [3,1,1], backgroundColor: '#fca5a5', stack: 'masjid' },
-            // Mushalla stack
-            { label: 'Mushalla (Lengkap)', data: [4,3,2], backgroundColor: '#10b981', stack: 'mushalla' },
-            { label: 'Mushalla (Belum Lengkap)', data: [3,1,4], backgroundColor: '#9fe6c9', stack: 'mushalla' },
-          ]
-        },
-        options: {
+      const stackedBarData = @json($masjidCompleteChart ?? ['labels'=>['Jawa Timur','Bali','Nusa Tenggara'],'datasets'=>[]]);
+      console.debug('masjidCompleteChart', stackedBarData);
+      let stackedBar = null;
+      if (ctx) {
+        const _sbPlugins = (window.ChartDataLabels ? [ChartDataLabels] : []);
+        const _sbOptions = {
           responsive: true,
           plugins: {
             legend: {
@@ -528,39 +509,50 @@
               position: 'bottom',
               labels: { usePointStyle: true, pointStyle: 'circle', color: '#e5e7eb' }
             },
-            tooltip: { enabled: true }
+            tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + (Math.round(ctx.parsed.x || ctx.parsed.y || 0)); } } }
           },
-          // grouped stacks: x not stacked so different 'stack' groups are side-by-side,
-          // y stacked so datasets with same stack value stack on top of each other
+          scales: {
+            x: { stacked: true, beginAtZero:true, ticks: { color: '#cbd5e1', precision:0, stepSize: 1, callback: function(v){ return Math.round(v); } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            y: { stacked: false, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+          },
+          datasets: { bar: { categoryPercentage: 0.6, barPercentage: 0.9 } }
+        };
+        if (window.ChartDataLabels) {
+          _sbOptions.plugins.datalabels = {
+            display: true,
+            color: '#ffffff',
+            formatter: (value) => (value || value === 0) ? String(Math.round(value)) : '',
+            font: { weight: '700', size: 11 },
+            anchor: 'center',
+            align: 'center'
+          };
+        }
+        // Create grouped vertical bars (x axis = areas) showing Lengkap vs Belum Lengkap per area
+        stackedBar = new Chart(ctx, { type: 'bar', data: stackedBarData, options: Object.assign({}, _sbOptions, {
+          plugins: Object.assign({}, _sbOptions.plugins, { tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + (Math.round(ctx.parsed.y || ctx.parsed.x || 0)); } } } }),
           scales: {
             x: { stacked: false, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.03)' } },
-            y: { stacked: true, beginAtZero:true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+            y: { stacked: false, beginAtZero: true, ticks: { precision:0, stepSize:1, callback: function(v){ return Math.round(v); } }, grid: { color: 'rgba(255,255,255,0.03)' } }
           },
-          // spacing tweaks so two stacks per region look balanced
-          datasets: {
-            bar: { categoryPercentage: 0.6, barPercentage: 0.9 }
-          }
-        }
-      });
+          datasets: { bar: { categoryPercentage: 0.7, barPercentage: 0.9, borderRadius: 6 } }
+        }), plugins: _sbPlugins });
+      }
 
       // pies with data labels (values only) and right-side legend
 
-  const pie1 = new Chart(document.getElementById('pie1'), {
-        type: 'doughnut',
-        data: { labels:['Jawa Timur','Bali','Nusa Tenggara'], datasets:[{data:[8,3,4], backgroundColor:['#3b82f6','#ef4444','#10b981']}] },
-        options:{
-          responsive:true,
-          plugins: {
-            legend: { position: 'right', labels: { usePointStyle: true, pointStyle: 'circle' } },
-            datalabels: {
-              color: '#fff',
-              formatter: (value) => { return value; },
-              font: { weight: '600', size: 12 }
-            }
-          }
-        },
-        plugins: [ChartDataLabels]
-      });
+  (function(){
+    const el = document.getElementById('pie1');
+    if (!el) return;
+    const _piePlugins = (window.ChartDataLabels ? [ChartDataLabels] : []);
+    const _pieOptions = {
+      responsive:true,
+      plugins: { legend: { position: 'right', labels: { usePointStyle: true, pointStyle: 'circle' } } }
+    };
+    if (window.ChartDataLabels) {
+      _pieOptions.plugins.datalabels = { color: '#fff', formatter: (value) => { return value; }, font: { weight: '600', size: 12 } };
+    }
+    new Chart(el, { type: 'doughnut', data: { labels:['Jawa Timur','Bali','Nusa Tenggara'], datasets:[{data:[8,3,4], backgroundColor:['#3b82f6','#ef4444','#10b981']}] }, options: _pieOptions, plugins: _piePlugins });
+  })();
 
       // set pie total text above each pie (will run after both pies are created)
 
@@ -572,56 +564,58 @@
         if(el1) { el1.innerText = total1 + ' Masjid'; el1.style.fontSize = '18px'; el1.style.fontWeight = '700'; }
       }catch(e){ console.warn('set pie totals failed', e); }
 
-      // Ensure bar chart doesn't show datalabels and update summary cards from datasets
+      // Ensure bar chart shows datalabels and update the summary cards using server-provided bar data
       try{
-  if(stackedBar && stackedBar.data && stackedBar.data.datasets){
-          // explicitly disable datalabels for bar
-          if(stackedBar.options.plugins) stackedBar.options.plugins.datalabels = { display: false };
-
-          // compute sums per region
-          const ds = stackedBar.data.datasets;
-          const regions = stackedBar.data.labels; // ['Jawa Timur','Bali','Nusa Tenggara']
+        const serverBarData = @json($barData ?? null);
+        // If server-provided barData exists, prefer it for summary numbers (more reliable than parsing chart labels)
+        if (serverBarData && serverBarData.datasets && Array.isArray(serverBarData.datasets)){
+          // find Masjid total dataset and Musholla total dataset
+          const masjidTotalDs = serverBarData.datasets.find(d => /Masjid/i.test(d.label) && /Total/i.test(d.label)) || serverBarData.datasets.find(d => /^Masjid/i.test(d.label));
+          const mushTotalDs = serverBarData.datasets.find(d => /Musholla|Mushalla|Mushola/i.test(d.label) && /Total/i.test(d.label)) || serverBarData.datasets.find(d => /Musholla|Mushalla|Mushola/i.test(d.label));
           const idMap = ['jt','bali','nt'];
-          let grandTotal = 0;
-          let grandLengkap = 0;
+          let grandTotal = 0, grandMasjid = 0, grandMush = 0;
           idMap.forEach((id, idx) => {
-            let total = 0, masjid = 0, mushalla = 0;
-            ds.forEach(d => {
-              const v = Number(d.data[idx] || 0);
-              total += v;
-              if(/Masjid/i.test(d.label)) masjid += v;
-              if(/Mushalla|Mushola|Musholla/i.test(d.label)) mushalla += v;
-            });
-            grandTotal += total;
-            // accumulate totals for grand breakdown
-            // attach per-region values to DOM
+            const masjid = masjidTotalDs ? Number(masjidTotalDs.data[idx] || 0) : 0;
+            const mush = mushTotalDs ? Number(mushTotalDs.data[idx] || 0) : 0;
+            const total = masjid + mush;
+            grandTotal += total; grandMasjid += masjid; grandMush += mush;
             const countEl = document.getElementById(id + '-count');
             const masjidEl = document.getElementById(id + '-masjid');
             const mushEl = document.getElementById(id + '-mushalla');
             if(countEl) countEl.innerText = total;
             if(masjidEl) masjidEl.innerText = masjid;
-            if(mushEl) mushEl.innerText = mushalla;
-            // sum grand breakdown
-            const grandMasjidEl = document.getElementById('total-masjid');
-            const grandMushEl = document.getElementById('total-mushalla');
-            if(!window.__grandMasjid) window.__grandMasjid = 0;
-            if(!window.__grandMush) window.__grandMush = 0;
-            window.__grandMasjid += masjid;
-            window.__grandMush += mushalla;
+            if(mushEl) mushEl.innerText = mush;
           });
           const totalEl = document.getElementById('total-count');
           if(totalEl) totalEl.innerText = grandTotal;
           const grandMasjidEl = document.getElementById('total-masjid');
           const grandMushEl = document.getElementById('total-mushalla');
-          if(grandMasjidEl) grandMasjidEl.innerText = window.__grandMasjid || 0;
-          if(grandMushEl) grandMushEl.innerText = window.__grandMush || 0;
+          if(grandMasjidEl) grandMasjidEl.innerText = grandMasjid || 0;
+          if(grandMushEl) grandMushEl.innerText = grandMush || 0;
+
+          // ensure datalabels remain enabled on the chart
+          if(stackedBar && stackedBar.options && stackedBar.options.plugins) stackedBar.options.plugins.datalabels = {
+            display: true,
+            color: '#ffffff',
+            formatter: (value) => (value || value === 0) ? value : '',
+            font: { weight: '700', size: 11 },
+            anchor: 'center',
+            align: 'center'
+          };
+        } else if(stackedBar && stackedBar.data && stackedBar.data.datasets){
+          // fallback: enable datalabels for chart segments
+          if(stackedBar.options.plugins) stackedBar.options.plugins.datalabels = {
+            display: true,
+            color: '#ffffff',
+            formatter: (value) => (value || value === 0) ? value : '',
+            font: { weight: '700', size: 11 },
+            anchor: 'center',
+            align: 'center'
+          };
         }
       }catch(e){ console.warn('update cards failed', e); }
 
-      // leaflet map (dummy)
-      const map = L.map('map').setView([-7.25,112.75],7);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      // example marker removed
+      // Leaflet map is initialized in the administrator dashboard main view to avoid duplicate map instances.
     </script>
 
   @else

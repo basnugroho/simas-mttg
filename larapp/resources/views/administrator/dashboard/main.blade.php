@@ -39,6 +39,7 @@
 
   @push('scripts')
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
   document.addEventListener('DOMContentLoaded', function(){
@@ -207,27 +208,44 @@
       }
     }
 
-    // Stacked facilities percentage chart
-    const stackFacilitiesData = @json($stackFacilitiesData ?? null);
-    const stackEl = document.getElementById('stackFacilitiesChart');
-    if (stackEl && stackFacilitiesData) {
-      const stackCtx = (stackEl.getContext && stackEl.getContext('2d')) || (stackEl.getContext ? stackEl.getContext('2d') : null);
-      if (stackCtx) new Chart(stackCtx, {
-        type: 'bar',
-        data: stackFacilitiesData,
-        options: {
+    // Masjid completeness counts chart (100% vs <100%)
+    const masjidCompleteData = @json($masjidCompleteChart ?? null);
+    const masjidCompleteEl = document.getElementById('masjidCompleteChart');
+    if (masjidCompleteEl && masjidCompleteData) {
+      const mctx = (masjidCompleteEl.getContext && masjidCompleteEl.getContext('2d')) || (masjidCompleteEl.getContext ? masjidCompleteEl.getContext('2d') : null);
+      if (mctx) {
+        // enable datalabels only when plugin is available; pass plugin instance explicitly
+        const _masjidPlugins = (window.ChartDataLabels ? [ChartDataLabels] : []);
+        const _masjidOptions = {
           responsive: true,
           maintainAspectRatio: false,
-          scales: {
-            x: { stacked: true },
-            y: { stacked: true, beginAtZero: true, max: 100, ticks: { callback: function(v){ return v + '%'; } } }
-          },
           plugins: {
             legend: { display: true, position: 'bottom' },
-            tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + ctx.parsed.y + '%'; } } }
-          }
+            tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + (Math.round(ctx.parsed.x || ctx.parsed.y || 0)); } } }
+          },
+          scales: {
+            x: { stacked: true, beginAtZero:true, ticks:{ precision:0, stepSize:1, callback: function(val){ return Math.round(val); } } },
+            y: { stacked: false }
+          },
+          datasets: { bar: { categoryPercentage: 0.7, barPercentage: 0.9, borderRadius: 6 } }
+        };
+        if (window.ChartDataLabels) {
+          _masjidOptions.plugins.datalabels = { display: true, color: '#fff', formatter: (v)=> (v||v===0)?String(Math.round(v)):'', font:{weight:'700',size:11} };
         }
-      });
+        new Chart(mctx, {
+          type: 'bar',
+          data: masjidCompleteData,
+          options: Object.assign({}, _masjidOptions, {
+            // grouped vertical bars (x axis = areas)
+            plugins: Object.assign({}, _masjidOptions.plugins, { tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + (Math.round(ctx.parsed.y || ctx.parsed.x || 0)); } } } }),
+            scales: {
+              x: { stacked: false, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+              y: { stacked: false, beginAtZero: true, ticks: { precision:0, stepSize:1, callback: function(v){ return Math.round(v); } }, grid: { color: 'rgba(255,255,255,0.03)' } }
+            }
+          }),
+          plugins: _masjidPlugins
+        });
+      }
     }
 
     // Donut charts
@@ -245,59 +263,7 @@
       if (donutMusholla) new Chart(donutMusholla, Object.assign({ type: 'doughnut' }, donutMushollaData, { options: Object.assign({ cutout:'70%' }, donutMushollaData.options || {}) }));
     }
 
-    // Leaflet map with defensive init and auto-fit
-    try {
-      if (typeof L === 'undefined') throw new Error('Leaflet not loaded');
-      let map;
-      if (window._mapInstance) {
-        map = window._mapInstance;
-        try{ map.setView([-7.5, 112.5], 6); }catch(e){}
-      } else {
-        map = L.map('map').setView([-7.5, 112.5], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
-        window._mapInstance = map;
-      }
-
-      if (!window._mosqueMarkerLayer) window._mosqueMarkerLayer = L.layerGroup().addTo(map);
-      window.clearMapMarkers = function(){ try{ window._mosqueMarkerLayer.clearLayers(); }catch(e){} };
-      window.renderMosqueMarkers = function(features){
-        try{
-          window._mosqueMarkerLayer.clearLayers();
-          features.forEach(function(f){ if(f.lat && f.lng){ const m = L.marker([f.lat, f.lng]); m.bindPopup(`<strong>${f.name||''}</strong><br/>${f.address||''}`); window._mosqueMarkerLayer.addLayer(m); } });
-        }catch(e){ console.error('renderMosqueMarkers failed', e); }
-      };
-
-      // Add initial points (server-provided) but clear previous to avoid duplicates
-      const points = @json($mapPoints ?? []);
-      const incompletePoints = Array.isArray(points) ? points.filter(function(p){
-        return (p.completion_percentage === null || p.completion_percentage === undefined || Number(p.completion_percentage) < 100);
-      }) : [];
-      window._mosqueMarkerLayer.clearLayers();
-      const markerLocations = [];
-      incompletePoints.forEach(function(p){
-        if (!p.lat || !p.lng) return;
-        try {
-          const m = L.marker([p.lat, p.lng]).bindPopup(p.popup || p.name || '');
-          window._mosqueMarkerLayer.addLayer(m);
-          markerLocations.push([p.lat, p.lng]);
-        } catch(e){ console.warn('marker add failed', e, p); }
-      });
-
-      if (markerLocations.length) {
-        try {
-          const bounds = L.latLngBounds(markerLocations);
-          map.fitBounds(bounds.pad(0.1));
-        } catch(e){ console.warn('fitBounds failed', e); }
-      }
-
-      // In some layouts the map container may be hidden when Leaflet initialises.
-      // Force an invalidateSize after a small delay to ensure tiles/rendering appear.
-      setTimeout(function(){
-        try { map.invalidateSize(); } catch(e){ /* ignore */ }
-      }, 250);
-    } catch (e) {
-      console.warn('Map initialization failed', e);
-    }
+    // Map initialization and marker rendering are handled in the `_map.blade.php` partial.
   });
   </script>
   @endpush

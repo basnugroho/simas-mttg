@@ -164,6 +164,22 @@
                         }
                     },
                     {
+                        "name": "area_id",
+                        "in": "query",
+                        "description": "Filter berdasarkan AREA (melalui WITEL)",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "regional_id",
+                        "in": "query",
+                        "description": "Filter berdasarkan REGIONAL (semua AREA di bawahnya)",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "type",
                         "in": "query",
                         "description": "Jenis: MASJID atau MUSHOLLA",
@@ -594,17 +610,17 @@
                 "operationId": "f3f0f56567e9839f5d7c8b5def0c2aa8",
                 "parameters": [
                     {
-                        "name": "type",
+                        "name": "level",
                         "in": "query",
-                        "description": "PROVINCE / CITY / WITEL / OTHER",
+                        "description": "REGIONAL / AREA / WITEL / STO",
                         "required": false,
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "PROVINCE",
-                                "CITY",
+                                "REGIONAL",
+                                "AREA",
                                 "WITEL",
-                                "OTHER"
+                                "STO"
                             ]
                         }
                     },
@@ -641,8 +657,12 @@
                                                     "name": {
                                                         "type": "string"
                                                     },
-                                                    "type": {
+                                                    "level": {
                                                         "type": "string"
+                                                    },
+                                                    "level_label": {
+                                                        "type": "string",
+                                                        "nullable": true
                                                     },
                                                     "code": {
                                                         "type": "string",
