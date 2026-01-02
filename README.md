@@ -60,6 +60,38 @@ Perintah umum
   docker compose exec app php artisan <perintah>
   ```
 
+**Cara Rebuild (image, container, dan aset)**
+
+- Rebuild cepat (Docker, development):
+  ```bash
+  # hentikan dan hapus container + volume lalu build ulang
+  docker compose down -v
+  docker compose up -d --build --force-recreate
+
+  # jalankan migrasi + cache konfigurasi di container app
+  docker compose exec app php artisan migrate --force
+  docker compose exec app php artisan config:cache
+  docker compose exec app php artisan route:cache
+  ```
+
+- Rebuild di mesin lokal tanpa Docker (opsional):
+  ```bash
+  cd larapp
+  composer install --no-interaction --optimize-autoloader
+  npm install
+  npm run build
+  php artisan migrate --force
+  php artisan config:cache
+  php artisan route:cache
+  ```
+
+- Rebuild untuk production (gunakan file compose produksi):
+  ```bash
+  docker compose -f docker-compose.prod.yml --env-file larapp/.env.prod up -d --build --force-recreate
+  ```
+
+Catatan: sesuaikan `--env-file` dan variabel `APP_HOST_PORT` jika diperlukan.
+
 Penanganan masalah cepat
 - Jika inisialisasi DB gagal: periksa `larapp/.env` dan `docker compose logs db`.
 - Jika CSS/JS tidak berubah saat development: pastikan Vite berjalan dan port 5173 bisa diakses.
