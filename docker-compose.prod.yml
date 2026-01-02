@@ -6,7 +6,8 @@ services:
     image: simas-mttg-prod
     container_name: simas-mttg-prod
     ports:
-      - "80:80"
+      # Host port configurable via `APP_HOST_PORT` in `larapp/.env.prod` (default 8090)
+      - "${APP_HOST_PORT:-8090}:80"
     env_file:
       - ./larapp/.env.prod
     depends_on:

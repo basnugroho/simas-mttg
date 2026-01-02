@@ -127,6 +127,7 @@ docker compose -f docker-compose.prod.yml --env-file larapp/.env.prod down
 
 Notes:
 - The host port for the app is configurable with `APP_HOST_PORT` in `larapp/.env.prod` (default `8090`). `docker-compose.prod.yml` uses `${APP_HOST_PORT:-8090}:80` so you can change the host mapping without editing compose.
-- `APP_URL` in `larapp/.env.prod` should be set to your public hostname (for example `http://mttg.solusee.id:8090`).
+- `APP_URL` in `larapp/.env.prod` should be set to your public hostname (for example `http://mttg.solusee.id:8091`).
 - `larapp/.env.prod` is intentionally ignored; keep it secret. Use `larapp/.env.prod.example` as a template for onboarding.
+- Production server note: the server at `10.110.13.28` (hostname `mttg.solusee.id`) is currently exposed to the public on host port `8091`.
 - For CI/CD, run the equivalent of `scripts/sync-env.sh` (or set `APP_HOST_PORT` as an environment variable) before running `docker compose` so interpolation works in the pipeline.
