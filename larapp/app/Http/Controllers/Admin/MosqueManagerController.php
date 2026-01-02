@@ -32,8 +32,6 @@ class MosqueManagerController extends Controller
             ->orderBy('created_at','desc');
 
         if($request->filled('mosque_id')) $query->where('mosque_id', $request->input('mosque_id'));
-        if($request->filled('period_from')) $query->whereDate('period_start', '>=', $request->input('period_from'));
-        if($request->filled('period_to')) $query->whereDate('period_start', '<=', $request->input('period_to'));
 
         $items = $query->paginate(20)->appends($request->query());
 
@@ -41,8 +39,6 @@ class MosqueManagerController extends Controller
             'mosques' => $mosques,
             'items' => $items,
             'selected_mosque' => $request->input('mosque_id'),
-            'filter_period_from' => $request->input('period_from'),
-            'filter_period_to' => $request->input('period_to'),
         ]);
     }
 
@@ -50,8 +46,6 @@ class MosqueManagerController extends Controller
     {
         $data = $request->validate([
             'mosque_id' => 'required|exists:mosques,id',
-            'period_start' => 'nullable|date',
-            'period_end' => 'nullable|date|after_or_equal:period_start',
             'jumlah_pengurus' => 'nullable|integer|min:0',
             'ketua_pengurus' => 'nullable|string|max:255',
             'file' => 'nullable|file|mimes:pdf|max:10240',
@@ -59,8 +53,6 @@ class MosqueManagerController extends Controller
 
         $m = new MosqueManager();
         $m->mosque_id = $data['mosque_id'];
-        $m->period_start = $data['period_start'] ?? null;
-        $m->period_end = $data['period_end'] ?? null;
         $m->jumlah_pengurus = $data['jumlah_pengurus'] ?? null;
         $m->ketua_pengurus = $data['ketua_pengurus'] ?? null;
         $m->created_by = auth()->id();
@@ -92,8 +84,6 @@ class MosqueManagerController extends Controller
 
         $data = $request->validate([
             'mosque_id' => 'required|exists:mosques,id',
-            'period_start' => 'nullable|date',
-            'period_end' => 'nullable|date|after_or_equal:period_start',
             'jumlah_pengurus' => 'nullable|integer|min:0',
             'ketua_pengurus' => 'nullable|string|max:255',
             'file' => 'nullable|file|mimes:pdf|max:10240',
@@ -101,8 +91,6 @@ class MosqueManagerController extends Controller
         ]);
 
         $m->mosque_id = $data['mosque_id'];
-        $m->period_start = $data['period_start'] ?? null;
-        $m->period_end = $data['period_end'] ?? null;
         $m->jumlah_pengurus = $data['jumlah_pengurus'] ?? null;
         $m->ketua_pengurus = $data['ketua_pengurus'] ?? null;
         $m->edited_by = auth()->id();

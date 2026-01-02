@@ -11,6 +11,7 @@ class Mosque extends Model
         'province_id', 'city_id', 'witel_id',
         'regional_id', 'area_id', 'sto_id',
         'tahun_didirikan', 'jml_bkm', 'luas_tanah', 'daya_tampung',
+        'bank_name', 'bank_account_name', 'bank_account_number',
         'latitude', 'longitude', 'image_url',
         'description', 'completion_percentage',
         // new fields
@@ -57,9 +58,21 @@ class Mosque extends Model
         return $this->hasMany(MosqueFacility::class);
     }
 
+    /**
+     * Legacy single subsidiary relation (for backward compatibility)
+     */
     public function subsidiary()
     {
         return $this->belongsTo(Subsidiary::class, 'subsidiary_id');
+    }
+
+    /**
+     * Many-to-many subsidiaries relationship
+     */
+    public function subsidiaries()
+    {
+        return $this->belongsToMany(Subsidiary::class, 'mosque_subsidiary')
+            ->withTimestamps();
     }
 
     public function activities()

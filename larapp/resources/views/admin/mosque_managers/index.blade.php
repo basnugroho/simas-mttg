@@ -29,16 +29,6 @@
           <h5>Upload Pengurus</h5>
           <form method="POST" action="{{ route('admin.mosque_managers.store') }}" enctype="multipart/form-data">
             @csrf
-            <div class="row g-2">
-              <div class="col-md-6">
-                <label class="form-label small">Periode Mulai</label>
-                <input type="date" name="period_start" class="form-control" value="{{ old('period_start') }}">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label small">Periode Selesai (opsional)</label>
-                <input type="date" name="period_end" class="form-control" value="{{ old('period_end') }}">
-              </div>
-            </div>
 
             <div class="mb-2 mt-2">
               <label class="form-label small">Pilih Masjid</label>
@@ -80,12 +70,11 @@
         <div class="overflow-auto">
           <table class="w-full text-sm" style="width:100%">
             <thead>
-              <tr style="text-align:left"><th class="p-2">Periode</th><th class="p-2">Nama Masjid</th><th class="p-2">Regions Masjid</th><th class="p-2">Jumlah</th><th class="p-2">Ketua</th><th class="p-2">File</th><th class="p-2">Uploader</th><th class="p-2">Dibuat</th><th class="p-2">Aksi</th></tr>
+              <tr style="text-align:left"><th class="p-2">Nama Masjid</th><th class="p-2">Regions Masjid</th><th class="p-2">Jumlah</th><th class="p-2">Ketua</th><th class="p-2">File</th><th class="p-2">Uploader</th><th class="p-2">Dibuat</th><th class="p-2">Aksi</th></tr>
             </thead>
             <tbody>
               @foreach($items as $it)
                 <tr class="border-t">
-                  <td class="p-2">{{ $it->period_start?->toDateString() ?? '-' }} @if($it->period_end) — {{ $it->period_end->toDateString() }}@endif</td>
                   <td class="p-2">{{ $it->mosque?->name ?? '-' }}</td>
                   <td class="p-2">{{ $it->mosque ? $it->mosque->regionPath() : '-' }}</td>
                   <td class="p-2">{{ $it->jumlah_pengurus ?? '-' }}</td>

@@ -76,7 +76,6 @@ class CashPositionController extends Controller
     {
         $data = $request->validate([
             'period_start' => 'nullable|date',
-            'period_end' => 'nullable|date|after_or_equal:period_start',
             'mosque_id' => 'required|exists:mosques,id',
             'nominal' => 'nullable|numeric|min:0',
             'files.*' => 'nullable|file|max:10240',
@@ -86,7 +85,13 @@ class CashPositionController extends Controller
         $cp = new CashPosition();
         $cp->mosque_id = $data['mosque_id'];
         $cp->period_start = $data['period_start'] ?? null;
-        $cp->period_end = $data['period_end'] ?? null;
+        // Auto-calculate period_end as last day of the month
+        if (!empty($data['period_start'])) {
+            $startDate = \Carbon\Carbon::parse($data['period_start']);
+            $cp->period_end = $startDate->endOfMonth()->toDateString();
+        } else {
+            $cp->period_end = null;
+        }
         $cp->nominal = $data['nominal'] ?? null;
         $cp->note = $data['note'] ?? null;
         $cp->created_by = auth()->id();
@@ -124,7 +129,6 @@ class CashPositionController extends Controller
 
         $data = $request->validate([
             'period_start' => 'nullable|date',
-            'period_end' => 'nullable|date|after_or_equal:period_start',
             'mosque_id' => 'required|exists:mosques,id',
             'nominal' => 'nullable|numeric|min:0',
             'files.*' => 'nullable|mimes:pdf|max:10240',
@@ -134,7 +138,13 @@ class CashPositionController extends Controller
 
         $cp->mosque_id = $data['mosque_id'];
         $cp->period_start = $data['period_start'] ?? null;
-        $cp->period_end = $data['period_end'] ?? null;
+        // Auto-calculate period_end as last day of the month
+        if (!empty($data['period_start'])) {
+            $startDate = \Carbon\Carbon::parse($data['period_start']);
+            $cp->period_end = $startDate->endOfMonth()->toDateString();
+        } else {
+            $cp->period_end = null;
+        }
         $cp->nominal = $data['nominal'] ?? null;
         $cp->note = $data['note'] ?? null;
         $cp->edited_by = auth()->id();

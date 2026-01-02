@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mosque;
 use App\Models\Regions;
 use App\Models\MosquePhoto;
+use App\Models\Subsidiary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -106,6 +107,7 @@ class MosqueController extends Controller
         $regionals = Regions::where('level', 'REGIONAL')->orderBy('name')->get();
         $witels = Regions::where('level', 'WITEL')->orderBy('name')->get();
         $stos = Regions::where('level', 'STO')->orderBy('name')->get();
+        $subsidiaries = Subsidiary::orderBy('name')->get();
         $regions = collect();
         $mosque = new Mosque();
 
@@ -150,7 +152,7 @@ class MosqueController extends Controller
             foreach ($lockedValues as $field => $id) { try { $r = Regions::find($id); if ($r) $lockedLabels[$field] = $r->name; } catch (\Throwable $e) { } }
         }
 
-        return view('admin.master.mosques.create', compact('mosque', 'regionals', 'witels', 'stos', 'regions', 'myRole', 'myAssignments', 'lockedValues', 'lockedFields', 'lockedLabels'));
+        return view('admin.master.mosques.create', compact('mosque', 'regionals', 'witels', 'stos', 'subsidiaries', 'regions', 'myRole', 'myAssignments', 'lockedValues', 'lockedFields', 'lockedLabels'));
     }
 
     public function store(Request $request)
@@ -168,9 +170,18 @@ class MosqueController extends Controller
             'area_id' => 'nullable|exists:regions,id',
             'witel_id' => 'nullable|exists:regions,id',
             'sto_id' => 'nullable|exists:regions,id',
+            'subsidiary_ids' => 'nullable|array',
+            'subsidiary_ids.*' => 'exists:subsidiaries,id',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'bank_name' => 'nullable|string|max:100',
+            'bank_account_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:50',
         ]);
+
+        // Extract subsidiary_ids before creating mosque
+        $subsidiaryIds = $data['subsidiary_ids'] ?? [];
+        unset($data['subsidiary_ids']);
 
         // Sesuai permintaan: samakan province_id = regional_id dan city_id = area_id saat create.
         // Diset setelah validasi agar mengikuti nilai yang dimasukkan user.
@@ -181,6 +192,11 @@ class MosqueController extends Controller
         $this->authorize('create', $candidate);
 
         $mosque = Mosque::create($data);
+
+        // Sync subsidiaries (many-to-many)
+        if (!empty($subsidiaryIds)) {
+            $mosque->subsidiaries()->sync($subsidiaryIds);
+        }
 
         $request->validate([
             'photos.*' => 'image|max:5120',
@@ -209,6 +225,7 @@ class MosqueController extends Controller
         $regionals = Regions::where('level', 'REGIONAL')->orderBy('name')->get();
         $witels = Regions::where('level', 'WITEL')->orderBy('name')->get();
         $stos = Regions::where('level', 'STO')->orderBy('name')->get();
+        $subsidiaries = Subsidiary::orderBy('name')->get();
         $regions = collect();
         if($mosque->regional_id){
             $desc = Regions::collectDescendantIds((int)$mosque->regional_id);
@@ -254,7 +271,7 @@ class MosqueController extends Controller
         $lockedLabels = [];
         if (!empty($lockedValues)) { foreach ($lockedValues as $field => $id) { try { $r = Regions::find($id); if ($r) $lockedLabels[$field] = $r->name; } catch (\Throwable $e) { } } }
 
-        return view('admin.master.mosques.edit', compact('mosque', 'regionals', 'witels', 'stos', 'regions', 'myRole', 'myAssignments', 'lockedValues', 'lockedFields', 'lockedLabels'));
+        return view('admin.master.mosques.edit', compact('mosque', 'regionals', 'witels', 'stos', 'subsidiaries', 'regions', 'myRole', 'myAssignments', 'lockedValues', 'lockedFields', 'lockedLabels'));
     }
 
     public function exportAll(Request $request): StreamedResponse
@@ -391,9 +408,18 @@ class MosqueController extends Controller
             'area_id' => 'nullable|exists:regions,id',
             'witel_id' => 'nullable|exists:regions,id',
             'sto_id' => 'nullable|exists:regions,id',
+            'subsidiary_ids' => 'nullable|array',
+            'subsidiary_ids.*' => 'exists:subsidiaries,id',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'bank_name' => 'nullable|string|max:100',
+            'bank_account_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:50',
         ]);
+
+        // Extract subsidiary_ids before updating mosque
+        $subsidiaryIds = $data['subsidiary_ids'] ?? [];
+        unset($data['subsidiary_ids']);
 
         // Samakan juga saat update agar konsisten.
         $data['province_id'] = $data['regional_id'] ?? null;
@@ -404,6 +430,9 @@ class MosqueController extends Controller
             try { \Illuminate\Support\Facades\Log::info('mosque.update debug', ['files' => array_keys($request->allFiles()), 'count' => count($request->allFiles()), 'hasPhotosFile' => $request->hasFile('photos'), 'request_keys' => array_keys($request->all())]); } catch (\Throwable $__e) { }
             $this->authorize('update', $mosque);
             $mosque->update($data);
+
+            // Sync subsidiaries (many-to-many)
+            $mosque->subsidiaries()->sync($subsidiaryIds);
 
             // Process deletions of existing photos (if any)
             $deleteIdsRaw = $request->input('delete_photos', []);

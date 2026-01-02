@@ -4,16 +4,6 @@
     <form method="POST" action="{{ route('admin.mosque_managers.update', $m->id) }}" enctype="multipart/form-data">
       @csrf
       @method('PATCH')
-      <div class="row g-2">
-        <div class="col-md-6">
-          <label class="form-label small">Periode Mulai</label>
-          <input type="date" name="period_start" class="form-control" value="{{ old('period_start', $m->period_start?->toDateString()) }}">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label small">Periode Selesai (opsional)</label>
-          <input type="date" name="period_end" class="form-control" value="{{ old('period_end', $m->period_end?->toDateString()) }}">
-        </div>
-      </div>
 
       <div class="mb-2 mt-2">
         <label class="form-label small">Pilih Masjid</label>

@@ -23,6 +23,21 @@
   </div>
 
   <div class="form-row">
+    <label class="form-label">Subsidiary</label>
+    <div class="field">
+      @php
+        $selectedSubsidiaries = old('subsidiary_ids', isset($mosque) && $mosque->exists ? $mosque->subsidiaries->pluck('id')->toArray() : []);
+      @endphp
+      <select name="subsidiary_ids[]" class="form-control" multiple style="min-height: 120px;">
+        @foreach(($subsidiaries ?? []) as $sub)
+          <option value="{{ $sub->id }}" {{ in_array($sub->id, $selectedSubsidiaries) ? 'selected' : '' }}>{{ $sub->name }}</option>
+        @endforeach
+      </select>
+      <small class="text-muted">Tahan Ctrl/Cmd untuk memilih lebih dari satu</small>
+    </div>
+  </div>
+
+  <div class="form-row">
     <label class="form-label">Regional</label>
     <div class="field">
   <select name="regional_id" class="form-control" data-selected="{{ old('regional_id', $mosque->regional_id ?? ($lockedValues['regional_id'] ?? '')) }}" data-locked="{{ $lockedValues['regional_id'] ?? '' }}" @if(!empty($lockedFields) && in_array('regional_id', $lockedFields)) disabled @endif>
@@ -122,6 +137,21 @@
   <div class="form-row">
     <label class="form-label">Daya Tampung</label>
     <div class="field"><input type="number" name="daya_tampung" class="form-control" value="{{ old('daya_tampung', $mosque->daya_tampung ?? '') }}" /></div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">Nama Bank</label>
+    <div class="field"><input type="text" name="bank_name" class="form-control" value="{{ old('bank_name', $mosque->bank_name ?? '') }}" placeholder="Contoh: Bank Mandiri" /></div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">Atas Nama Rekening</label>
+    <div class="field"><input type="text" name="bank_account_name" class="form-control" value="{{ old('bank_account_name', $mosque->bank_account_name ?? '') }}" placeholder="Nama pemilik rekening" /></div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">Nomor Rekening</label>
+    <div class="field"><input type="text" name="bank_account_number" class="form-control" value="{{ old('bank_account_number', $mosque->bank_account_number ?? '') }}" placeholder="Nomor rekening bank" /></div>
   </div>
 
   <div class="form-row">
@@ -477,11 +507,12 @@
     })();
   </script>
   <script>
-    // Drag & drop multi-photo with captions. Keeps a hidden file input (photos-input) in sync using DataTransfer.
+    // Drag & drop multi-photo with captions. Use standard form submission with properly synced file input.
     (function(){
       var photosInput = document.getElementById('photos-input');
       var previews = document.getElementById('photo-previews');
       var dropzone = document.getElementById('photo-dropzone');
+      if(!photosInput || !previews || !dropzone) return;
 
       // local array of files
       var filesArr = [];
@@ -497,13 +528,13 @@
           filesArr.forEach(function(f){ dt.items.add(f); });
           photosInput.files = dt.files;
         }catch(e){
-          console.warn('DataTransfer not available', e);
+          console.warn('DataTransfer not available, using fallback', e);
         }
       }
 
       function createPreview(file, idx){
-          var wrap = document.createElement('div'); wrap.className = 'photo-preview'; wrap.style = 'width:180px';
-          var img = document.createElement('img'); img.style = 'width:180px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6';
+        var wrap = document.createElement('div'); wrap.className = 'photo-preview'; wrap.style = 'width:180px';
+        var img = document.createElement('img'); img.style = 'width:180px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6';
         var info = document.createElement('div'); info.style = 'margin-top:6px;font-size:12px;color:#374151';
         var caption = document.createElement('input'); caption.type='text'; caption.name='photo_captions[]'; caption.placeholder='Caption (optional)'; caption.className='form-control'; caption.style='width:100%;margin-top:6px;font-size:12px';
         var remove = document.createElement('button'); remove.type='button'; remove.className='btn btn-sm btn-outline-danger'; remove.style='margin-top:6px'; remove.innerText='Remove';
@@ -522,15 +553,16 @@
           wrap.remove(); rebuildInput();
         });
 
-        // attach file object for later collection by the submit fallback
+        // attach file object for later collection
         try{ wrap.__fileObj = file; }catch(e){}
         return wrap;
       }
 
       function addFiles(fileList){
         Array.from(fileList).forEach(function(f){
-          // optional: validate type/size
+          // validate type/size
           if(!f.type.startsWith('image/')) return;
+          if(f.size > 5 * 1024 * 1024){ alert('File ' + f.name + ' terlalu besar (max 5MB)'); return; }
           filesArr.push(f);
           var p = createPreview(f, filesArr.length-1);
           previews.appendChild(p);
@@ -539,64 +571,115 @@
       }
 
       // drag & drop handlers
-      dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.style.background='#fbfbfb'; });
+      dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.style.background='#f3f4f6'; });
       dropzone.addEventListener('dragleave', function(e){ dropzone.style.background=''; });
       dropzone.addEventListener('drop', function(e){ e.preventDefault(); dropzone.style.background=''; if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
 
       // browse button opens file picker
-      document.getElementById('photo-browse').addEventListener('click', function(){ photosInput.click(); });
-      photosInput.addEventListener('change', function(e){ if(e.target.files) addFiles(e.target.files); photosInput.value=''; });
+      var browseBtn = document.getElementById('photo-browse');
+      if(browseBtn){
+        browseBtn.addEventListener('click', function(e){ e.preventDefault(); photosInput.click(); });
+      }
+      photosInput.addEventListener('change', function(e){ if(e.target.files && e.target.files.length) addFiles(e.target.files); });
 
+      // Expose helper for form submission
+      window.__mosquePhotoFiles = filesArr;
+      window.__rebuildPhotoInput = rebuildInput;
     })();
-    // expose the filesArr and a helper to the outer scope so submit handler can attach them to FormData
+
+    // Handle form submission with photos using FormData and fetch for reliable file upload
     (function(){
-      // collector: read attached File objects from preview nodes (we attach them when creating previews)
-      window.__collectPreviewFiles = function(){
+      var form = document.querySelector('form[action*="mosques"]');
+      if(!form) form = document.querySelector('form');
+      if(!form) return;
+
+      form.addEventListener('submit', function(e){
         var previews = document.getElementById('photo-previews');
+        // Collect files from preview elements
         var files = [];
-        if(!previews) return files;
-        Array.from(previews.children).forEach(function(el){ if(el && el.__fileObj) files.push(el.__fileObj); });
-        return files;
-      };
-    })();
-
-    // Intercept form submit: if there are client-managed files (previews with attached File objects), submit via fetch with FormData
-    (function(){
-      var form = document.currentScript ? document.currentScript.closest('form') : document.querySelector('form');
-      var mosqueForm = form || document.querySelector('form');
-      if(!mosqueForm) return;
-      mosqueForm.addEventListener('submit', function(e){
-        try{
-          var previews = document.getElementById('photo-previews');
-          if(!previews) return; // no previews UI
-          // gather file objects attached to preview nodes
-          var files = [];
+        if(previews){
           Array.from(previews.children).forEach(function(el){ if(el && el.__fileObj) files.push(el.__fileObj); });
-          if(!files.length) return; // no client-managed files, proceed with normal submit
+        }
 
-          // prevent normal submit and send via fetch
-          e.preventDefault();
-          var fd = new FormData(mosqueForm);
-          // append files from previews
-          files.forEach(function(f){ fd.append('photos[]', f, f.name); });
+        // If no new photos, let the form submit normally
+        if(!files.length) return;
 
-          // when sending FormData for files, always use POST so PHP/Laravel can parse uploaded files.
-          // If the form intends to be PUT/PATCH, include the _method override in the FormData.
-          // determine original intent (PUT/PATCH) and ensure Laravel sees the _method override
-          var origMethodEl = mosqueForm.querySelector('input[name="_method"]');
-          var origMethod = origMethodEl ? (origMethodEl.value || mosqueForm.method || 'POST') : (mosqueForm.method || 'POST');
-          var httpMethod = 'POST'; // always send FormData via POST so PHP receives files
-          if(origMethod && String(origMethod).toUpperCase() !== 'POST'){
-            // always append the _method key (no leading spaces) so Laravel can detect it
-            try{ fd.append('_method', origMethod); }catch(e){ /* ignore append errors */ }
+        // Prevent default and submit via fetch to properly handle file uploads
+        e.preventDefault();
+
+        var fd = new FormData(form);
+
+        // Remove the existing photos[] entries and re-add fresh files
+        fd.delete('photos[]');
+        files.forEach(function(f){
+          fd.append('photos[]', f, f.name);
+        });
+
+        // Get CSRF token
+        var csrfToken = form.querySelector('input[name="_token"]');
+        if(csrfToken && !fd.has('_token')){
+          fd.append('_token', csrfToken.value);
+        }
+
+        // Handle method override for PUT/PATCH
+        var methodInput = form.querySelector('input[name="_method"]');
+        if(methodInput && methodInput.value){
+          fd.set('_method', methodInput.value);
+        }
+
+        // Show loading state
+        var submitBtn = form.querySelector('button[type="submit"], button.btn-primary');
+        var originalText = submitBtn ? submitBtn.innerHTML : '';
+        if(submitBtn){
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Uploading...';
+        }
+
+        fetch(form.action, {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html, application/json'
           }
-          fetch(mosqueForm.action, { method: httpMethod, body: fd, credentials: 'same-origin' })
-            .then(function(res){
-              if(res.redirected){ window.location = res.url; return; }
-              if(res.ok){ window.location.reload(); return; }
-              window.location.reload();
-            }).catch(function(err){ console.warn('Submit failed', err); window.location.reload(); });
-        }catch(err){ console.warn('submit handler error', err); }
+        })
+        .then(function(res){
+          if(res.redirected){
+            window.location.href = res.url;
+            return;
+          }
+          if(res.ok){
+            // Try to get redirect URL from response
+            return res.text().then(function(html){
+              // Check if it's a redirect response
+              var match = html.match(/window\.location\s*=\s*['"]([^'"]+)['"]/);
+              if(match){
+                window.location.href = match[1];
+              } else {
+                window.location.href = '{{ route("admin.mosques.index") }}';
+              }
+            });
+          } else {
+            // Handle error
+            return res.text().then(function(text){
+              console.error('Upload error:', text);
+              alert('Upload gagal. Silakan coba lagi.');
+              if(submitBtn){
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+              }
+            });
+          }
+        })
+        .catch(function(err){
+          console.error('Fetch error:', err);
+          alert('Terjadi kesalahan saat upload. Silakan coba lagi.');
+          if(submitBtn){
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+          }
+        });
       });
     })();
   </script>

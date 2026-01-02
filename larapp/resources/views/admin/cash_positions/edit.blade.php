@@ -14,12 +14,23 @@
       @method('PATCH')
       <div class="row g-2">
         <div class="col-md-6">
-          <label class="form-label small">Periode Mulai</label>
-          <input type="date" name="period_start" class="form-control" value="{{ old('period_start', $cp->period_start?->toDateString()) }}">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label small">Periode Selesai</label>
-          <input type="date" name="period_end" class="form-control" value="{{ old('period_end', $cp->period_end?->toDateString()) }}">
+          <label class="form-label small">Periode</label>
+          @php
+            $currentYear = date('Y');
+            $selectedPeriod = old('period_start', $cp->period_start?->format('Y-m').'-01');
+          @endphp
+          <select name="period_start" class="form-select">
+            <option value="">-- Pilih Periode --</option>
+            @for($month = 1; $month <= 12; $month++)
+              @php
+                $periodValue = $currentYear . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '-01';
+                $monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                $periodLabel = $monthNames[$month] . ' ' . $currentYear;
+              @endphp
+              <option value="{{ $periodValue }}" {{ $selectedPeriod == $periodValue ? 'selected' : '' }}>{{ $periodLabel }}</option>
+            @endfor
+          </select>
+          <small class="text-muted">Contoh: Januari 2025 = periode 01/01/2025 - 31/01/2025</small>
         </div>
       </div>
 
